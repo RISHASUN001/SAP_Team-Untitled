@@ -64,7 +64,10 @@ How would you like to get started today?`,
         const res = await fetch('/api/chat/mentor-suggest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMessage })
+          body: JSON.stringify({ 
+            message: userMessage,
+            user_id: currentUser?.id || 'default_user'
+          })
         });
         const data = await res.json();
         return {
@@ -163,7 +166,10 @@ How would you like to get started today?`,
     setInput(suggestion);
   };
 
-  const resetConversation = () => {
+  // UPDATED FUNCTION: Now clears both frontend AND backend conversation history
+  // This ensures a complete reset when user clicks the refresh button
+  const resetConversation = async () => {
+    // Step 1: Clear frontend messages (UI reset)
     setMessages([{
       id: '1',
       type: 'ai',
@@ -172,6 +178,22 @@ How would you like to get started today?`,
     }]);
     setMentorMode(false);
     setPracticeMode(false);
+    
+    // Step 2: NEW - Clear backend conversation history stored in mentor_mode.py
+    // This ensures the AI doesn't remember previous conversation context
+    try {
+      await fetch('/api/chat/mentor-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          user_id: currentUser?.id || 'default_user' // Send user ID to clear specific conversation
+        })
+      });
+      console.log('Backend conversation history cleared successfully');
+    } catch (error) {
+      console.error('Failed to reset backend conversation:', error);
+      // Note: Frontend still resets even if backend reset fails
+    }
   };
 
   return (

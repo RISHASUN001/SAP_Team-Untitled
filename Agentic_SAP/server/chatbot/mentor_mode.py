@@ -27,6 +27,9 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# Store conversation context (in-memory for demo - use database in production)
+conversation_store = {}
+
 # =========================
 # Helper Functions
 # =========================
@@ -88,36 +91,146 @@ def mentor_suggest():
     data = request.json
     print(f"[mentor_mode.py] Raw POST data: {data}")
     message = data.get('message', '')
+    user_id = data.get('user_id', 'default_user')  # Use session ID in production
     print(f"[mentor_mode.py] Extracted message: {message}")
+    
+    # Get or create conversation history for this user
+    if user_id not in conversation_store:
+        conversation_store[user_id] = {'messages': [], 'clarification_count': 0}
+    
+    # Add current message to conversation history (keep last 5)
+    conversation_store[user_id]['messages'].append(message)
+    if len(conversation_store[user_id]['messages']) > 5:
+        conversation_store[user_id]['messages'] = conversation_store[user_id]['messages'][-5:]
+    
+    # Combine all previous inputs to understand full context
+    full_context = " | ".join(conversation_store[user_id]['messages'])
+    print(f"[mentor_mode.py] Full conversation context: {full_context}")
+    print(f"[mentor_mode.py] Clarification count: {conversation_store[user_id]['clarification_count']}")
+    
     print(f"[mentor_mode.py] Running vector search...")
-    docs = vector_index.similarity_search(message, k=3)
+    docs = vector_index.similarity_search(full_context, k=3)
     print(f"[mentor_mode.py] Vector search returned {len(docs)} docs.")
     context = "\n".join([doc.page_content for doc in docs])
     print(f"[mentor_mode.py] Context for prompt: {context}")
-    prompt = (
-        "You are a professional mentoring assistant.\n"
-        "Your job is to help users communicate more effectively and empathetically with their team.\n"
-        "If you need more information, ask 1-2 clarifying questions.\n"
-        "Use the following context from the knowledge base if relevant:\n"
-        f"{context}\n"
-        f"User message: {message}\n"
-        "Analyze the user's intent and provide 3 actionable, soft-skill-focused suggestions for mentoring.\n"
-        "Be concise, practical, and use a friendly, supportive tone."
-    )
+    
+    # Enhanced prompt with clarification limit and sample analysis
+    clarification_limit = 3
+    clarifications_used = conversation_store[user_id]['clarification_count']
+    
+    # Check if user shared a sample/draft to review
+    sample_indicators = ["here's what i plan to", "here's my draft", "here's the message", "this is what i wrote", "sample:", "draft:", "what do you think of", "how can i improve", "feedback on", "review this"]
+    has_sample = any(indicator in full_context.lower() for indicator in sample_indicators)
+    
+    if clarifications_used >= clarification_limit:
+        if has_sample:
+            # Force giving sample critique after 3 clarifications
+            prompt = (
+                "You are a professional mentoring assistant and communication critic.\n"
+                "Analyze the sample message/draft and provide specific, gentle feedback.\n\n"
+                "Use the following knowledge base if relevant:\n"
+                f"{context}\n\n"
+                f"Full conversation: {full_context}\n\n"
+                "Provide feedback in this format:\n"
+                "**What works well:** [positive aspects]\n"
+                "**Suggestions for improvement:** [gentle, specific suggestions]\n"
+                "**Overall:** [supportive assessment]\n\n"
+                "Be constructive, kind, and focus on tone, clarity, and empathy.\n"
+                "Keep response under 300 words to avoid cutoffs."
+            )
+        else:
+            # Force giving general suggestions after 3 clarifications
+            prompt = (
+                "You are a professional mentoring assistant.\n"
+                "Provide 3 gentle, actionable suggestions based on our conversation.\n\n"
+                "Use the following knowledge base if relevant:\n"
+                f"{context}\n\n"
+                f"Full conversation: {full_context}\n\n"
+                "Format as:\n"
+                "**1. [Suggestion title]:** [gentle, practical advice]\n"
+                "**2. [Suggestion title]:** [gentle, practical advice]\n"
+                "**3. [Suggestion title]:** [gentle, practical advice]\n\n"
+                "Be supportive and encouraging. Keep under 300 words."
+            )
+    else:
+        if has_sample:
+            # Sample analysis mode with potential clarification
+            prompt = (
+                "You are a professional mentoring assistant and communication critic.\n"
+                "The user shared a sample message for feedback.\n\n"
+                "INSTRUCTIONS:\n"
+                "- If you need important context (recipient relationship, situation details), ask 1-2 specific questions.\n"
+                "- If you have enough context, provide gentle feedback on the sample.\n"
+                "- Be conversational and supportive, avoid repetitive phrases.\n"
+                "- Keep responses concise and under 300 words.\n\n"
+                "Use the following knowledge base if relevant:\n"
+                f"{context}\n\n"
+                f"Conversation history: {full_context}\n"
+                f"Latest message: {message}\n\n"
+                "Either ask clarifying questions OR provide sample feedback - not both."
+            )
+        else:
+            # General mentoring mode
+            prompt = (
+                "You are a professional mentoring assistant.\n"
+                "Help users communicate more effectively with their team.\n\n"
+                "INSTRUCTIONS:\n"
+                "- FIRST analyze if you have enough context to give good advice.\n"
+                "- If the situation is vague or you need important details, ask 1-2 specific clarifying questions.\n"
+                "- Only provide suggestions when you have sufficient context.\n"
+                "- Be conversational and supportive.\n"
+                "- Keep all responses under 300 words.\n\n"
+                "Use the following knowledge base if relevant:\n"
+                f"{context}\n\n"
+                f"Conversation history: {full_context}\n"
+                f"Latest message: {message}\n\n"
+                "ANALYZE: Do you need to understand more about the mistake, the relationship with Mary, or the workplace context before giving advice?\n"
+                "- If YES: Ask specific, helpful questions.\n"
+                "- If NO: Provide 3 gentle, actionable suggestions.\n"
+            )
     print(f"[mentor_mode.py] Prompt sent to LLM:\n{prompt}")
     print(f"[mentor_mode.py] Waiting for LLM response...")
     llm_start = time.time()
     response = client.chat.completions.create(
         model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
         messages=[{"role": "system", "content": prompt}],
-        max_tokens=350
+        max_tokens=300  # Reduced to prevent cutoffs
     )
     llm_end = time.time()
     suggestions = response.choices[0].message.content
+    
+    # Check if this was a clarifying question (increment counter)
+    if clarifications_used < clarification_limit and ("?" in suggestions or "clarify" in suggestions.lower() or "tell me" in suggestions.lower()):
+        conversation_store[user_id]['clarification_count'] += 1
+        print(f"[mentor_mode.py] Clarification question asked. Count: {conversation_store[user_id]['clarification_count']}")
+    
     print(f"[mentor_mode.py] LLM response: {suggestions}")
     print(f"[mentor_mode.py] LLM response time: {llm_end - llm_start:.2f}s")
     print(f"[mentor_mode.py] --- Mentor Suggest API finished in {time.time() - start_time:.2f}s ---\n")
     return jsonify({"suggestions": suggestions})
+
+@app.route('/api/mentor-reset', methods=['POST'])
+def mentor_reset():
+    """
+    NEW ENDPOINT: Reset conversation history for a specific user
+    
+    This endpoint clears the backend conversation store when the user clicks
+    the reset/refresh button in the frontend. It ensures that:
+    - All previous conversation context is cleared
+    - Clarification count is reset to 0
+    - Fresh conversation starts without any memory of previous interactions
+    
+    Called from: Frontend Chat.tsx resetConversation() function
+    """
+    data = request.json
+    user_id = data.get('user_id', 'default_user')
+    
+    # Clear conversation history for this user - resets both messages and clarification count
+    if user_id in conversation_store:
+        conversation_store[user_id] = {'messages': [], 'clarification_count': 0}
+        print(f"[mentor_mode.py] Conversation reset for user: {user_id}")
+    
+    return jsonify({"status": "reset_complete", "user_id": user_id})
 
 @app.route('/health', methods=['GET'])
 def health():

@@ -186,19 +186,39 @@ app.get('/api/auth/profile/:userId', (req, res) => {
 // Mentor Mode Chat Endpoints
 // =========================
 app.post('/api/chat/mentor-suggest', async (req, res) => {
-  const { message } = req.body;
+  const { message, user_id } = req.body; // UPDATED: Now forwards user_id to Python backend
   // Forward the message to Python Flask server
   try {
     const response = await fetch('http://localhost:5001/api/mentor-suggest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message, user_id }) // UPDATED: Include user_id for conversation tracking
     });
     const data = await response.json();
     res.json(data);
   } catch (error) {
     console.error('Error connecting to Python server:', error);
     res.status(500).json({ error: 'Failed to get mentor suggestion from AI server.' });
+  }
+});
+
+// NEW ENDPOINT: Reset conversation history in Python backend
+// This endpoint forwards reset requests to the Python Flask server
+// Called when user clicks the reset/refresh button in frontend
+app.post('/api/chat/mentor-reset', async (req, res) => {
+  const { user_id } = req.body;
+  // Forward reset request to Python Flask server to clear conversation_store
+  try {
+    const response = await fetch('http://localhost:5001/api/mentor-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Python server for reset:', error);
+    res.status(500).json({ error: 'Failed to reset conversation on AI server.' });
   }
 });
 
