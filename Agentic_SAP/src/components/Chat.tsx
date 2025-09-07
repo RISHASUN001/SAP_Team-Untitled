@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import Layout from './Layout';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -12,13 +13,20 @@ import {
   RotateCcw
 } from 'lucide-react';
 
+interface Button {
+  text: string;
+  action: string;
+}
+
 interface Message {
   id: string;
   type: 'user' | 'ai';
   content: string;
   timestamp: Date;
   suggestions?: string[];
-  mode?: 'mentor' | 'practice';
+  mode?: 'mentor' | 'practice' | 'general';
+  buttons?: Button[];
+  messageType?: string;
 }
 
 const Chat: React.FC = () => {
@@ -28,7 +36,6 @@ const Chat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mentorMode, setMentorMode] = useState(false);
   const [practiceMode, setPracticeMode] = useState(false);
-  const [practiceScenario, setPracticeScenario] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,13 +44,24 @@ const Chat: React.FC = () => {
       setMessages([{
         id: '1',
         type: 'ai',
-        content: `Hello ${currentUser?.name}! I'm your AI mentoring assistant. I can help you in several ways:
+        content: `Hello **${currentUser?.name}**! I'm your AI mentoring assistant. I can help you in several ways:
 
-• **Mentor Mode**: Get suggestions on how to respond to your mentees
-• **Practice Mode**: Practice your mentoring skills with simulated scenarios
-• **General Chat**: Ask questions about mentoring, career development, or technical topics
+---
+**1. Mentor Mode**  
+Get suggestions on how to respond to your mentees or have your responses reviewed.  
+👉 Click the **Mentor Mode** button to start.
 
-How would you like to get started today?`,
+**2. Practice Mode**  
+Practice your mentoring skills through simulated scenarios.  
+👉 Click the **Practice Mode** button to begin.
+
+**3. Onboarding Assistant**  
+Get comprehensive information about the SAP Data Science department, team structure, processes, tools, and career development.  
+👉 If you ever want to revisit this, just click the **Refresh** button.
+
+---
+
+**How would you like to get started today?**`,
         timestamp: new Date()
       }]);
     }
@@ -89,45 +107,104 @@ How would you like to get started today?`,
     }
 
     
-    // ...existing code for practice and general modes...
-    let response = '';
-    let suggestions: string[] = [];
+    // UPDATED: Handle practice mode with real API calls
     if (mode === 'practice') {
-      const scenarios = [
-        "I'm struggling with imposter syndrome. Everyone seems to know so much more than me.",
-        "I've been working on this ML project for weeks but keep getting stuck on the same problem.",
-        "How do I know if I'm ready to apply for a senior role?",
-        "I want to transition from data analysis to data science, but I don't know where to start."
-      ];
-      response = scenarios[Math.floor(Math.random() * scenarios.length)];
-    } else {
-      const responses = [
-        `That's a great question! As a mentor, it's important to remember that your role is to guide and support, not to solve every problem for your mentee. Here are some key principles:
-• **Active Listening**: Really hear what they're saying beyond just the words
-• **Ask Good Questions**: Help them discover solutions rather than giving direct answers
-• **Share Experiences**: Your journey can provide valuable insights
-• **Set Clear Expectations**: Both for yourself and your mentee`,
-        `Effective mentoring is about creating a safe space for growth. Consider these approaches:
-• **Regular Check-ins**: Consistency builds trust and momentum
-• **Goal Setting**: Help them define clear, achievable objectives
-• **Feedback Loops**: Provide both positive reinforcement and constructive criticism
-• **Resource Sharing**: Point them toward valuable learning materials and opportunities`,
-        `Remember that mentoring is a two-way relationship. You'll likely learn as much from your mentees as they learn from you. Focus on:
-• **Empathy**: Everyone's learning journey is different
-• **Patience**: Growth takes time and happens at different paces
-• **Adaptability**: Adjust your style to match their needs
-• **Encouragement**: Celebrate small wins along the way`
-      ];
-      response = responses[Math.floor(Math.random() * responses.length)];
+      // Call backend API for practice mode
+      try {
+        const res = await fetch('/api/chat/practice-respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: userMessage,
+            user_id: currentUser?.id || 'default_user'
+          })
+        });
+        const data = await res.json();
+        return {
+          id: Date.now().toString(),
+          type: 'ai',
+          content: data.response || 'No practice response received.',
+          timestamp: new Date(),
+          mode: 'practice',
+          buttons: data.buttons || undefined,
+          messageType: data.type || undefined
+        };
+      } catch (error) {
+        return {
+          id: Date.now().toString(),
+          type: 'ai',
+          content: 'Error: Unable to get practice response from AI server.',
+          timestamp: new Date(),
+          mode: 'practice'
+        };
+      }
     }
-    return {
-      id: Date.now().toString(),
-      type: 'ai',
-      content: response,
-      timestamp: new Date(),
-      suggestions: suggestions.length > 0 ? suggestions : undefined,
-      mode: mode as 'mentor' | 'practice'
-    };
+
+    // General chat mode with AI-powered onboarding assistance
+    try {
+      const res = await fetch('/api/chat/general-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: userMessage,
+          user_id: currentUser?.id || 'default_user'
+        })
+      });
+      const data = await res.json();
+      return {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: data.response || 'No response received.',
+        timestamp: new Date(),
+        suggestions: data.suggestions || undefined,
+        mode: 'general'
+      };
+    } catch (error) {
+      console.error('Error getting general chat response:', error);
+      // Fallback to basic response if API fails
+      const fallbackResponses = [
+        `I'd be happy to help you with information about the SAP Data Science Department! I can provide details about:
+
+• Team structure and leadership
+• Onboarding process and timeline
+• Technology stack and tools
+• Current projects and initiatives
+• Career development opportunities
+• Learning resources and training
+
+What specific topic would you like to explore?`,
+        `Welcome to SAP Data Science! Here are some key things you should know:
+
+• **Our Mission**: Democratizing data science across SAP through intelligent solutions
+• **Technology Stack**: Python, SAP AI Core, HANA Cloud, and modern ML frameworks
+• **Team Structure**: Specialized teams for AI Platform, Customer Intelligence, and more
+• **Learning**: Comprehensive onboarding and continuous development opportunities
+
+How can I help you get started?`,
+        `As part of your onboarding journey, you'll have access to:
+
+• **Technical Training**: Hands-on workshops with SAP platforms
+• **Mentorship Program**: Pairing with experienced data scientists
+• **Project Assignments**: Real-world challenges from day one
+• **Career Development**: Clear progression paths and learning opportunities
+
+What aspect would you like to know more about?`
+      ];
+      
+      const response = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      return {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: response,
+        timestamp: new Date(),
+        suggestions: [
+          "Tell me about the team structure",
+          "What should I know for my first week?",
+          "What tools and technologies do we use?"
+        ],
+        mode: 'general'
+      };
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,6 +243,78 @@ How would you like to get started today?`,
     setInput(suggestion);
   };
 
+  // NEW FUNCTION: Handle button clicks (Yes/No for scenarios, etc.)
+  const handleButtonClick = async (action: string) => {
+    if (isLoading) return;
+
+    // Create a user message showing what button was clicked
+    const buttonMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: action === 'yes' ? '✅ Yes, Start Scenario' : 
+               action === 'no' ? '🔄 Different Scenario' :
+               action === 'exit' ? '❌ Exit Practice' : action,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, buttonMessage]);
+    setIsLoading(true);
+
+    try {
+      const currentMode = practiceMode ? 'practice' : 'general';
+      const aiResponse = await generateAIResponse(action, currentMode);
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error handling button click:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: 'I apologize, but I encountered an error. Please try again.',
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // NEW FUNCTION: Start practice session when practice mode is activated
+  const startPracticeSession = async () => {
+    try {
+      const res = await fetch('/api/chat/practice-start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          user_id: currentUser?.id || 'default_user'
+        })
+      });
+      const data = await res.json();
+      
+      // Add the practice start message to chat
+      const practiceStartMessage: Message = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: data.response || 'Practice session started!',
+        timestamp: new Date(),
+        mode: 'practice',
+        buttons: data.buttons || undefined,
+        messageType: data.type || undefined
+      };
+      
+      setMessages(prev => [...prev, practiceStartMessage]);
+    } catch (error) {
+      console.error('Failed to start practice session:', error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: 'Error: Unable to start practice session. Please try again.',
+        timestamp: new Date(),
+        mode: 'practice'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
+  // UPDATED FUNCTION: Now clears both frontend AND backend conversation history
   // UPDATED FUNCTION: Now clears both frontend AND backend conversation history
   // This ensures a complete reset when user clicks the refresh button
   const resetConversation = async () => {
@@ -173,25 +322,57 @@ How would you like to get started today?`,
     setMessages([{
       id: '1',
       type: 'ai',
-      content: `Conversation reset! I'm ready to help you with mentoring guidance. What would you like to discuss?`,
+      content: `**Conversation Reset!** 🔄
+
+I'm ready to help you with mentoring guidance. Here's what I can assist with:
+
+**1. Mentor Mode**  
+Get suggestions on how to respond to your mentees or have your responses reviewed.  
+👉 Click the **Mentor Mode** button to start.
+
+**2. Practice Mode**  
+Practice your mentoring skills through simulated scenarios.  
+👉 Click the **Practice Mode** button to begin.
+
+**3. Onboarding Assistant**  
+Get comprehensive information about the SAP Data Science department, team structure, processes, tools, and career development.  
+👉 If you ever want to revisit this, just click the **Refresh** button.
+
+
+**What would you like to discuss?**`,
       timestamp: new Date()
     }]);
     setMentorMode(false);
     setPracticeMode(false);
     
-    // Step 2: NEW - Clear backend conversation history stored in mentor_mode.py
-    // This ensures the AI doesn't remember previous conversation context
+    // Step 2: NEW - Clear backend conversation history for ALL modes
+    const user_id = currentUser?.id || 'default_user';
+    
     try {
+      // Clear mentor mode history
       await fetch('/api/chat/mentor-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user_id: currentUser?.id || 'default_user' // Send user ID to clear specific conversation
-        })
+        body: JSON.stringify({ user_id })
       });
-      console.log('Backend conversation history cleared successfully');
+      
+      // Clear practice mode history
+      await fetch('/api/chat/practice-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id })
+      });
+      
+      // NEW: Clear general chat history
+      await fetch('/api/chat/general-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id })
+      });
+      
+      console.log('All conversation histories cleared successfully');
     } catch (error) {
-      console.error('Failed to reset backend conversation:', error);
+      console.error('Failed to reset backend conversations:', error);
       // Note: Frontend still resets even if backend reset fails
     }
   };
@@ -210,10 +391,10 @@ How would you like to get started today?`,
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    AI Mentor Assistant
+                    Work Buddy
                   </h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {mentorMode ? 'Mentor Mode Active' : practiceMode ? 'Practice Mode Active' : 'General Chat'}
+                    {mentorMode ? 'Mentor Mode Active' : practiceMode ? 'Practice Mode Active' : 'Onboarding Assistant Active'}
                   </p>
                 </div>
               </div>
@@ -236,8 +417,14 @@ How would you like to get started today?`,
                 
                 <button
                   onClick={() => {
+                    const wasAlreadyActive = practiceMode;
                     setPracticeMode(!practiceMode);
                     setMentorMode(false);
+                    
+                    // NEW: Auto-start practice session when activating practice mode
+                    if (!wasAlreadyActive && !practiceMode) {
+                      startPracticeSession();
+                    }
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     practiceMode
@@ -290,7 +477,36 @@ How would you like to get started today?`,
                         : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border dark:border-gray-700'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <ReactMarkdown
+                        components={{
+                          // Custom styling for different markdown elements
+                          p: ({ children }) => (
+                            <p className="mb-2 last:mb-0">{children}</p>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-gray-900 dark:text-white">{children}</strong>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-gray-800 dark:text-gray-200">{children}</li>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2 mt-4 first:mt-0">{children}</h3>
+                          ),
+                          h4: ({ children }) => (
+                            <h4 className="font-medium text-gray-900 dark:text-white mb-2 mt-3 first:mt-0">{children}</h4>
+                          ),
+                          code: ({ children }) => (
+                            <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono">{children}</code>
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
                     {message.suggestions && (
                       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
@@ -304,6 +520,30 @@ How would you like to get started today?`,
                               className="block w-full text-left text-sm p-2 rounded bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                             >
                               {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {message.buttons && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex flex-wrap gap-2">
+                          {message.buttons.map((button, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleButtonClick(button.action)}
+                              disabled={isLoading}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                button.action === 'yes'
+                                  ? 'bg-green-500 hover:bg-green-600 text-white'
+                                  : button.action === 'no'
+                                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                                  : button.action === 'exit'
+                                  ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                                  : 'bg-primary-500 hover:bg-primary-600 text-white'
+                              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                              {button.text}
                             </button>
                           ))}
                         </div>
@@ -348,7 +588,7 @@ How would you like to get started today?`,
                       ? "Describe a mentoring situation you need help with..."
                       : practiceMode
                       ? "Type your response to practice mentoring..."
-                      : "Ask me about mentoring, career advice, or technical guidance..."
+                      : "Ask me about the SAP Data Science department, onboarding, tools, or any work-related questions..."
                   }
                   className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                   rows={3}
@@ -397,10 +637,10 @@ How would you like to get started today?`,
 
             <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
               <h3 className="font-medium text-purple-900 dark:text-purple-300 mb-2">
-                💬 General Chat
+                💬 Onboarding Assistant
               </h3>
               <p className="text-sm text-purple-700 dark:text-purple-400">
-                Ask questions about mentoring best practices, career development, technical topics, or general guidance.
+                Get help with onboarding questions about the SAP Data Science department, team structure, processes, tools, and resources. Powered by AI with comprehensive knowledge base.
               </p>
             </div>
           </div>
@@ -410,13 +650,36 @@ How would you like to get started today?`,
               Quick Topics
             </h3>
             <div className="space-y-2">
-              {[
-                "How to give constructive feedback?",
-                "Dealing with unmotivated mentees",
-                "Setting mentoring goals",
-                "Building trust with mentees",
-                "Technical skill development"
-              ].map((topic, index) => (
+              {(() => {
+                let topics = [];
+                if (mentorMode) {
+                  topics = [
+                    "How to give constructive feedback?",
+                    "Dealing with unmotivated mentees",
+                    "Setting mentoring goals",
+                    "Building trust with mentees",
+                    "Technical skill development"
+                  ];
+                } else if (practiceMode) {
+                  topics = [
+                    "Start a practice scenario",
+                    "Practice difficult conversations",
+                    "Role-play technical mentoring",
+                    "Practice giving feedback",
+                    "Exit practice mode"
+                  ];
+                } else {
+                  // onboarding topics
+                  topics = [
+                    "Tell me about the SAP Data Science team structure",
+                    "What should I prepare for my first week?",
+                    "What tools and technologies do we use?",
+                    "How does the onboarding process work?",
+                    "What are the current projects and initiatives?"
+                  ];
+                }
+                return topics;
+              })().map((topic, index) => (
                 <button
                   key={index}
                   onClick={() => setInput(topic)}

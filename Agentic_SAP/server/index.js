@@ -222,6 +222,121 @@ app.post('/api/chat/mentor-reset', async (req, res) => {
   }
 });
 
+// =========================
+// Practice Mode Chat Endpoints - UPDATED to connect to practice_mode.py
+// =========================
+// NEW ENDPOINT: Start practice session with scenario selection
+app.post('/api/chat/practice-start', async (req, res) => {
+  const { user_id } = req.body;
+  // Forward request to Practice Mode Python server (port 5002)
+  try {
+    const response = await fetch('http://localhost:5002/api/practice-start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Practice Mode server:', error);
+    res.status(500).json({ error: 'Failed to start practice session.' });
+  }
+});
+
+// NEW ENDPOINT: Handle practice mode conversation
+app.post('/api/chat/practice-respond', async (req, res) => {
+  const { message, user_id } = req.body;
+  // Forward request to Practice Mode Python server (port 5002)
+  try {
+    const response = await fetch('http://localhost:5002/api/practice-respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, user_id })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Practice Mode server:', error);
+    res.status(500).json({ error: 'Failed to get practice response.' });
+  }
+});
+
+// NEW ENDPOINT: Reset practice session history
+app.post('/api/chat/practice-reset', async (req, res) => {
+  const { user_id } = req.body;
+  // Forward reset request to Practice Mode Python server (port 5002)
+  try {
+    const response = await fetch('http://localhost:5002/api/practice-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Practice Mode server for reset:', error);
+    res.status(500).json({ error: 'Failed to reset practice session.' });
+  }
+});
+
+// =========================
+// General Chat/Onboarding Mode Endpoints - NEW
+// =========================
+// NEW ENDPOINT: Handle general chat with onboarding information
+app.post('/api/chat/general-chat', async (req, res) => {
+  const { message, user_id } = req.body;
+  // Forward request to Onboarding Mode Python server (port 5003)
+  try {
+    const response = await fetch('http://localhost:5003/api/onboarding-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, user_id })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Onboarding Mode server:', error);
+    res.status(500).json({ error: 'Failed to get general chat response.' });
+  }
+});
+
+// NEW ENDPOINT: Reset general chat conversation history
+app.post('/api/chat/general-reset', async (req, res) => {
+  const { user_id } = req.body;
+  // Forward reset request to Onboarding Mode Python server (port 5003)
+  try {
+    const response = await fetch('http://localhost:5003/api/onboarding-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Onboarding Mode server for reset:', error);
+    res.status(500).json({ error: 'Failed to reset general chat conversation.' });
+  }
+});
+
+// NEW ENDPOINT: Search onboarding documents directly
+app.post('/api/chat/search-docs', async (req, res) => {
+  const { query, top_k = 3 } = req.body;
+  // Forward search request to Onboarding Mode Python server (port 5003)
+  try {
+    const response = await fetch('http://localhost:5003/api/search-docs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, top_k })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error connecting to Onboarding Mode server for search:', error);
+    res.status(500).json({ error: 'Failed to search documents.' });
+  }
+});
+
+// LEGACY ENDPOINT: Keep for backward compatibility but deprecated
 app.post('/api/chat/practice-session', async (req, res) => {
   const { scenario, difficulty, userId } = req.body;
   
@@ -248,6 +363,11 @@ app.post('/api/chat/practice-session', async (req, res) => {
   
   res.json(response);
 });
+
+
+
+
+
 
 // Course Recommendations
 app.get('/api/courses/recommend/:userId', (req, res) => {
