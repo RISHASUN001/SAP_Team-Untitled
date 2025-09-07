@@ -10,6 +10,8 @@ import Goals from './components/Goals';
 import Calendar from './components/Calendar';
 import Analytics from './components/Analytics';
 import ProtectedRoute from './components/ProtectedRoute';
+import SkillGapTest from './components/SkillGapTest';
+import Skills from './components/Skills';
 
 function App() {
   return (
@@ -39,6 +41,12 @@ function App() {
                   <Goals />
                 </ProtectedRoute>
               } />
+              <Route path="/skills" element={
+                <ProtectedRoute>
+                  <Skills />
+                </ProtectedRoute>
+              } />
+              <Route path="/skillgap-test" element={<SkillGapTest />} />
               <Route path="/calendar" element={
                 <ProtectedRoute>
                   <Calendar />

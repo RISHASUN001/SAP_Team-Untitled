@@ -16,7 +16,8 @@ import {
   Sun,
   Moon,
   Bell,
-  Brain
+  Brain,
+  Award
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -34,6 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'AI Mentor Chat', href: '/chat', icon: MessageCircle },
     { name: 'Courses', href: '/courses', icon: BookOpen },
+    { name: 'Skills', href: '/skills', icon: Award },
     { name: 'Goals', href: '/goals', icon: Target },
     { name: 'Calendar', href: '/calendar', icon: Calendar },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },

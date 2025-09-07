@@ -19,7 +19,8 @@ from openai import OpenAI
 # =========================
 # Environment Setup
 # =========================
-load_dotenv()
+# Load .env from the main project directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
 
 # =========================
 # Flask App Setup
