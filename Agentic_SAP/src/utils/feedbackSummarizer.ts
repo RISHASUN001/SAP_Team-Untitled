@@ -3,8 +3,6 @@ export const summarizeFeedback = async (feedback: string): Promise<string> => {
     const API_BASE =
       import.meta.env.OPENROUTER_API_BASE || "https://openrouter.ai/api/v1";
     const API_KEY = import.meta.env.OPENROUTER_API_KEY;
-    // import.meta.env.OPENROUTER_API_KEY ||
-    // "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";
     const MODEL =
       import.meta.env.OPENROUTER_MODEL || "meta-llama/llama-3-8b-instruct";
 
