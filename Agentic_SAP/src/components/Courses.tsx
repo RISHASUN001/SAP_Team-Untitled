@@ -212,12 +212,6 @@ const Courses: React.FC = () => {
             {/* AI Course Search */}
             <CourseSearchAI 
               onCoursesFound={handleAICoursesFound}
-              enrolledCourses={enrolledCourses}
-              completedCourses={completedCourses}
-              userProfile={userProfile}
-              onEnroll={handleEnroll}
-              onComplete={handleCompleteCourse}
-              getDifficultyColor={getDifficultyColor}
             />
 
             {/* Search and Filters */}
@@ -344,17 +338,6 @@ const Courses: React.FC = () => {
                                 className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-xs"
                               >
                                 {skill.name} (L{skill.level})
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="flex flex-wrap gap-1">
-                            {course.recommendedForRoles.map((role: any) => (
-                              <span
-                                key={role}
-                                className="px-2 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-full text-xs"
-                              >
-                                {role}
                               </span>
                             ))}
                           </div>
