@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   Home,
   MessageCircle,
@@ -16,8 +16,9 @@ import {
   Sun,
   Moon,
   Bell,
-  Brain
-} from 'lucide-react';
+  Brain,
+  MessageSquare,
+} from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,25 +32,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'AI Mentor Chat', href: '/chat', icon: MessageCircle },
-    { name: 'Courses', href: '/courses', icon: BookOpen },
-    { name: 'Goals', href: '/goals', icon: Target },
-    { name: 'Calendar', href: '/calendar', icon: Calendar },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: "Dashboard", href: "/", icon: Home },
+    { name: "AI Mentor Chat", href: "/chat", icon: MessageCircle },
+    { name: "Courses", href: "/courses", icon: BookOpen },
+    { name: "Goals", href: "/goals", icon: Target },
+    { name: "Calendar", href: "/calendar", icon: Calendar },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "Feedback", href: "/feedback", icon: MessageSquare },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex items-center justify-between h-16 px-6 bg-primary-600">
           <div className="flex items-center space-x-2">
             <Brain className="h-8 w-8 text-white" />
@@ -73,8 +77,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     to={item.href}
                     className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? "bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                     onClick={() => setSidebarOpen(false)}
                   >
@@ -91,7 +95,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex items-center space-x-3 mb-4">
             <div className="bg-primary-500 p-2 rounded-full">
               <span className="text-white text-sm font-medium">
-                {currentUser?.name.split(' ').map(n => n[0]).join('')}
+                {currentUser?.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </span>
             </div>
             <div>
@@ -138,9 +145,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={toggleDarkMode}
                 className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {darkMode ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
               </button>
-              
+
               <button className="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -152,9 +163,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   );

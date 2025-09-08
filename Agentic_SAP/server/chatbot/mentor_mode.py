@@ -25,7 +25,7 @@ load_dotenv()
 # Flask App Setup
 # =========================
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:3001"])  # Add your frontend URL
 
 # Store conversation context (in-memory for demo - use database in production)
 conversation_store = {}
@@ -235,7 +235,65 @@ def mentor_reset():
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "OK"})
-
+@app.route('/api/summarize-feedback', methods=['POST'])
+def summarize_feedback():
+    """
+    NEW ENDPOINT: Summarize performance feedback using OpenRouter
+    
+    This endpoint securely handles feedback summarization on the server-side
+    to avoid exposing API keys in client-side code.
+    """
+    print("[mentor_mode.py] --- Summarize Feedback API called ---")
+    start_time = time.time()
+    
+    try:
+        data = request.json
+        feedback = data.get('feedback', '')
+        
+        if not feedback:
+            return jsonify({"error": "No feedback provided"}), 400
+        
+        print(f"[mentor_mode.py] Feedback length: {len(feedback)} characters")
+        
+        # Construct the prompt for summarization
+        prompt = (
+            "You are a helpful assistant that summarizes performance feedback in a constructive, professional manner. "
+            "Focus on the key points and provide actionable insights. Keep it concise and professional (around 150-200 words).\n\n"
+            f"Summarize this performance feedback in a constructive way:\n\n{feedback}"
+        )
+        
+        print(f"[mentor_mode.py] Sending summarization request to OpenRouter...")
+        llm_start = time.time()
+        
+        # Use the existing OpenAI client setup
+        response = client.chat.completions.create(
+            model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that summarizes performance feedback in a constructive, professional manner. Focus on the key points and provide actionable insights. Keep it concise and professional (around 150-200 words)."
+                },
+                {
+                    "role": "user",
+                    "content": f"Summarize this performance feedback in a constructive way:\n\n{feedback}"
+                }
+            ],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        llm_end = time.time()
+        summary = response.choices[0].message.content
+        
+        print(f"[mentor_mode.py] Summary generated successfully")
+        print(f"[mentor_mode.py] LLM response time: {llm_end - llm_start:.2f}s")
+        print(f"[mentor_mode.py] --- Summarize Feedback API finished in {time.time() - start_time:.2f}s ---\n")
+        
+        return jsonify({"summary": summary})
+        
+    except Exception as e:
+        print(f"[mentor_mode.py] Error in summarize_feedback: {str(e)}")
+        return jsonify({"error": "Unable to generate summary at this time"}), 500
 # =========================
 # CLI Entry Point (when wanna test with this can just do python3 mentor_mode.py "your query here")
 # =========================
