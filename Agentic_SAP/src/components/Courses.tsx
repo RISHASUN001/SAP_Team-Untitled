@@ -4,12 +4,9 @@ import { useAuth } from "../contexts/AuthContext";
 import {
   BookOpen,
   Clock,
-  Users,
-  Star,
   Filter,
   Search,
   ChevronDown,
-  ExternalLink,
   Play,
   CheckCircle,
   Target,
@@ -17,6 +14,20 @@ import {
   UserCheck,
 } from "lucide-react";
 import { mockCourses } from "../data/mockData";
+  TrendingUp
+} from 'lucide-react';
+import { getRecommendedCourses, getSkillGaps, completeCourse, getAIRecommendedCourses, AISkillAnalysis } from '../data/skillGapUtils';
+import { userProfiles } from '../data/userProfiles';
+import { courses } from '../data/courseData';
+import CourseSearchAI from './CourseSearchAI';
+
+// Extract unique values for filters from our course database
+const durations = [...new Set(courses.map(c => c.duration))].sort((a, b) => {
+  // Sort durations by numeric value (3 weeks, 4 weeks, 5 weeks, etc.)
+  const aNum = parseInt(a.split(' ')[0]);
+  const bNum = parseInt(b.split(' ')[0]);
+  return aNum - bNum;
+});
 
 interface CourseFilters {
   difficulty: string;
@@ -225,11 +236,9 @@ const Courses: React.FC = () => {
     skill: "",
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [enrolledCourses, setEnrolledCourses] = useState<string[]>(["ds001"]);
-
-  // Extract unique values for filters
-  const difficulties = [...new Set(mockCourses.map((c) => c.difficulty))];
-  const skills = [...new Set(mockCourses.flatMap((c) => c.skills_gained))];
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
+  const difficulties = [...new Set(courses.map((c) => c.difficulty))];
+  const skills = [...new Set(courses.flatMap((c) => c.skills.map((s: any) => s.name)))];
 
   // Get role-specific onboarding courses
   const getOnboardingCourses = () => {
@@ -240,195 +249,105 @@ const Courses: React.FC = () => {
       id: string;
       name: string;
       provider: string;
-      link: string;
-      description: string;
-      duration: string;
-      difficulty: string;
-      prerequisites: string[];
-      skills_gained: string[];
-      timeline_breakdown: { week1: string; week2: string };
-      estimated_hours: number;
-      target_roles: string[];
-      rating: number;
-      enrolled: number;
-    }[] = [];
-
-    if (currentUser.role.toLowerCase().includes("lead")) {
-      roleCourses = onboardingCourses.team_lead;
-    } else if (currentUser.role.toLowerCase().includes("scientist")) {
-      roleCourses = onboardingCourses.data_scientist;
-    } else if (currentUser.role.toLowerCase().includes("analyst")) {
-      roleCourses = onboardingCourses.data_analyst;
-    }
-
-    return [...commonCourses, ...roleCourses];
-  };
-
-  const onboardingCoursesList = getOnboardingCourses();
-
-  // Filter and search courses
-  const filteredCourses = useMemo(() => {
-    return mockCourses.filter((course) => {
-      const matchesSearch =
-        course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.skills_gained.some((skill) =>
-          skill.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-
-      const matchesDifficulty =
-        !filters.difficulty || course.difficulty === filters.difficulty;
-      const matchesDuration =
-        !filters.duration || course.duration.includes(filters.duration);
-      const matchesSkill =
-        !filters.skill || course.skills_gained.includes(filters.skill);
+      // ...existing code for logic and handlers...
 
       return (
-        matchesSearch && matchesDifficulty && matchesDuration && matchesSkill
+        <Layout>
+          <div className="p-6 max-w-7xl mx-auto">
+            {/* Main UI goes here. */}
+          </div>
+        </Layout>
       );
-    });
-  }, [searchQuery, filters]);
-
-  // Get personalized recommendations based on user's skill gaps
-  const recommendedCourses = useMemo(() => {
-    if (!currentUser?.skillGaps) return [];
-
-    return mockCourses
-      .filter((course) =>
-        course.skills_gained.some((skill) =>
-          currentUser.skillGaps?.some(
-            (gap) =>
-              gap.toLowerCase().includes(skill.toLowerCase()) ||
-              skill.toLowerCase().includes(gap.toLowerCase())
-          )
-        )
-      )
-      .slice(0, 3);
-  }, [currentUser]);
-
-  const handleEnroll = (courseId: string) => {
-    if (enrolledCourses.includes(courseId)) {
-      setEnrolledCourses((prev) => prev.filter((id) => id !== courseId));
-    } else {
-      setEnrolledCourses((prev) => [...prev, courseId]);
     }
-  };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
-      case "beginner":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
-      case "intermediate":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
-      case "advanced":
-        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300";
-    }
-  };
+    export default Courses;
+                                key={skill.name}
+                                className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-xs"
+                              >
+                                {skill.name} (L{skill.level})
+                              </span>
+                            ))}
+                          </div>
+                        </div>
 
-  return (
-    <Layout>
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Learning Courses
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Discover courses tailored to your skill development goals
-          </p>
-        </div>
-
-        {/* Onboarding Courses Section */}
-        {onboardingCoursesList.length > 0 && (
-          <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
-            <div className="flex items-center mb-4">
-              <div className="bg-blue-500 p-2 rounded-lg mr-3">
-                <UserCheck className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Onboarding Courses for {currentUser?.role}
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Essential training to get you started in your role
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {onboardingCoursesList.map((course) => {
-                const isEnrolled = enrolledCourses.includes(course.id);
-
-                return (
-                  <div
-                    key={course.id}
-                    className="bg-white dark:bg-gray-800 rounded-lg p-4 border dark:border-gray-700"
-                  >
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                      {course.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      {course.provider} • {course.duration}
-                    </p>
-                    <div className="flex items-center justify-between mb-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
-                          course.difficulty
-                        )}`}
-                      >
-                        {course.difficulty}
-                      </span>
-                      <div className="flex text-yellow-400 text-sm">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="ml-1 text-gray-600 dark:text-gray-400">
-                          {course.rating}
-                        </span>
+                        <div className="flex justify-center">
+                          {isCompleted ? (
+                            <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg font-medium">
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Completed
+                            </div>
+                          ) : isEnrolled ? (
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => handleCompleteCourse(course.id)}
+                                className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Complete
+                              </button>
+                              <button
+                                onClick={() => handleEnroll(course.id)}
+                                className="flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                              >
+                                Unenroll
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleEnroll(course.id)}
+                              className="flex items-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              Enroll Now
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleEnroll(course.id)}
-                      className={`w-full flex items-center justify-center px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
-                        isEnrolled
-                          ? "bg-green-500 hover:bg-green-600 text-white"
-                          : "bg-blue-500 hover:bg-blue-600 text-white"
-                      }`}
-                    >
-                      {isEnrolled ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Enrolled
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4 mr-2" />
-                          Enroll Now
-                        </>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {filteredCourses.length === 0 && (
+                <div className="text-center py-12">
+                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No courses found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Try adjusting your search criteria or filters
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* AI Recommendations Section */}
+        {/* Recommendation Tab Content */}
+        {activeTab === 'recommendation' && (
+          <div>
         {recommendedCourses.length > 0 && (
           <div className="mb-8 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
             <div className="flex items-center mb-4">
               <div className="bg-purple-500 p-2 rounded-lg mr-3">
                 <Target className="h-5 w-5 text-white" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  AI-Recommended for You
+                  AI-Enhanced Learning Path
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   Based on your skill gaps: {currentUser?.skillGaps?.join(", ")}
+                  Personalized for your skill gaps: {skillGaps.map(gap => gap.name).join(', ')}
                 </p>
               </div>
+              {loadingAI && (
+                <div className="flex items-center text-purple-600 dark:text-purple-400">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
+                  <span className="text-sm">AI analyzing...</span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -665,32 +584,68 @@ const Courses: React.FC = () => {
                   <div className="p-4 border-b dark:border-gray-700">
                     <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
                       Prerequisites:
+            {/* AI Learning Strategy - Enhanced Display */}
+            {aiSkillAnalysis?.strategic_advice && (
+              <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-600">
+                <div className="flex items-start space-x-3 mb-4">
+                  <div className="bg-purple-100 dark:bg-purple-900/20 p-2 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                      🤖 AI Learning Strategy
                     </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {course.prerequisites.map((prereq) => (
-                        <span
-                          key={prereq}
-                          className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
-                        >
-                          {prereq}
-                        </span>
+                    {aiSkillAnalysis.estimated_timeline && (
+                      <p className="text-sm text-purple-600 dark:text-purple-400 mb-3">
+                        📅 {aiSkillAnalysis.estimated_timeline}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recommended Learning Path */}
+                {aiSkillAnalysis.recommended_sequence && aiSkillAnalysis.recommended_sequence.length > 0 && (
+                  <div className="mb-4">
+                    <h5 className="font-medium text-gray-900 dark:text-white mb-3">
+                      Recommended Learning Path:
+                    </h5>
+                    <div className="space-y-3">
+                      {aiSkillAnalysis.recommended_sequence.map((rec) => (
+                        <div key={rec.course_id} className="flex items-start space-x-3 p-3 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+                          <div className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                            {rec.sequence_order}
+                          </div>
+                          <div className="flex-1">
+                            <h6 className="font-medium text-gray-900 dark:text-white">
+                              {rec.course_title}
+                            </h6>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                              {rec.reasoning}
+                            </p>
+                            {rec.timing_advice && (
+                              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                                {rec.timing_advice}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <a
-                      href={course.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      View Details
-                    </a>
+                {/* Strategic Advice */}
+                <div className="border-t border-purple-200 dark:border-purple-600 pt-4">
+                  <h5 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
+                    <span className="mr-2">🎯</span>
+                    Strategic Advice:
+                  </h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                    {aiSkillAnalysis.strategic_advice}
+                  </p>
+                </div>
+              </div>
+            )}
 
                     <button
                       onClick={() => handleEnroll(course.id)}
@@ -710,24 +665,125 @@ const Courses: React.FC = () => {
                           <Play className="h-4 w-4 mr-2" />
                           Enroll Now
                         </>
+            {/* Course Recommendations */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recommendedCourses.map((course) => {
+                const isEnrolled = enrolledCourses.includes(course.id);
+                const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
+                
+                // Find AI recommendation for this course if available
+                const aiRec = aiSkillAnalysis?.recommended_sequence?.find(rec => rec.course_id === course.id);
+                
+                return (
+                  <div
+                    key={course.id}
+                    className={`bg-white dark:bg-gray-800 rounded-lg border ${aiRec ? 'border-2 border-purple-200 dark:border-purple-600' : 'border-gray-200 dark:border-gray-700'} overflow-hidden`}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center">
+                          {aiRec && (
+                            <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full mr-2">
+                              {aiRec.sequence_order}
+                            </span>
+                          )}
+                          <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                            {course.title}
+                          </h3>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(course.difficulty)}`}>
+                          {course.difficulty}
+                        </span>
+                      </div>
+                      
+                      {/* AI Reasoning - Show the sentences you wanted */}
+                      {aiRec && (
+                        <div className="mb-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <p className="text-xs text-purple-800 dark:text-purple-200 font-medium mb-1">
+                            🤖 AI Recommendation:
+                          </p>
+                          <p className="text-xs text-purple-700 dark:text-purple-300">
+                            {aiRec.reasoning}
+                          </p>
+                          {aiRec.timing_advice && (
+                            <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 italic">
+                              💡 {aiRec.timing_advice}
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </button>
+                      
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Skills: {course.skills.map((s: any) => `${s.name} (Level ${s.level})`).join(', ')}
+                      </p>
+                      
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${aiRec ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'}`}>
+                          {aiRec ? 'AI Optimized' : 'Recommended'}
+                        </span>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {course.duration}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-center">
+                        {isCompleted ? (
+                          <div className="flex items-center px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg text-sm font-medium">
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Completed
+                          </div>
+                        ) : isEnrolled ? (
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleCompleteCourse(course.id)}
+                              className="flex items-center px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-colors"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Complete
+                            </button>
+                            <button
+                              onClick={() => handleEnroll(course.id)}
+                              className="flex items-center px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium text-sm transition-colors"
+                            >
+                              Unenroll
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleEnroll(course.id)}
+                            className="flex items-center px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium text-sm transition-colors"
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            {aiRec ? `Start Step ${aiRec.sequence_order}` : 'Enroll Now'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+            {skillGaps.length === 0 && (
+              <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
+                <div className="flex items-center">
+                  <div className="bg-green-500 p-2 rounded-lg mr-3">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Great job!
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      You have no skill gaps for your role! Browse all courses below to continue learning.
+                    </p>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        {filteredCourses.length === 0 && (
-          <div className="text-center py-12">
-            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No courses found
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Try adjusting your search terms or filters
-            </p>
+            )}
           </div>
         )}
       </div>
