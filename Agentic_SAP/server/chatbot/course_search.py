@@ -13,7 +13,7 @@ from openai import OpenAI
 # Environment Setup
 # =========================
 # Load .env from the main project directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+load_dotenv()
 
 # =========================
 # Course Data Setup
@@ -337,4 +337,4 @@ if __name__ == "__main__":
         print(f"\nAI Recommendation:\n{ai_rec}")
     else:
         print("Starting Course Search API server...")
-        app.run(port=5002, debug=True)
+        app.run(port=5005, debug=True)

@@ -11,6 +11,8 @@ echo "🧹 Cleaning up existing processes..."
 pkill -f "mentor_mode.py" 2>/dev/null || true
 pkill -f "practice_mode.py" 2>/dev/null || true  
 pkill -f "onboarding_mode.py" 2>/dev/null || true
+pkill -f "ai_skill_gap.py" 2>/dev/null || true
+pkill -f "course_search.py" 2>/dev/null || true
 pkill -f "node.*index.js" 2>/dev/null || true
 
 sleep 2
@@ -46,6 +48,20 @@ python3 onboarding_mode.py &
 ONBOARDING_PID=$!
 echo "📚 Onboarding Mode started with PID: $ONBOARDING_PID"
 
+# Step 4: Start ai_skill_gap.py (new backend service)
+echo ""
+echo "4️⃣ Starting AI Skill Gap (Port 5004)..."
+python3 ai_skill_gap.py &
+SKILL_PID=$!
+echo "🤖 AI Skill Gap started with PID: $SKILL_PID"
+
+# Step 5: Start course_search.py (new backend service)
+echo ""
+echo "5️⃣ Starting Course Search (Port 5005)..."
+python3 course_search.py &
+COURSE_PID=$!
+echo "🔍 Course Search started with PID: $COURSE_PID"
+
 # Wait a bit for Python backends to fully start
 sleep 3
 
@@ -56,11 +72,15 @@ echo "🔗 Backend APIs:"
 echo "   • Mentor Mode API: http://localhost:5001"
 echo "   • Practice Mode API: http://localhost:5002" 
 echo "   • Onboarding Mode API: http://localhost:5003"
+echo "   • AI Skill Gap API: http://localhost:5004"
+echo "   • Course Search API: http://localhost:5005"
 echo ""
 echo "📊 Process IDs:"
 echo "   • Mentor Mode: $MENTOR_PID"
 echo "   • Practice Mode: $PRACTICE_PID"
 echo "   • Onboarding Mode: $ONBOARDING_PID"
+echo "   • AI Skill Gap: $SKILL_PID"
+echo "   • Course Search: $COURSE_PID"
 echo ""
 echo "💡 To start the full application:"
 echo "   1. Run 'npm run dev' in the main Agentic_SAP directory"

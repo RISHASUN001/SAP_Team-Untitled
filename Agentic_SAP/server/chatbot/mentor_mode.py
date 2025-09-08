@@ -20,13 +20,13 @@ from openai import OpenAI
 # Environment Setup
 # =========================
 # Load .env from the main project directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+load_dotenv()
 
 # =========================
 # Flask App Setup
 # =========================
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:3001"])  # Add your frontend URL
+CORS(app)
 
 # Store conversation context (in-memory for demo - use database in production)
 conversation_store = {}

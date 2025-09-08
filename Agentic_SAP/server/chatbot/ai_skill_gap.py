@@ -10,8 +10,7 @@ from openai import OpenAI
 # Environment Setup
 # =========================
 # Load .env from the main project directory
-env_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
-load_dotenv(env_path)
+load_dotenv()
 
 # Debug: Check if API key is loaded
 api_key = os.getenv("OPENROUTER_API_KEY")
@@ -195,4 +194,4 @@ if __name__ == '__main__':
     print("📋 Endpoints:")
     print("   POST /api/ai-skill-analysis - Get AI-powered learning recommendations")
     print("   GET  /health - Service health check")
-    app.run(debug=True, port=5003)
+    app.run(debug=True, port=5004)

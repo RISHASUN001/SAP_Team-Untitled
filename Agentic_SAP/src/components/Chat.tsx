@@ -79,7 +79,7 @@ Get comprehensive information about the SAP Data Science department, team struct
     if (mode === 'mentor') {
       // Call backend API for mentor mode
       try {
-        const res = await fetch('/api/chat/mentor-suggest', {
+        const res = await fetch('/api/mentor-suggest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -350,7 +350,7 @@ Get comprehensive information about the SAP Data Science department, team struct
     
     try {
       // Clear mentor mode history
-      await fetch('/api/chat/mentor-reset', {
+      await fetch('/api/mentor-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id })

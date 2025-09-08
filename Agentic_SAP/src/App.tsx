@@ -1,18 +1,3 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Dashboard from './components/Dashboard';
-import Login from './components/Login';
-import Chat from './components/Chat';
-import Courses from './components/Courses';
-import Goals from './components/Goals';
-import Calendar from './components/Calendar';
-import Analytics from './components/Analytics';
-import ProtectedRoute from './components/ProtectedRoute';
-import SkillGapTest from './components/SkillGapTest';
-import Skills from './components/Skills';
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';

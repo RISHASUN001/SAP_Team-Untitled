@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
-import Layout from "./Layout";
-import { useAuth } from "../contexts/AuthContext";
+import React, { useState, useMemo } from 'react';
+import Layout from './Layout';
+import { useAuth } from '../contexts/AuthContext';
 import {
   BookOpen,
   Clock,
@@ -10,10 +10,6 @@ import {
   Play,
   CheckCircle,
   Target,
-  TrendingUp,
-  UserCheck,
-} from "lucide-react";
-import { mockCourses } from "../data/mockData";
   TrendingUp
 } from 'lucide-react';
 import { getRecommendedCourses, getSkillGaps, completeCourse, getAIRecommendedCourses, AISkillAnalysis } from '../data/skillGapUtils';
@@ -35,232 +31,416 @@ interface CourseFilters {
   skill: string;
 }
 
-// Add onboarding courses to the mock data
-const onboardingCourses = {
-  // Common onboarding courses for all roles
-  common: [
-    {
-      id: "onb001",
-      name: "Company Culture & Values",
-      provider: "HR Department",
-      link: "#",
-      description: "Learn about our company's mission, values, and culture",
-      duration: "1 week",
-      difficulty: "Beginner",
-      prerequisites: [],
-      skills_gained: [
-        "Company Culture",
-        "Corporate Values",
-        "Team Integration",
-      ],
-      timeline_breakdown: {
-        week1: "Introduction to company values and culture",
-      },
-      estimated_hours: 2,
-      target_roles: ["All Roles"],
-      rating: 4.7,
-      enrolled: 1200,
-    },
-    {
-      id: "onb002",
-      name: "Data Security & Compliance",
-      provider: "Security Team",
-      link: "#",
-      description: "Essential training on data handling and security protocols",
-      duration: "1 week",
-      difficulty: "Beginner",
-      prerequisites: [],
-      skills_gained: ["Data Security", "Compliance", "GDPR"],
-      timeline_breakdown: {
-        week1: "Data security protocols and compliance requirements",
-      },
-      estimated_hours: 3,
-      target_roles: ["All Roles"],
-      rating: 4.5,
-      enrolled: 980,
-    },
-  ],
-  // Data Science Team Lead specific onboarding
-  team_lead: [
-    {
-      id: "onb003",
-      name: "Leadership Fundamentals",
-      provider: "Leadership Academy",
-      link: "#",
-      description: "Essential skills for leading technical teams effectively",
-      duration: "2 weeks",
-      difficulty: "Intermediate",
-      prerequisites: [],
-      skills_gained: [
-        "Team Management",
-        "Project Leadership",
-        "Stakeholder Communication",
-      ],
-      timeline_breakdown: {
-        week1: "Leadership principles and team dynamics",
-        week2: "Project management and stakeholder communication",
-      },
-      estimated_hours: 6,
-      target_roles: ["Team Lead", "Manager"],
-      rating: 4.8,
-      enrolled: 450,
-    },
-    {
-      id: "onb004",
-      name: "Strategic Planning for Tech Leaders",
-      provider: "Strategy Institute",
-      link: "#",
-      description: "Learn to develop and execute technical strategy",
-      duration: "3 weeks",
-      difficulty: "Intermediate",
-      prerequisites: [],
-      skills_gained: [
-        "Strategic Planning",
-        "Resource Allocation",
-        "Technical Roadmapping",
-      ],
-      timeline_breakdown: {
-        week1: "Strategic thinking fundamentals",
-        week2: "Developing technical roadmaps",
-        week3: "Resource allocation and budgeting",
-      },
-      estimated_hours: 10,
-      target_roles: ["Team Lead", "Manager"],
-      rating: 4.6,
-      enrolled: 320,
-    },
-  ],
-  // Data Scientist specific onboarding
-  data_scientist: [
-    {
-      id: "onb005",
-      name: "Advanced ML Pipeline Setup",
-      provider: "Data Science Guild",
-      link: "#",
-      description: "Setting up efficient ML workflows and pipelines",
-      duration: "2 weeks",
-      difficulty: "Intermediate",
-      prerequisites: ["Python", "Machine Learning"],
-      skills_gained: [
-        "ML Pipelines",
-        "Workflow Automation",
-        "Model Deployment",
-      ],
-      timeline_breakdown: {
-        week1: "Introduction to ML pipelines",
-        week2: "Building automated workflows",
-      },
-      estimated_hours: 8,
-      target_roles: ["Data Scientist", "ML Engineer"],
-      rating: 4.7,
-      enrolled: 670,
-    },
-    {
-      id: "onb006",
-      name: "Experimental Design for Data Science",
-      provider: "Research Methods Institute",
-      link: "#",
-      description: "Design robust experiments and A/B tests",
-      duration: "2 weeks",
-      difficulty: "Intermediate",
-      prerequisites: ["Statistics"],
-      skills_gained: [
-        "Experimental Design",
-        "A/B Testing",
-        "Statistical Significance",
-      ],
-      timeline_breakdown: {
-        week1: "Principles of experimental design",
-        week2: "Implementing and analyzing A/B tests",
-      },
-      estimated_hours: 7,
-      target_roles: ["Data Scientist", "Data Analyst"],
-      rating: 4.5,
-      enrolled: 540,
-    },
-  ],
-  // Data Analyst specific onboarding
-  data_analyst: [
-    {
-      id: "onb007",
-      name: "Business Intelligence Tools",
-      provider: "Analytics Academy",
-      link: "#",
-      description: "Mastering BI tools and dashboard creation",
-      duration: "2 weeks",
-      difficulty: "Beginner",
-      prerequisites: [],
-      skills_gained: ["Dashboard Design", "Data Visualization", "BI Tools"],
-      timeline_breakdown: {
-        week1: "Introduction to BI tools",
-        week2: "Creating effective dashboards",
-      },
-      estimated_hours: 6,
-      target_roles: ["Data Analyst", "Business Analyst"],
-      rating: 4.4,
-      enrolled: 890,
-    },
-    {
-      id: "onb008",
-      name: "SQL for Advanced Analytics",
-      provider: "DataQuery Pro",
-      link: "#",
-      description: "Advanced SQL techniques for complex data analysis",
-      duration: "3 weeks",
-      difficulty: "Intermediate",
-      prerequisites: ["SQL Basics"],
-      skills_gained: [
-        "Advanced SQL",
-        "Query Optimization",
-        "Analytical Functions",
-      ],
-      timeline_breakdown: {
-        week1: "Complex joins and subqueries",
-        week2: "Window functions and CTEs",
-        week3: "Query optimization techniques",
-      },
-      estimated_hours: 9,
-      target_roles: ["Data Analyst", "Data Engineer"],
-      rating: 4.7,
-      enrolled: 720,
-    },
-  ],
-};
-
 const Courses: React.FC = () => {
   const { currentUser } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<CourseFilters>({
-    difficulty: "",
-    duration: "",
-    skill: "",
+    difficulty: '',
+    duration: '',
+    skill: ''
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
-  const difficulties = [...new Set(courses.map((c) => c.difficulty))];
-  const skills = [...new Set(courses.flatMap((c) => c.skills.map((s: any) => s.name)))];
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>(['course1']);
+  const [completedCourses, setCompletedCourses] = useState<string[]>([]);
+  const [aiSkillAnalysis, setAiSkillAnalysis] = useState<AISkillAnalysis | null>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [activeTab, setActiveTab] = useState<'search' | 'recommendation'>('search');
+  const [aiFoundCourses, setAiFoundCourses] = useState<any[]>([]);
 
-  // Get role-specific onboarding courses
-  const getOnboardingCourses = () => {
-    if (!currentUser) return [];
-
-    const commonCourses = onboardingCourses.common;
-    let roleCourses: {
-      id: string;
-      name: string;
-      provider: string;
-      // ...existing code for logic and handlers...
-
-      return (
-        <Layout>
-          <div className="p-6 max-w-7xl mx-auto">
-            {/* Main UI goes here. */}
+  if (!currentUser) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <div className="text-center py-12">
+            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Please log in
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              You need to be logged in to view your recommended courses
+            </p>
           </div>
-        </Layout>
-      );
-    }
+        </div>
+      </Layout>
+    );
+  }
 
-    export default Courses;
+  const userProfile = userProfiles.find(u => u.name === currentUser.name);
+  if (!userProfile) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <div className="text-center py-12">
+            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No course data found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Course data not available for this user
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Get skill gap based recommendations
+  const recommendedCourses = getRecommendedCourses(userProfile.userId);
+  const skillGaps = getSkillGaps(userProfile.userId);
+
+  // Load AI recommendations when component mounts or user changes
+  React.useEffect(() => {
+    const loadAIRecommendations = async () => {
+      if (skillGaps.length > 0 && !aiSkillAnalysis) {
+        setLoadingAI(true);
+        try {
+          const aiRecs = await getAIRecommendedCourses(userProfile.userId);
+          setAiSkillAnalysis(aiRecs);
+        } catch (error) {
+          console.error('Failed to load AI recommendations:', error);
+        } finally {
+          setLoadingAI(false);
+        }
+      }
+    };
+
+    loadAIRecommendations();
+  }, [userProfile.userId, skillGaps.length, aiSkillAnalysis]);
+
+  // Extract unique values for filters from our course database
+  const difficulties = [...new Set(courses.map(c => c.difficulty))];
+  const skills = [...new Set(courses.flatMap(c => c.skills.map(s => s.name)))];
+
+  // Filter and search courses from our course database
+  const filteredCourses = useMemo(() => {
+    // Always use regular filtering for the main course list
+    // AI search results are handled separately in the AI recommendations section
+    return courses.filter(course => {
+      const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.skills.some(skill => skill.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesDifficulty = !filters.difficulty || course.difficulty === filters.difficulty;
+      const matchesDuration = !filters.duration || course.duration === filters.duration;
+      const matchesSkill = !filters.skill || course.skills.some(skill => skill.name === filters.skill);
+
+      return matchesSearch && matchesDifficulty && matchesDuration && matchesSkill;
+    });
+  }, [searchQuery, filters]);
+
+  const handleEnroll = (courseId: string) => {
+    if (enrolledCourses.includes(courseId)) {
+      setEnrolledCourses(prev => prev.filter(id => id !== courseId));
+    } else {
+      setEnrolledCourses(prev => [...prev, courseId]);
+    }
+  };
+
+  const handleCompleteCourse = (courseId: string) => {
+    if (userProfile && completeCourse(userProfile.userId, courseId)) {
+      setCompletedCourses(prev => [...prev, courseId]);
+      // Re-fetch recommendations since skills have been updated
+      window.location.reload(); // Simple way to refresh the recommendations
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      case 'intermediate':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
+      case 'advanced':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+    }
+  };
+
+  // Handler for AI search results - simplified since CourseSearchAI handles display
+  const handleAICoursesFound = (foundCourses: any[]) => {
+    // Store AI found courses to display them in a separate section
+    setAiFoundCourses(foundCourses);
+    console.log('AI found courses:', foundCourses);
+  };
+
+  return (
+    <Layout>
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Learning Courses
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Discover courses tailored to your skill development goals
+          </p>
+        </div>
+
+        {/* Tab Toggle */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-1 flex">
+              <button
+                onClick={() => setActiveTab('search')}
+                className={`flex items-center px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeTab === 'search'
+                    ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                <Search className="h-5 w-5 mr-2" />
+                Search
+              </button>
+              <button
+                onClick={() => setActiveTab('recommendation')}
+                className={`flex items-center px-6 py-3 rounded-md font-medium transition-all duration-200 ${
+                  activeTab === 'recommendation'
+                    ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                <Target className="h-5 w-5 mr-2" />
+                Recommendation
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Tab Content */}
+        {activeTab === 'search' && (
+          <div>
+            {/* AI Course Search */}
+            <CourseSearchAI 
+              onCoursesFound={handleAICoursesFound}
+            />
+
+            {/* AI Found Courses Display */}
+            {aiFoundCourses.length > 0 && (
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 mb-6 border border-purple-200 dark:border-purple-700">
+                <div className="flex items-center mb-4">
+                  <div className="bg-purple-500 p-2 rounded-lg mr-3">
+                    <Target className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      AI Search Results
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Found {aiFoundCourses.length} courses matching your search
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {aiFoundCourses.map((course) => {
+                    const isEnrolled = enrolledCourses.includes(course.id);
+                    const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
+                    
+                    return (
+                      <div
+                        key={course.id}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-purple-200 dark:border-purple-600 overflow-hidden hover:shadow-md transition-shadow"
+                      >
+                        <div className="bg-purple-50 dark:bg-purple-900/20 px-3 py-2">
+                          <span className="text-purple-700 dark:text-purple-300 text-xs font-medium">
+                            🤖 AI Recommended
+                          </span>
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                              {course.title}
+                            </h4>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(course.difficulty)}`}>
+                              {course.difficulty}
+                            </span>
+                          </div>
+
+                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                            {course.description}
+                          </p>
+
+                          <div className="space-y-3 mb-4">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                              <Clock className="h-4 w-4 mr-2" />
+                              {course.duration} • {course.estimatedHours} hours
+                            </div>
+
+                            <div className="flex flex-wrap gap-1">
+                              {course.skills.map((skill: any) => (
+                                <span
+                                  key={skill.name}
+                                  className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-xs"
+                                >
+                                  {skill.name} (L{skill.level})
+                                </span>
+                              ))}
+                            </div>
+
+                          
+                          </div>
+
+                          <div className="flex justify-center">
+                            {isCompleted ? (
+                              <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg font-medium">
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Completed
+                              </div>
+                            ) : isEnrolled ? (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleCompleteCourse(course.id)}
+                                  className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Complete
+                                </button>
+                                <button
+                                  onClick={() => handleEnroll(course.id)}
+                                  className="flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                  Unenroll
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleEnroll(course.id)}
+                                className="flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors"
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Enroll Now
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Search and Filters */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
+                {/* Search */}
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="text"
+                    placeholder="Search courses, skills, or providers..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Filter Toggle */}
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                  <ChevronDown className={`h-4 w-4 ml-2 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+
+              {/* Filters */}
+              {showFilters && (
+                <div className="mt-4 pt-4 border-t dark:border-gray-700">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Difficulty
+                      </label>
+                      <select
+                        value={filters.difficulty}
+                        onChange={(e) => setFilters(prev => ({ ...prev, difficulty: e.target.value }))}
+                        className="w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="">All Levels</option>
+                        {[...new Set(courses.map(c => c.difficulty))].map(difficulty => (
+                          <option key={difficulty} value={difficulty}>{difficulty}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Duration
+                      </label>
+                      <select
+                        value={filters.duration}
+                        onChange={(e) => setFilters(prev => ({ ...prev, duration: e.target.value }))}
+                        className="w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="">Any Duration</option>
+                        {durations.map(duration => (
+                          <option key={duration} value={duration}>{duration}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Skill
+                      </label>
+                      <select
+                        value={filters.skill}
+                        onChange={(e) => setFilters(prev => ({ ...prev, skill: e.target.value }))}
+                        className="w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="">All Skills</option>
+                        {[...new Set(courses.flatMap(c => c.skills.map(s => s.name)))].map(skill => (
+                          <option key={skill} value={skill}>{skill}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* All Courses Grid */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                All Available Courses
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCourses.map((course) => {
+                  const isEnrolled = enrolledCourses.includes(course.id);
+                  const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
+                  
+                  return (
+                    <div
+                      key={course.id}
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
+                    >
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {course.title}
+                          </h3>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(course.difficulty)}`}>
+                            {course.difficulty}
+                          </span>
+                        </div>
+
+                        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                          {course.description}
+                        </p>
+
+                        <div className="space-y-3 mb-4">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Clock className="h-4 w-4 mr-2" />
+                            {course.duration} • {course.estimatedHours} hours
+                          </div>
+
+                          <div className="flex flex-wrap gap-1">
+                            {course.skills.map((skill: any) => (
+                              <span
                                 key={skill.name}
                                 className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-xs"
                               >
@@ -323,7 +503,6 @@ const Courses: React.FC = () => {
           </div>
         )}
 
-        {/* AI Recommendations Section */}
         {/* Recommendation Tab Content */}
         {activeTab === 'recommendation' && (
           <div>
@@ -338,7 +517,6 @@ const Courses: React.FC = () => {
                   AI-Enhanced Learning Path
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Based on your skill gaps: {currentUser?.skillGaps?.join(", ")}
                   Personalized for your skill gaps: {skillGaps.map(gap => gap.name).join(', ')}
                 </p>
               </div>
@@ -350,240 +528,6 @@ const Courses: React.FC = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {recommendedCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg p-4 border dark:border-gray-700"
-                >
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                    {course.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    {course.provider} • {course.duration}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
-                        course.difficulty
-                      )}`}
-                    >
-                      {course.difficulty}
-                    </span>
-                    <div className="flex text-yellow-400 text-sm">
-                      <Star className="h-4 w-4 fill-current" />
-                      <span className="ml-1 text-gray-600 dark:text-gray-400">
-                        {course.rating}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Rest of the component remains the same */}
-        {/* Search and Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search courses, skills, or providers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
-            </div>
-
-            {/* Filter Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-              <ChevronDown
-                className={`h-4 w-4 ml-2 transform transition-transform ${
-                  showFilters ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Filters */}
-          {showFilters && (
-            <div className="mt-4 pt-4 border-t dark:border-gray-700">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Difficulty
-                  </label>
-                  <select
-                    value={filters.difficulty}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        difficulty: e.target.value,
-                      }))
-                    }
-                    className="w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">All Levels</option>
-                    {difficulties.map((difficulty) => (
-                      <option key={difficulty} value={difficulty}>
-                        {difficulty}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Duration
-                  </label>
-                  <select
-                    value={filters.duration}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        duration: e.target.value,
-                      }))
-                    }
-                    className="w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Any Duration</option>
-                    <option value="week">Short (1-4 weeks)</option>
-                    <option value="8">Medium (5-8 weeks)</option>
-                    <option value="12">Long (9+ weeks)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Skill Focus
-                  </label>
-                  <select
-                    value={filters.skill}
-                    onChange={(e) =>
-                      setFilters((prev) => ({ ...prev, skill: e.target.value }))
-                    }
-                    className="w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">All Skills</option>
-                    {skills.slice(0, 10).map((skill) => (
-                      <option key={skill} value={skill}>
-                        {skill}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() =>
-                    setFilters({ difficulty: "", duration: "", skill: "" })
-                  }
-                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-gray-600 dark:text-gray-300">
-            Showing {filteredCourses.length} course
-            {filteredCourses.length !== 1 ? "s" : ""}
-          </p>
-          <div className="flex items-center space-x-2">
-            <TrendingUp className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Sorted by relevance
-            </span>
-          </div>
-        </div>
-
-        {/* Course Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredCourses.map((course) => {
-            const isEnrolled = enrolledCourses.includes(course.id);
-
-            return (
-              <div
-                key={course.id}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
-              >
-                {/* Course Header */}
-                <div className="p-6 border-b dark:border-gray-700">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                        {course.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {course.provider}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
-                        course.difficulty
-                      )}`}
-                    >
-                      {course.difficulty}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">
-                    {course.description}
-                  </p>
-
-                  {/* Course Stats */}
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {course.duration} ({course.estimated_hours}h)
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1" />
-                      {course.enrolled} enrolled
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 mr-1 text-yellow-400 fill-current" />
-                      {course.rating}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Skills */}
-                <div className="p-4 border-b dark:border-gray-700">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Skills You'll Gain:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {course.skills_gained.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-2 py-1 bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded text-xs"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Prerequisites */}
-                {course.prerequisites.length > 0 && (
-                  <div className="p-4 border-b dark:border-gray-700">
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                      Prerequisites:
             {/* AI Learning Strategy - Enhanced Display */}
             {aiSkillAnalysis?.strategic_advice && (
               <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6 border border-purple-200 dark:border-purple-600">
@@ -647,24 +591,6 @@ const Courses: React.FC = () => {
               </div>
             )}
 
-                    <button
-                      onClick={() => handleEnroll(course.id)}
-                      className={`flex items-center px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                        isEnrolled
-                          ? "bg-green-500 hover:bg-green-600 text-white"
-                          : "bg-primary-500 hover:bg-primary-600 text-white"
-                      }`}
-                    >
-                      {isEnrolled ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Enrolled
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4 mr-2" />
-                          Enroll Now
-                        </>
             {/* Course Recommendations */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {recommendedCourses.map((course) => {

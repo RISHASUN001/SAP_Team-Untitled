@@ -185,7 +185,7 @@ app.get('/api/auth/profile/:userId', (req, res) => {
 // =========================
 // Mentor Mode Chat Endpoints
 // =========================
-app.post('/api/chat/mentor-suggest', async (req, res) => {
+app.post('/api/mentor-suggest', async (req, res) => {
   const { message, user_id } = req.body; // UPDATED: Now forwards user_id to Python backend
   // Forward the message to Python Flask server
   try {
