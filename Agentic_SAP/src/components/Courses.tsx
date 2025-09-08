@@ -45,6 +45,7 @@ const Courses: React.FC = () => {
   const [aiSkillAnalysis, setAiSkillAnalysis] = useState<AISkillAnalysis | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [activeTab, setActiveTab] = useState<'search' | 'recommendation'>('search');
+  const [aiFoundCourses, setAiFoundCourses] = useState<any[]>([]);
 
   if (!currentUser) {
     return (
@@ -158,8 +159,8 @@ const Courses: React.FC = () => {
 
   // Handler for AI search results - simplified since CourseSearchAI handles display
   const handleAICoursesFound = (foundCourses: any[]) => {
-    // CourseSearchAI component now handles the display itself
-    // This can be used for any additional logic if needed
+    // Store AI found courses to display them in a separate section
+    setAiFoundCourses(foundCourses);
     console.log('AI found courses:', foundCourses);
   };
 
@@ -213,6 +214,112 @@ const Courses: React.FC = () => {
             <CourseSearchAI 
               onCoursesFound={handleAICoursesFound}
             />
+
+            {/* AI Found Courses Display */}
+            {aiFoundCourses.length > 0 && (
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 mb-6 border border-purple-200 dark:border-purple-700">
+                <div className="flex items-center mb-4">
+                  <div className="bg-purple-500 p-2 rounded-lg mr-3">
+                    <Target className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      AI Search Results
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Found {aiFoundCourses.length} courses matching your search
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {aiFoundCourses.map((course) => {
+                    const isEnrolled = enrolledCourses.includes(course.id);
+                    const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
+                    
+                    return (
+                      <div
+                        key={course.id}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-purple-200 dark:border-purple-600 overflow-hidden hover:shadow-md transition-shadow"
+                      >
+                        <div className="bg-purple-50 dark:bg-purple-900/20 px-3 py-2">
+                          <span className="text-purple-700 dark:text-purple-300 text-xs font-medium">
+                            🤖 AI Recommended
+                          </span>
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                              {course.title}
+                            </h4>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(course.difficulty)}`}>
+                              {course.difficulty}
+                            </span>
+                          </div>
+
+                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                            {course.description}
+                          </p>
+
+                          <div className="space-y-3 mb-4">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                              <Clock className="h-4 w-4 mr-2" />
+                              {course.duration} • {course.estimatedHours} hours
+                            </div>
+
+                            <div className="flex flex-wrap gap-1">
+                              {course.skills.map((skill: any) => (
+                                <span
+                                  key={skill.name}
+                                  className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-xs"
+                                >
+                                  {skill.name} (L{skill.level})
+                                </span>
+                              ))}
+                            </div>
+
+                          
+                          </div>
+
+                          <div className="flex justify-center">
+                            {isCompleted ? (
+                              <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg font-medium">
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Completed
+                              </div>
+                            ) : isEnrolled ? (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleCompleteCourse(course.id)}
+                                  className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Complete
+                                </button>
+                                <button
+                                  onClick={() => handleEnroll(course.id)}
+                                  className="flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                  Unenroll
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleEnroll(course.id)}
+                                className="flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors"
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Enroll Now
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Search and Filters */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6 shadow-sm">
