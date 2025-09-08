@@ -54,18 +54,98 @@ def get_llm_response(prompt):
     else:
         return f"Error: {response.status_code} {response.text}"
 
-# Load Chroma vector DB for context retrieval
+# Load Chroma vector DB for context retrieval (smart incremental updates)
 def load_chroma_vector_db(doc_folder):
-    docs = []
+    """Load ChromaDB and check for new documents to add incrementally"""
+    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    chroma_db_path = os.path.join(os.path.dirname(__file__), "chroma_db")
+    metadata_file = os.path.join(chroma_db_path, "indexed_files.txt")
+    
+    # Get all current .txt files in documents folder
+    current_files = set()
     for fname in os.listdir(doc_folder):
         if fname.endswith(".txt"):
-            loader = TextLoader(os.path.join(doc_folder, fname))
-            docs.extend(loader.load())
+            current_files.add(fname)
+    
+    if not current_files:
+        print("❌ No .txt documents found in documents folder!")
+        raise FileNotFoundError(f"No .txt files found in {doc_folder}")
+    
+    # Check if ChromaDB already exists
+    if os.path.exists(chroma_db_path) and os.listdir(chroma_db_path):
+        print("📂 Loading existing ChromaDB...")
+        try:
+            vectordb = Chroma(persist_directory=chroma_db_path, embedding_function=embedding)
+            
+            # Check what files were previously indexed
+            indexed_files = set()
+            if os.path.exists(metadata_file):
+                with open(metadata_file, 'r') as f:
+                    indexed_files = set(line.strip() for line in f.readlines())
+            
+            # Find new files that need to be added
+            new_files = current_files - indexed_files
+            
+            if new_files:
+                print(f"📄 Found {len(new_files)} new files to add: {list(new_files)}")
+                
+                # Load and add new documents
+                new_docs = []
+                for fname in new_files:
+                    print(f"📖 Adding new document: {fname}")
+                    loader = TextLoader(os.path.join(doc_folder, fname))
+                    new_docs.extend(loader.load())
+                
+                # Split new documents into chunks
+                splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                new_chunks = splitter.split_documents(new_docs)
+                print(f"🔪 Created {len(new_chunks)} new chunks")
+                
+                # Add new chunks to existing ChromaDB
+                vectordb.add_documents(new_chunks)
+                print(f"➕ Added {len(new_chunks)} new chunks to existing ChromaDB")
+                
+                # Update the indexed files list
+                with open(metadata_file, 'w') as f:
+                    for fname in current_files:
+                        f.write(f"{fname}\n")
+                print("📝 Updated indexed files metadata")
+            else:
+                print("✅ No new files found - ChromaDB is up to date")
+            
+            # Test if it works
+            test_docs = vectordb.similarity_search("test", k=1)
+            print(f"✅ ChromaDB loaded successfully with {len(test_docs)} test results")
+            return vectordb
+            
+        except Exception as e:
+            print(f"⚠️ Error loading existing ChromaDB: {e}")
+            print("🔄 Recreating ChromaDB from all documents...")
+    
+    # Create new ChromaDB from all documents
+    print("📚 Creating ChromaDB from all documents...")
+    docs = []
+    for fname in current_files:
+        print(f"📄 Loading document: {fname}")
+        loader = TextLoader(os.path.join(doc_folder, fname))
+        docs.extend(loader.load())
+    
+    print(f"📝 Splitting {len(docs)} documents into chunks...")
     splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = splitter.split_documents(docs)
-    # Use HuggingFaceEmbeddings for vector search
-    embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectordb = Chroma.from_documents(chunks, embedding, persist_directory="chroma_db")
+    print(f"🔪 Created {len(chunks)} chunks")
+    
+    # Create ChromaDB with persistence
+    vectordb = Chroma.from_documents(chunks, embedding, persist_directory=chroma_db_path)
+    print("💾 ChromaDB created and persisted successfully")
+    
+    # Save the list of indexed files
+    os.makedirs(chroma_db_path, exist_ok=True)
+    with open(metadata_file, 'w') as f:
+        for fname in current_files:
+            f.write(f"{fname}\n")
+    print(f"📝 Saved metadata for {len(current_files)} indexed files")
+    
     return vectordb
 
 # =========================
@@ -211,21 +291,11 @@ def mentor_suggest():
 
 @app.route('/api/mentor-reset', methods=['POST'])
 def mentor_reset():
-    """
-    NEW ENDPOINT: Reset conversation history for a specific user
-    
-    This endpoint clears the backend conversation store when the user clicks
-    the reset/refresh button in the frontend. It ensures that:
-    - All previous conversation context is cleared
-    - Clarification count is reset to 0
-    - Fresh conversation starts without any memory of previous interactions
-    
-    Called from: Frontend Chat.tsx resetConversation() function
-    """
+    """Reset conversation history for a specific user"""
     data = request.json
     user_id = data.get('user_id', 'default_user')
     
-    # Clear conversation history for this user - resets both messages and clarification count
+    # Clear conversation history for this user
     if user_id in conversation_store:
         conversation_store[user_id] = {'messages': [], 'clarification_count': 0}
         print(f"[mentor_mode.py] Conversation reset for user: {user_id}")

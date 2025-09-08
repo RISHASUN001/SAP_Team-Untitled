@@ -1,0 +1,51 @@
+Practice Simulation Scenarios for Data Science Department
+
+
+Scenario 1: GitHub Code Conflict
+Your colleague Alex, a junior data scientist, comes to you in panic. They accidentally merged conflicting code into the main branch, breaking the production ML pipeline. They need guidance on how to fix it without making things worse and are embarrassed and worried about getting in trouble.
+
+Scenario 2: Data Pipeline Failure
+Your teammate Jordan, a data analyst, approaches you stressed and worried. They accidentally deleted important training data while cleaning the dataset. The model's performance dropped significantly and they're afraid to tell your manager. They need help figuring out next steps.
+
+Scenario 3: Model Performance Issues
+Your colleague Sam, a data scientist, comes to you feeling overwhelmed. Their machine learning model is performing poorly in production and they're unsure why it's failing. They're overwhelmed by the debugging process and need both technical guidance and emotional support.
+
+Scenario 4: Database Access Mistake
+Your teammate Riley comes to you terrified. They accidentally ran a DELETE query on the production database without a WHERE clause. Some customer data was lost and they're panicking about the consequences. They need help with damage control and communication.
+
+Scenario 5: Imposter Syndrome
+Your colleague Casey comes to you feeling overwhelmed because everyone on the team seems more skilled. They're questioning whether they belong in data science and considering quitting. They're seeking reassurance and career guidance from you.
+
+Scenario 6: Work-Life Balance Stress
+Your teammate Morgan approaches you struggling with long hours and burnout from tight project deadlines. They're making mistakes due to exhaustion and don't know how to manage their workload better. They need your support and advice.
+
+Scenario 7: Team Conflict
+Your colleague Taylor comes to you with ongoing disagreements with a senior colleague about their approach to a project. The tension is affecting their work and they're unsure how to resolve the conflict professionally. They need your guidance.
+
+Scenario 8: Performance Review Anxiety
+Your teammate Avery approaches you worried about an upcoming performance review. They feel their contributions aren't being recognized and they're nervous about discussing salary or promotion. They seek your mentoring advice.
+
+
+Scenario 9: Presenting to Stakeholders
+Your colleague Drew comes to you nervous about presenting ML results to non-technical executives next week. They're worried about explaining complex concepts clearly and handling difficult questions. They need your coaching.
+
+Scenario 10: Client Miscommunication
+Your teammate Blake realizes they misunderstood client requirements and built the wrong model. The project deadline is approaching and they need help figuring out how to communicate this setback professionally to the client.
+
+Scenario 11: Team Leadership Challenge
+Your colleague Quinn was recently promoted to lead a small data science team. They come to you struggling with giving feedback to former peers and establishing authority while maintaining friendships. They need leadership mentoring.
+
+Scenario 12: Cross-Department Collaboration
+Your colleague Sage comes to you frustrated about working with the marketing team who keeps changing requirements mid-project. They need help maintaining a professional relationship while setting appropriate boundaries.
+
+
+Scenario 13: Skill Gap Anxiety
+Your teammate Phoenix approaches you worried because they realize they lack knowledge in deep learning that's needed for an upcoming project. They're concerned about admitting this gap to your manager and need help creating a learning plan.
+
+Scenario 14: New Technology Adoption
+Your colleague River has been tasked with implementing a new cloud platform they've never used. They're feeling behind and overwhelmed, needing your guidance on how to quickly get up to speed.
+
+Scenario 15: Career Direction Uncertainty
+Your teammate Skylar comes to you unsure whether to specialize in MLOps, research, or product analytics. They're seeking your advice on career planning and skill development priorities.
+
+

@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# SAP Team Python Backend Startup Script
+# This script starts only the Python backend services
+# Use 'npm run dev' separately to start frontend + main backend
+
+echo "🚀 Starting SAP Team Python Backend Services..."
+
+# Kill any existing processes first
+echo "🧹 Cleaning up existing processes..."
+pkill -f "mentor_mode.py" 2>/dev/null || true
+pkill -f "practice_mode.py" 2>/dev/null || true  
+pkill -f "onboarding_mode.py" 2>/dev/null || true
+pkill -f "node.*index.js" 2>/dev/null || true
+
+sleep 2
+
+# Change to the chatbot directory
+cd "$(dirname "$0")/chatbot"
+
+echo "📂 Current directory: $(pwd)"
+echo "📁 Available files:"
+ls -la *.py
+
+# Step 1: Start mentor_mode.py first (initializes ChromaDB)
+echo ""
+echo "1️⃣ Starting Mentor Mode (Port 5001) - Initializes ChromaDB..."
+python3 mentor_mode.py &
+MENTOR_PID=$!
+echo "🎯 Mentor Mode started with PID: $MENTOR_PID"
+
+# Wait a bit for mentor mode to initialize ChromaDB
+sleep 5
+
+# Step 2: Start practice_mode.py (uses existing ChromaDB)
+echo ""
+echo "2️⃣ Starting Practice Mode (Port 5002)..."
+python3 practice_mode.py &
+PRACTICE_PID=$!
+echo "🎮 Practice Mode started with PID: $PRACTICE_PID"
+
+# Step 3: Start onboarding_mode.py (uses existing ChromaDB)
+echo ""
+echo "3️⃣ Starting Onboarding Mode (Port 5003)..."
+python3 onboarding_mode.py &
+ONBOARDING_PID=$!
+echo "📚 Onboarding Mode started with PID: $ONBOARDING_PID"
+
+# Wait a bit for Python backends to fully start
+sleep 3
+
+echo ""
+echo "✅ Python backends started successfully!"
+echo ""
+echo "🔗 Backend APIs:"
+echo "   • Mentor Mode API: http://localhost:5001"
+echo "   • Practice Mode API: http://localhost:5002" 
+echo "   • Onboarding Mode API: http://localhost:5003"
+echo ""
+echo "📊 Process IDs:"
+echo "   • Mentor Mode: $MENTOR_PID"
+echo "   • Practice Mode: $PRACTICE_PID"
+echo "   • Onboarding Mode: $ONBOARDING_PID"
+echo ""
+echo "💡 To start the full application:"
+echo "   1. Run 'npm run dev' in the main Agentic_SAP directory"
+echo "   2. This will start frontend (port 5173) and main backend (port 3001)"
+echo ""
+echo "🛑 To stop Python backends, run: ./stop_all_backends.sh"
+echo ""
+
+# Keep the script running and show logs
+echo "📝 Showing Python backend logs (Ctrl+C to stop)..."
+echo "======================================"
+
+# Wait for all background processes
+wait

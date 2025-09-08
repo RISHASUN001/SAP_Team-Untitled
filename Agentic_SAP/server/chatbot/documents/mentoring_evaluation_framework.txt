@@ -1,0 +1,101 @@
+MENTORING SKILLS EVALUATION FRAMEWORK
+
+This document provides a comprehensive framework for evaluating mentoring skills during practice simulations.
+
+=== EVALUATION CRITERIA ===
+
+1. EMPATHY & EMOTIONAL SUPPORT (1-5 points)
+   - 5 points: Shows deep understanding, validates emotions, uses supportive language
+   - 4 points: Shows good understanding, acknowledges feelings appropriately
+   - 3 points: Shows some empathy, basic emotional acknowledgment
+   - 2 points: Limited empathy, focuses mainly on facts
+   - 1 point: Lacks empathy, dismissive of emotions
+
+2. ACTIVE LISTENING (1-5 points)
+   - 5 points: Reflects back key points, asks clarifying questions, shows they heard details
+   - 4 points: Good listening skills, responds to specific points mentioned
+   - 3 points: Adequate listening, addresses main issues
+   - 2 points: Some listening gaps, misses important details
+   - 1 point: Poor listening, doesn't address what was actually said
+
+3. COMMUNICATION QUALITY (1-5 points)
+   - 5 points: Clear, professional, encouraging tone throughout
+   - 4 points: Generally clear and professional communication
+   - 3 points: Mostly clear, some minor communication issues
+   - 2 points: Unclear at times, unprofessional moments
+   - 1 point: Poor communication, hard to understand or inappropriate
+
+4. PROBLEM-SOLVING APPROACH (1-5 points)
+   - 5 points: Helps mentee think through solutions, asks good guiding questions
+   - 4 points: Provides good guidance toward solutions
+   - 3 points: Offers some helpful problem-solving direction
+   - 2 points: Limited problem-solving guidance
+   - 1 point: No clear problem-solving approach
+
+5. PRACTICAL ADVICE (1-5 points)
+   - 5 points: Gives specific, actionable, realistic next steps
+   - 4 points: Provides good practical guidance
+   - 3 points: Some useful practical advice
+   - 2 points: Vague or limited practical help
+   - 1 point: No practical advice or unrealistic suggestions
+
+6. TRUST BUILDING & RAPPORT (1-5 points)
+   - 5 points: Creates safe space, builds strong connection, mentee opens up
+   - 4 points: Good rapport building, mentee feels comfortable
+   - 3 points: Adequate trust building
+   - 2 points: Limited rapport, mentee remains guarded
+   - 1 point: Poor rapport, mentee doesn't trust or open up
+
+=== RED FLAGS (AUTOMATIC POINT DEDUCTIONS) ===
+- Dismissive language: -2 points
+- Blaming the mentee: -3 points
+- Giving unrealistic advice: -2 points
+- Interrupting or rushing: -1 point
+- Being judgmental: -3 points
+- Not addressing emotional distress: -2 points
+
+=== BONUS POINTS ===
+- Exceptional empathy in crisis: +1 point
+- Creative problem-solving approach: +1 point
+- Going above and beyond to help: +1 point
+- Perfect professional boundaries: +1 point
+
+=== OVERALL SCORE INTERPRETATION ===
+- 26-30 points: Exceptional mentoring skills
+- 21-25 points: Strong mentoring abilities
+- 16-20 points: Good mentoring with room for growth
+- 11-15 points: Basic mentoring skills, needs improvement
+- 6-10 points: Poor mentoring, significant training needed
+- 0-5 points: Inadequate mentoring response
+
+=== EVALUATION EXAMPLES ===
+
+GOOD MENTORING RESPONSE:
+"I can hear how stressed you are about this mistake. That must feel overwhelming. Let's break this down step by step. First, can you tell me exactly what happened with the client requirements? Then we can figure out the best way to move forward and minimize the impact."
+
+WHY IT'S GOOD:
+- Validates emotions ("hear how stressed", "overwhelming")
+- Offers structure ("step by step")
+- Asks clarifying questions
+- Focuses on solutions ("best way to move forward")
+- Professional and supportive tone
+
+POOR MENTORING RESPONSE:
+"Yeah, whatever. Just fix it."
+
+WHY IT'S POOR:
+- Dismissive language
+- No empathy
+- No practical guidance
+- Unprofessional tone
+- Doesn't address the emotional distress
+
+=== COMMON MENTORING MISTAKES TO WATCH FOR ===
+1. Rushing to solutions without understanding the problem
+2. Minimizing the mentee's emotional state
+3. Giving advice without asking questions first
+4. Being too directive instead of guiding
+5. Focusing only on the technical problem, ignoring emotional impact
+6. Using jargon or complex language when mentee is stressed
+7. Making assumptions without clarifying
+8. Not following up on emotional cues
