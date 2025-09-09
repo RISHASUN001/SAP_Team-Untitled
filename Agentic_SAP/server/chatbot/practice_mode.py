@@ -4,7 +4,7 @@ import random
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI, responses
 
 # Setup
 load_dotenv()
@@ -107,7 +107,7 @@ Would you like to practice with this scenario?""",
     
     return jsonify(response_data)
 
-@app.route('/api/practice-respond', methods=['POST'])
+@app.route('/chat/api/practice-respond', methods=['POST'])
 def practice_respond():
     """Handle practice responses"""
     data = request.json
@@ -225,14 +225,14 @@ def end_simulation(user_id):
     session = practice_sessions[user_id]
     scenario = session['scenario']
     responses = session['responses']
-    
+    user_responses = "\n".join([f'{i+1}. "{r}"' for i, r in enumerate(responses)])
+
     evaluation_prompt = f"""Evaluate this mentoring practice session based ONLY on what the USER said, not what the AI character said.
 
 SCENARIO: {scenario['description']}
 
 WHAT THE USER (MENTOR) ACTUALLY SAID:
-{chr(10).join([f"{i+1}. \"{r}\"" for i, r in enumerate(responses)])}
-
+{user_responses}
 IMPORTANT: 
 - Evaluate ONLY the user's responses listed above
 - Do NOT consider what the AI character said

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, MessageCircle, Sparkles, Loader, X } from 'lucide-react';
+import React, { useState } from "react";
+import { Search, MessageCircle, Sparkles, Loader, X } from "lucide-react";
 
 interface CourseSearchAIProps {
   onCoursesFound: (courses: any[]) => void;
@@ -12,11 +12,9 @@ interface AISearchResult {
   total_found: number;
 }
 
-const CourseSearchAI: React.FC<CourseSearchAIProps> = ({ 
-  onCoursesFound
-}) => {
-  const [query, setQuery] = useState('');
-  const [aiResponse, setAiResponse] = useState<string>('');
+const CourseSearchAI: React.FC<CourseSearchAIProps> = ({ onCoursesFound }) => {
+  const [query, setQuery] = useState("");
+  const [aiResponse, setAiResponse] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [foundCourses, setFoundCourses] = useState<any[]>([]);
@@ -28,10 +26,10 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({
     setShowAIPanel(true);
 
     try {
-      const response = await fetch('http://localhost:5002/api/course-search', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5005/api/course-search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ query: query.trim() }),
       });
@@ -41,27 +39,31 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({
         setAiResponse(result.ai_recommendation);
         setFoundCourses(result.relevant_courses);
         onCoursesFound(result.relevant_courses);
-        console.log('AI Course Search Result:', result);
+        console.log("AI Course Search Result:", result);
       } else {
-        setAiResponse('Sorry, I encountered an error while searching for courses. Please try again.');
+        setAiResponse(
+          "Sorry, I encountered an error while searching for courses. Please try again."
+        );
       }
     } catch (error) {
-      console.error('Course search error:', error);
-      setAiResponse('Unable to connect to the course search service. Please check if the server is running.');
+      console.error("Course search error:", error);
+      setAiResponse(
+        "Unable to connect to the course search service. Please check if the server is running."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading) {
+    if (e.key === "Enter" && !isLoading) {
       handleAISearch();
     }
   };
 
   const handleClear = () => {
-    setQuery('');
-    setAiResponse('');
+    setQuery("");
+    setAiResponse("");
     setFoundCourses([]);
     setShowAIPanel(false);
   };
@@ -70,10 +72,17 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({
   const parseMarkdownBold = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
+      if (part.startsWith("**") && part.endsWith("**")) {
         // Remove the ** and make it bold
         const boldText = part.slice(2, -2);
-        return <strong key={index} className="font-semibold text-gray-900 dark:text-white">{boldText}</strong>;
+        return (
+          <strong
+            key={index}
+            className="font-semibold text-gray-900 dark:text-white"
+          >
+            {boldText}
+          </strong>
+        );
       }
       return part;
     });
@@ -83,14 +92,13 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({
     "I want to learn Python for beginners",
     "Show me machine learning related courses",
     "I need help with data visualization",
-    "What should a data analyst learn first?"
+    "What should a data analyst learn first?",
   ];
 
   return (
     <div className="mb-6">
       {/* Main AI Course Search Container */}
       <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
-        
         {/* Header */}
         <div className="flex items-center mb-4">
           <div className="bg-purple-500 p-2 rounded-lg mr-3">
@@ -139,13 +147,17 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({
             ) : (
               <Search className="h-5 w-5" />
             )}
-            <span className="ml-2">{isLoading ? 'Searching...' : 'Ask AI'}</span>
+            <span className="ml-2">
+              {isLoading ? "Searching..." : "Ask AI"}
+            </span>
           </button>
         </div>
 
         {/* Example Queries */}
         <div className="mb-6">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Try these examples:</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Try these examples:
+          </p>
           <div className="flex flex-wrap gap-2">
             {exampleQueries.map((example, index) => (
               <button
@@ -186,13 +198,13 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({
             {foundCourses.length > 0 && !isLoading && (
               <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-600">
                 <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                  ✨ Found {foundCourses.length} relevant courses - check them out below!
+                  ✨ Found {foundCourses.length} relevant courses - check them
+                  out below!
                 </p>
               </div>
             )}
           </div>
         )}
-
       </div>
     </div>
   );
