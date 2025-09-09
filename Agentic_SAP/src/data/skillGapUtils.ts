@@ -48,7 +48,7 @@ export async function getAIRecommendedCourses(userId: string): Promise<AISkillAn
     const recommendedCourses = getRecommendedCourses(userId);
     
     // Call AI service for intelligent analysis
-    const response = await fetch('http://localhost:5003/api/ai-skill-analysis', {
+    const response = await fetch('http://localhost:5004/api/ai-skill-analysis', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

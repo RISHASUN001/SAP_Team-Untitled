@@ -186,11 +186,11 @@ def ai_skill_analysis():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "AI Skill Gap Analysis Service Running", "port": 5003})
+    return jsonify({"status": "AI Skill Gap Analysis Service Running", "port": 5004})
 
 if __name__ == '__main__':
     print("🤖 Starting AI Skill Gap Analysis Service...")
-    print("🔗 Available at: http://localhost:5003")
+    print("🔗 Available at: http://localhost:5004")
     print("📋 Endpoints:")
     print("   POST /api/ai-skill-analysis - Get AI-powered learning recommendations")
     print("   GET  /health - Service health check")
