@@ -6,9 +6,7 @@ import {
   Send,
   Brain,
   User,
-  Settings,
   Lightbulb,
-  MessageSquare,
   Zap,
   RotateCcw,
 } from "lucide-react";
@@ -100,7 +98,7 @@ Get comprehensive information about the SAP Data Science department, team struct
           timestamp: new Date(),
           mode: "mentor",
         };
-      } catch (error) {
+      } catch {
         return {
           id: Date.now().toString(),
           type: "ai",
@@ -136,7 +134,7 @@ Get comprehensive information about the SAP Data Science department, team struct
           buttons: data.buttons || undefined,
           messageType: data.type || undefined,
         };
-      } catch (error) {
+      } catch {
         return {
           id: Date.now().toString(),
           type: "ai",

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { DataProvider } from './contexts/DataContext';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Chat from './components/Chat';
@@ -12,14 +13,16 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SkillGapTest from './components/SkillGapTest';
 import Skills from './components/Skills';
 import Feedback from './pages/Feedback';
+import ProofReview from './components/ProofReview';
 import { FeedbackProvider } from './contexts/FeedbackContext';
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <FeedbackProvider>
-          <Router>
+        <DataProvider>
+          <FeedbackProvider>
+            <Router>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
               <Routes>
                 <Route path="/login" element={<Login />} />
@@ -59,13 +62,19 @@ function App() {
                     <Analytics />
                   </ProtectedRoute>
                 } />
+                <Route path="/proof-review" element={
+                  <ProtectedRoute>
+                    <ProofReview />
+                  </ProtectedRoute>
+                } />
                 <Route path="/feedback" element={<Feedback />} />
               </Routes>
             </div>
           </Router>
         </FeedbackProvider>
-      </AuthProvider>
-    </ThemeProvider>
+      </DataProvider>
+    </AuthProvider>
+  </ThemeProvider>
   );
 }
 

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, createElement } from "react";
 import Layout from "./Layout";
-import { useAuth } from "../contexts/AuthContext";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -14,10 +13,15 @@ import {
   Edit,
   Trash2,
   X,
+  FileCheck,
+  AlertCircle,
+  CheckCircle,
+  Upload
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { useForm, Controller } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
+import ProofSubmissionNew from "./ProofSubmissionNew";
 
 interface Event {
   id: string;
@@ -29,6 +33,9 @@ interface Event {
   location?: string;
   attendees?: string[];
   color: string;
+  requires_proof?: boolean;
+  proof_type?: string;
+  module_name?: string;
 }
 
 interface EventFormData {
@@ -41,12 +48,17 @@ interface EventFormData {
   attendees: string;
 }
 
-const Calendar: React.FC = () => {
-  const { currentUser } = useAuth();
+const Calendar = () => {
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [showProofSubmission, setShowProofSubmission] = useState(false);
+  const [proofEvent, setProofEvent] = useState<Event | null>(null);
+  const [userProofs, setUserProofs] = useState<any[]>([]);
 
   const {
     register,
@@ -158,29 +170,58 @@ const Calendar: React.FC = () => {
           .filter((attendee) => attendee)
       : undefined;
 
-    // Create new event
-    const newEvent: Event = {
-      id: Date.now().toString(), // Simple ID generation
-      title: data.title,
-      type: data.type,
-      startTime: data.startTime.toISOString(),
-      endTime: data.endTime.toISOString(),
-      description: data.description || undefined,
-      location: data.location || undefined,
-      attendees: attendeesArray,
-      color: getEventColor(data.type),
-    };
+    if (isEditMode) {
+      // Update existing event
+      const updatedEvent: Event = {
+        id: editingEvent?.id || Date.now().toString(),
+        title: data.title,
+        type: data.type,
+        startTime: data.startTime.toISOString(),
+        endTime: data.endTime.toISOString(),
+        description: data.description || undefined,
+        location: data.location || undefined,
+        attendees: attendeesArray,
+        color: getEventColor(data.type),
+        // Preserve existing properties that might be related to course enrollment
+        ...(editingEvent && {
+          requires_proof: editingEvent.requires_proof,
+          proof_type: editingEvent.proof_type,
+          module_name: editingEvent.module_name
+        })
+      };
 
-    // Add to events list
-    setEvents([...events, newEvent]);
+      // Update events list
+      setEvents(events.map(event => 
+        event.id === updatedEvent.id ? updatedEvent : event
+      ));
+    } else {
+      // Create new event
+      const newEvent: Event = {
+        id: Date.now().toString(), // Simple ID generation
+        title: data.title,
+        type: data.type,
+        startTime: data.startTime.toISOString(),
+        endTime: data.endTime.toISOString(),
+        description: data.description || undefined,
+        location: data.location || undefined,
+        attendees: attendeesArray,
+        color: getEventColor(data.type),
+      };
+
+      // Add to events list
+      setEvents([...events, newEvent]);
+    }
 
     // Close modal and reset form
     setShowEventModal(false);
+    setIsEditMode(false);
+    setEditingEvent(null);
     reset();
   };
 
-  const validateDates = (data: EventFormData) => {
-    if (data.endTime <= data.startTime) {
+  const validateEndTime = (endTime: Date) => {
+    const formData = watch();
+    if (endTime <= formData.startTime) {
       return "End time must be after start time";
     }
     return true;
@@ -191,11 +232,86 @@ const Calendar: React.FC = () => {
     setSelectedEvent(null); // Close the modal after deletion
   };
 
+  const handleEditEvent = (event: Event) => {
+    setIsEditMode(true);
+    setEditingEvent(event);
+    // Pre-populate form with event data
+    const startTime = new Date(event.startTime);
+    const endTime = new Date(event.endTime);
+    
+    reset({
+      title: event.title,
+      type: event.type,
+      description: event.description || '',
+      location: event.location || '',
+      attendees: event.attendees?.join(', ') || '',
+      startTime,
+      endTime
+    });
+    
+    setSelectedEvent(null);
+    setShowEventModal(true);
+  };
+
+  const handleSubmitProof = (event: Event) => {
+    setProofEvent(event);
+    setShowProofSubmission(true);
+  };
+
+  const handleProofSubmitted = async () => {
+    // Refresh proof status for this event
+    if (proofEvent) {
+      await loadProofStatus(proofEvent.id);
+    }
+    setShowProofSubmission(false);
+    setProofEvent(null);
+  };
+
+  const loadProofStatus = async (eventId: string) => {
+    try {
+      const response = await fetch(`http://localhost:5002/api/proof/event/${eventId}`);
+      const proofs = await response.json();
+      if (Array.isArray(proofs)) {
+        setUserProofs(prev => {
+          const filtered = prev.filter(p => p.event_id !== eventId);
+          return [...filtered, ...proofs];
+        });
+      }
+    } catch (error) {
+      console.error('Error loading proof status:', error);
+    }
+  };
+
+  const getProofStatus = (eventId: string) => {
+    const eventProofs = userProofs.filter(proof => proof.event_id === eventId);
+    if (eventProofs.length === 0) return 'none';
+    
+    const latestProof = eventProofs.sort((a, b) => 
+      new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+    )[0];
+    
+    return latestProof.status;
+  };
+
+  // Load proof statuses when events change
+  useEffect(() => {
+    const loadAllProofStatuses = async () => {
+      for (const event of events) {
+        if (event.requires_proof) {
+          await loadProofStatus(event.id);
+        }
+      }
+    };
+    
+    if (events.length > 0) {
+      loadAllProofStatuses();
+    }
+  }, [events]);
+
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
@@ -297,7 +413,10 @@ const Calendar: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setShowEventModal(true)}
+            onClick={() => {
+              setIsEditMode(false);
+              setShowEventModal(true);
+            }}
             className="flex items-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
           >
             <Plus className="h-5 w-5 mr-2" />
@@ -594,7 +713,7 @@ const Calendar: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
               <div className="flex items-start justify-between mb-4">
                 <div className={`${selectedEvent.color} p-2 rounded-lg`}>
-                  {React.createElement(getEventTypeIcon(selectedEvent.type), {
+                  {createElement(getEventTypeIcon(selectedEvent.type), {
                     className: "h-5 w-5 text-white",
                   })}
                 </div>
@@ -641,10 +760,69 @@ const Calendar: React.FC = () => {
                     </p>
                   </div>
                 )}
+
+                {/* Proof Submission Section */}
+                {selectedEvent.requires_proof && (
+                  <div className="pt-4 border-t dark:border-gray-700 mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                        <FileCheck className="h-4 w-4 mr-2" />
+                        Proof of Completion
+                      </h4>
+                      {(() => {
+                        const status = getProofStatus(selectedEvent.id);
+                        if (status === 'approved') {
+                          return (
+                            <div className="flex items-center text-green-600 dark:text-green-400">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Approved</span>
+                            </div>
+                          );
+                        } else if (status === 'pending_review') {
+                          return (
+                            <div className="flex items-center text-yellow-600 dark:text-yellow-400">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Pending Review</span>
+                            </div>
+                          );
+                        } else if (status === 'rejected') {
+                          return (
+                            <div className="flex items-center text-red-600 dark:text-red-400">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Resubmission Required</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="flex items-center text-gray-500 dark:text-gray-400">
+                              <Upload className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Not Submitted</span>
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      Submit proof of completion to track your learning progress.
+                    </p>
+                    
+                    <button
+                      onClick={() => handleSubmitProof(selectedEvent)}
+                      className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {getProofStatus(selectedEvent.id) === 'none' ? 'Submit Proof' : 'Update Proof'}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-3 mt-6">
-                <button className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors">
+                <button 
+                  onClick={() => handleEditEvent(selectedEvent)}
+                  className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                >
                   Edit Event
                 </button>
                 <button
@@ -672,11 +850,13 @@ const Calendar: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Create New Event
+                  {isEditMode ? 'Edit Event' : 'Create New Event'}
                 </h2>
                 <button
                   onClick={() => {
                     setShowEventModal(false);
+                    setIsEditMode(false);
+                    setEditingEvent(null);
                     reset();
                   }}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -793,7 +973,7 @@ const Calendar: React.FC = () => {
                     name="endTime"
                     rules={{
                       required: "End time is required",
-                      validate: validateDates,
+                      validate: validateEndTime,
                     }}
                     render={({ field }) => (
                       <DatePicker
@@ -837,6 +1017,24 @@ const Calendar: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Proof Submission Modal */}
+      {showProofSubmission && proofEvent && (
+        <ProofSubmissionNew
+          event={{
+            id: proofEvent.id,
+            title: proofEvent.title,
+            proof_type: proofEvent.proof_type || 'any',
+            description: proofEvent.description
+          }}
+          isOpen={showProofSubmission}
+          onClose={() => {
+            setShowProofSubmission(false);
+            setProofEvent(null);
+          }}
+          onSubmitted={handleProofSubmitted}
+        />
+      )}
     </Layout>
   );
 };

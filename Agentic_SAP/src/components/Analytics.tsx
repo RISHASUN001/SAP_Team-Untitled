@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Layout from './Layout';
-import { useAuth } from '../contexts/AuthContext';
 import {
   BarChart,
   Bar,
@@ -22,16 +21,11 @@ import {
   Users,
   Target,
   BookOpen,
-  Calendar,
-  Award,
   MessageCircle,
-  Clock,
-  Filter,
   Download
 } from 'lucide-react';
 
-const Analytics: React.FC = () => {
-  const { currentUser } = useAuth();
+const Analytics = () => {
   const [timeRange, setTimeRange] = useState('3m'); // 1w, 1m, 3m, 6m, 1y
   const [activeTab, setActiveTab] = useState('overview');
 

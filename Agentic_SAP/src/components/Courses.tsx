@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import Layout from './Layout';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
+import TimelinePlanner from './TimelinePlanner';
 import {
   BookOpen,
   Clock,
@@ -10,12 +12,15 @@ import {
   Play,
   CheckCircle,
   Target,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  Sparkles
 } from 'lucide-react';
 import { getRecommendedCourses, getSkillGaps, completeCourse, getAIRecommendedCourses, AISkillAnalysis } from '../data/skillGapUtils';
 import { userProfiles } from '../data/userProfiles';
 import { courses } from '../data/courseData';
 import CourseSearchAI from './CourseSearchAI';
+import CourseEnrollmentFlow from './CourseEnrollmentFlow';
 
 // Extract unique values for filters from our course database
 const durations = [...new Set(courses.map(c => c.duration))].sort((a, b) => {
@@ -33,6 +38,7 @@ interface CourseFilters {
 
 const Courses: React.FC = () => {
   const { currentUser } = useAuth();
+  const { courseEnrollments } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<CourseFilters>({
     difficulty: '',
@@ -40,12 +46,13 @@ const Courses: React.FC = () => {
     skill: ''
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [enrolledCourses, setEnrolledCourses] = useState<string[]>(['course1']);
   const [completedCourses, setCompletedCourses] = useState<string[]>([]);
   const [aiSkillAnalysis, setAiSkillAnalysis] = useState<AISkillAnalysis | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [activeTab, setActiveTab] = useState<'search' | 'recommendation'>('search');
   const [aiFoundCourses, setAiFoundCourses] = useState<any[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [isEnrollmentFlowOpen, setIsEnrollmentFlowOpen] = useState(false);
 
   if (!currentUser) {
     return (
@@ -128,11 +135,25 @@ const Courses: React.FC = () => {
     });
   }, [searchQuery, filters]);
 
+  // Helper function to check if a course is enrolled
+  const isEnrolled = (courseId: string): boolean => {
+    if (!currentUser) return false;
+    return courseEnrollments.some(enrollment => 
+      enrollment.courseId === courseId && enrollment.userId === currentUser.id
+    );
+  };
+
   const handleEnroll = (courseId: string) => {
-    if (enrolledCourses.includes(courseId)) {
-      setEnrolledCourses(prev => prev.filter(id => id !== courseId));
+    if (isEnrolled(courseId)) {
+      // Already enrolled, don't allow re-enrollment
+      return;
     } else {
-      setEnrolledCourses(prev => [...prev, courseId]);
+      // Find the course data
+      const course = courses.find(c => c.id === courseId) || aiFoundCourses.find(c => c.id === courseId);
+      if (course) {
+        setSelectedCourse(course);
+        setIsEnrollmentFlowOpen(true);
+      }
     }
   };
 
@@ -142,6 +163,11 @@ const Courses: React.FC = () => {
       // Re-fetch recommendations since skills have been updated
       window.location.reload(); // Simple way to refresh the recommendations
     }
+  };
+
+  const handleEnrollmentComplete = () => {
+    setIsEnrollmentFlowOpen(false);
+    setSelectedCourse(null);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -234,7 +260,7 @@ const Courses: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {aiFoundCourses.map((course) => {
-                    const isEnrolled = enrolledCourses.includes(course.id);
+                    const isEnrolledStatus = isEnrolled(course.id);
                     const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
                     
                     return (
@@ -287,7 +313,7 @@ const Courses: React.FC = () => {
                                 <CheckCircle className="h-4 w-4 mr-2" />
                                 Completed
                               </div>
-                            ) : isEnrolled ? (
+                            ) : isEnrolledStatus ? (
                               <div className="flex items-center space-x-2">
                                 <button
                                   onClick={() => handleCompleteCourse(course.id)}
@@ -410,7 +436,7 @@ const Courses: React.FC = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => {
-                  const isEnrolled = enrolledCourses.includes(course.id);
+                  const isEnrolledStatus = isEnrolled(course.id);
                   const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
                   
                   return (
@@ -456,7 +482,7 @@ const Courses: React.FC = () => {
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Completed
                             </div>
-                          ) : isEnrolled ? (
+                          ) : isEnrolledStatus ? (
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => handleCompleteCourse(course.id)}
@@ -594,7 +620,7 @@ const Courses: React.FC = () => {
             {/* Course Recommendations */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {recommendedCourses.map((course) => {
-                const isEnrolled = enrolledCourses.includes(course.id);
+                const isEnrolledStatus = isEnrolled(course.id);
                 const isCompleted = completedCourses.includes(course.id) || (userProfile?.completedCourses.includes(course.id) ?? false);
                 
                 // Find AI recommendation for this course if available
@@ -659,7 +685,7 @@ const Courses: React.FC = () => {
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Completed
                           </div>
-                        ) : isEnrolled ? (
+                        ) : isEnrolledStatus ? (
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleCompleteCourse(course.id)}
@@ -713,6 +739,18 @@ const Courses: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Course Enrollment Flow Modal */}
+      {selectedCourse && (
+        <CourseEnrollmentFlow
+          course={selectedCourse}
+          isOpen={isEnrollmentFlowOpen}
+          onClose={() => {
+            setIsEnrollmentFlowOpen(false);
+            setSelectedCourse(null);
+          }}
+        />
+      )}
     </Layout>
   );
 };
