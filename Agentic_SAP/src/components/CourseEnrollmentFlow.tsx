@@ -30,7 +30,7 @@ const CourseEnrollmentFlow = ({
     
     setIsGeneratingTimeline(true);
     try {
-      const response = await fetch('http://localhost:5002/api/timeline/generate', {
+      const response = await fetch('http://localhost:5006/api/timeline/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ const CourseEnrollmentFlow = ({
     
     setIsGeneratingTimeline(true);
     try {
-      const response = await fetch('http://localhost:5002/api/timeline/revise', {
+      const response = await fetch('http://localhost:5006/api/timeline/revise', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ const CourseEnrollmentFlow = ({
     if (!generatedTimeline) return;
     
     try {
-      const response = await fetch('http://localhost:5002/api/timeline/approve', {
+      const response = await fetch('http://localhost:5006/api/timeline/approve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
