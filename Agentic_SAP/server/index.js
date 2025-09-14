@@ -3,6 +3,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';  
+import fetch from 'node-fetch';
 dotenv.config(); //loads the env variable
 
 const app = express();
@@ -546,6 +547,239 @@ app.get('/api/teams/availability', (req, res) => {
 });
 
 // Health check
+// Timeline Generation API
+app.post('/api/generate-timeline', async (req, res) => {
+  try {
+    const { courseId, userId, constraints = {}, existingEnrollments = [] } = req.body;
+
+    // Mock course data for timeline generation
+    const courseData = {
+      'course1': { title: 'Advanced Python for Data Science', estimatedHours: 40, duration: '8 weeks' },
+      'course2': { title: 'Advanced Machine Learning', estimatedHours: 40, duration: '8 weeks' },
+      'course3': { title: 'Deep Learning with TensorFlow', estimatedHours: 50, duration: '10 weeks' },
+      'course4': { title: 'SQL for Data Analysis', estimatedHours: 20, duration: '4 weeks' },
+      'course5': { title: 'Data Visualization with Tableau', estimatedHours: 15, duration: '3 weeks' }
+    };
+
+    const course = courseData[courseId];
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Prepare prompt for LLM
+    const prompt = `Create a detailed learning timeline for the course "${course.title}" (${course.estimatedHours} hours over ${course.duration}).
+
+User context:
+- User ID: ${userId}
+- Existing enrollments: ${existingEnrollments.length}
+- Constraints: ${JSON.stringify(constraints)}
+
+Requirements:
+- Break down the course into weekly milestones
+- Include different types of activities: study sessions, assignments, projects, reviews, assessments
+- Each activity should have estimated hours (realistic breakdown)
+- Include proof-of-completion requirements for key milestones
+- Consider progressive difficulty
+- Account for review and practice time
+
+Return a JSON array with this structure for each timeline event:
+{
+  "title": "Week 1: Course Introduction & Setup",
+  "description": "Complete course registration, setup development environment, review syllabus",
+  "scheduledDate": "2025-01-15", 
+  "estimatedHours": 3,
+  "type": "study|assignment|project|review|exam",
+  "proofRequired": true|false
+}
+
+Make it practical and achievable. Schedule activities with 2-3 day gaps between major milestones.`;
+
+    try {
+      // Call OpenRouter API for LLama
+      const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:3001',
+          'X-Title': 'SAP Learning Platform'
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-3.2-3b-instruct:free',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert learning designer. Create practical, well-structured learning timelines. Always respond with valid JSON array format.'
+            },
+            {
+              role: 'user', 
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        })
+      });
+
+      if (openRouterResponse.ok) {
+        const aiResponse = await openRouterResponse.json();
+        let aiTimeline = [];
+        
+        try {
+          // Extract JSON from AI response
+          const content = aiResponse.choices[0].message.content;
+          const jsonMatch = content.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            aiTimeline = JSON.parse(jsonMatch[0]);
+          }
+        } catch (parseError) {
+          console.error('Error parsing AI response:', parseError);
+          // Fall back to default timeline
+          aiTimeline = generateDefaultTimeline(course);
+        }
+
+        res.json({ timeline: aiTimeline.length > 0 ? aiTimeline : generateDefaultTimeline(course) });
+      } else {
+        console.error('OpenRouter API error:', await openRouterResponse.text());
+        res.json({ timeline: generateDefaultTimeline(course) });
+      }
+    } catch (apiError) {
+      console.error('API call error:', apiError);
+      res.json({ timeline: generateDefaultTimeline(course) });
+    }
+
+  } catch (error) {
+    console.error('Timeline generation error:', error);
+    res.status(500).json({ error: 'Failed to generate timeline' });
+  }
+});
+
+// Timeline Adjustment API
+app.post('/api/adjust-timeline', async (req, res) => {
+  try {
+    const { currentPlan, allEnrollments, userId } = req.body;
+
+    const prompt = `Adjust this learning timeline based on workload conflicts:
+
+Current Plan: ${JSON.stringify(currentPlan, null, 2)}
+All Active Enrollments: ${allEnrollments.length}
+User: ${userId}
+
+Instructions:
+1. Identify time conflicts and heavy workload periods
+2. Redistribute activities to balance the workload
+3. Maintain the learning progression and dependencies
+4. Keep the same total estimated hours
+5. Adjust dates but keep the same activity structure
+
+Return the adjusted timeline as a JSON array with the same structure as input.`;
+
+    try {
+      const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:3001',
+          'X-Title': 'SAP Learning Platform'
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-3.2-3b-instruct:free',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert learning coordinator. Adjust timelines to optimize learning while avoiding conflicts. Always respond with valid JSON.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.5,
+          max_tokens: 2000
+        })
+      });
+
+      if (openRouterResponse.ok) {
+        const aiResponse = await openRouterResponse.json();
+        let adjustedTimeline = currentPlan;
+        
+        try {
+          const content = aiResponse.choices[0].message.content;
+          const jsonMatch = content.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            adjustedTimeline = JSON.parse(jsonMatch[0]);
+          }
+        } catch (parseError) {
+          console.error('Error parsing adjustment response:', parseError);
+        }
+
+        res.json({ adjustedTimeline });
+      } else {
+        res.json({ adjustedTimeline: currentPlan });
+      }
+    } catch (apiError) {
+      console.error('Timeline adjustment API error:', apiError);
+      res.json({ adjustedTimeline: currentPlan });
+    }
+
+  } catch (error) {
+    console.error('Timeline adjustment error:', error);
+    res.status(500).json({ error: 'Failed to adjust timeline' });
+  }
+});
+
+// Helper function to generate default timeline when AI is not available
+function generateDefaultTimeline(course) {
+  const baseDate = new Date();
+  const timeline = [];
+  
+  // Calculate number of weeks based on course duration
+  const weeksMatch = course.duration.match(/(\d+)\s*weeks?/i);
+  const weeks = weeksMatch ? parseInt(weeksMatch[1]) : 4;
+  const hoursPerWeek = Math.ceil(course.estimatedHours / weeks);
+  
+  for (let week = 0; week < weeks; week++) {
+    const weekStartDate = new Date(baseDate.getTime() + week * 7 * 24 * 60 * 60 * 1000);
+    
+    // Study session at the beginning of each week
+    timeline.push({
+      title: `Week ${week + 1}: Study Session`,
+      description: `Study materials and complete readings for week ${week + 1}`,
+      scheduledDate: new Date(weekStartDate.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      estimatedHours: Math.floor(hoursPerWeek * 0.6),
+      type: 'study',
+      proofRequired: false
+    });
+    
+    // Assignment in the middle of the week
+    if (week < weeks - 1) {
+      timeline.push({
+        title: `Week ${week + 1}: Assignment`,
+        description: `Complete practical assignment for week ${week + 1}`,
+        scheduledDate: new Date(weekStartDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        estimatedHours: Math.floor(hoursPerWeek * 0.4),
+        type: 'assignment',
+        proofRequired: true
+      });
+    }
+    
+    // Final project/exam for the last week
+    if (week === weeks - 1) {
+      timeline.push({
+        title: 'Final Project',
+        description: 'Complete and submit final course project',
+        scheduledDate: new Date(weekStartDate.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        estimatedHours: Math.floor(hoursPerWeek * 0.4),
+        type: 'project',
+        proofRequired: true
+      });
+    }
+  }
+  
+  return timeline;
+}
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
@@ -561,9 +795,26 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 AI Mentoring Platform API running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
 
 export default app;

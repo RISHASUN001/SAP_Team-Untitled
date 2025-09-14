@@ -1,7 +1,16 @@
-# SAP Team Python Backend Stop Script for Windows PowerShell
-# This script stops all Python backend services
+# SAP Team Backend Stop Script for Windows PowerShell
+# This script stops all backend services (Python and Node.js)
 
-Write-Host "🛑 Stopping SAP Team Python Backend Services..." -ForegroundColor Red
+Write-Host "🛑 Stopping SAP Team Backend Services..." -ForegroundColor Red
+
+# Stop Node.js server first
+Write-Host "🧹 Stopping Node.js server..." -ForegroundColor Yellow
+Get-Process node -ErrorAction SilentlyContinue | Where-Object { 
+    $_.CommandLine -like "*index.js*" 
+} | ForEach-Object {
+    Write-Host "   • Stopping Node.js server (PID: $($_.Id))" -ForegroundColor White
+    Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+}
 
 # Stop all Python processes related to our backends
 Write-Host "🧹 Stopping Python backend processes..." -ForegroundColor Yellow

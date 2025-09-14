@@ -1,0 +1,157 @@
+{
+  "timeline_id": "timeline_20250914_114412",
+  "course_name": "Introduction to Data Science",
+  "generated_at": "2025-09-14T11:44:12.293767",
+  "total_duration_weeks": 6,
+  "total_hours": 30,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: Introduction to Data Science - Module 1",
+      "type": "course",
+      "startTime": "2025-09-15T09:00:12.293767",
+      "endTime": "2025-09-15T11:00:12.293767",
+      "description": "Study session for Introduction to Data Science - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: Introduction to Data Science - Module 1",
+      "type": "course",
+      "startTime": "2025-09-16T09:00:12.293767",
+      "endTime": "2025-09-16T11:00:12.293767",
+      "description": "Study session for Introduction to Data Science - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_3",
+      "title": "Study: Introduction to Data Science - Module 1",
+      "type": "course",
+      "startTime": "2025-09-17T09:00:12.293767",
+      "endTime": "2025-09-17T11:00:12.293767",
+      "description": "Study session for Introduction to Data Science - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_4",
+      "title": "Assignment Due: Introduction to Data Science - Module 1",
+      "type": "deadline",
+      "startTime": "2025-09-20T23:59:12.293767",
+      "endTime": "2025-09-20T23:59:12.293767",
+      "description": "Submit assignment for Introduction to Data Science - Module 1",
+      "color": "bg-red-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "study_5",
+      "title": "Study: Introduction to Data Science - Module 2",
+      "type": "course",
+      "startTime": "2025-09-18T09:00:12.293767",
+      "endTime": "2025-09-18T11:00:12.293767",
+      "description": "Study session for Introduction to Data Science - Module 2 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Introduction to Data Science - Module 2",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "review_1",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-09-24T16:00:12.293767",
+      "endTime": "2025-09-24T17:00:12.293767",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_2",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-01T16:00:12.293767",
+      "endTime": "2025-10-01T17:00:12.293767",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_3",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-08T16:00:12.293767",
+      "endTime": "2025-10-08T17:00:12.293767",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_4",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-15T16:00:12.293767",
+      "endTime": "2025-10-15T17:00:12.293767",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_5",
+      "title": "Week 5 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-22T16:00:12.293767",
+      "endTime": "2025-10-22T17:00:12.293767",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_6",
+      "title": "Week 6 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-29T16:00:12.293767",
+      "endTime": "2025-10-29T17:00:12.293767",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 8,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 2,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "",
+  "user_id": "tm002",
+  "status": "draft"
+}

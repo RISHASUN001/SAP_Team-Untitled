@@ -1,0 +1,72 @@
+{
+  "timeline_id": "timeline_20250914_114434",
+  "course_name": "Introduction to Data Science",
+  "generated_at": "2025-09-14T11:44:34.942776",
+  "total_duration_weeks": 0.3,
+  "total_hours": 12,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: Introduction to Data Science - Module 1",
+      "type": "course",
+      "startTime": "2025-09-15T09:00:34.941790",
+      "endTime": "2025-09-15T13:00:34.941790",
+      "description": "Study session for Introduction to Data Science - Module 1 (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: Introduction to Data Science - Module 1",
+      "type": "course",
+      "startTime": "2025-09-16T09:00:34.941790",
+      "endTime": "2025-09-16T11:00:34.941790",
+      "description": "Study session for Introduction to Data Science - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_3",
+      "title": "Assignment Due: Introduction to Data Science - Module 1",
+      "type": "deadline",
+      "startTime": "2025-09-19T23:59:34.941790",
+      "endTime": "2025-09-19T23:59:34.941790",
+      "description": "Submit assignment for Introduction to Data Science - Module 1",
+      "color": "bg-red-500",
+      "module_name": "Introduction to Data Science - Module 1",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 20,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 4,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "Make it faster, I want to finish in 2 days",
+  "user_id": "tm002",
+  "status": "approved",
+  "previous_version": "timeline_20250914_114412",
+  "revision_request": "Make it faster, I want to finish in 2 days",
+  "approved_at": "2025-09-14T11:45:23.268909"
+}

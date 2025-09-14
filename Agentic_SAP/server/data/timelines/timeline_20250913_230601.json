@@ -1,0 +1,259 @@
+{
+  "timeline_id": "timeline_20250913_230601",
+  "course_name": "Statistical Analysis with R",
+  "generated_at": "2025-09-13T23:06:01.796825",
+  "total_duration_weeks": 4,
+  "total_hours": 30,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: Statistical Analysis with R - Module 1",
+      "type": "course",
+      "startTime": "2025-09-14T09:00:01.792712",
+      "endTime": "2025-09-14T13:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 1 (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: Statistical Analysis with R - Module 1",
+      "type": "course",
+      "startTime": "2025-09-15T09:00:01.792712",
+      "endTime": "2025-09-15T11:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_3",
+      "title": "Assignment Due: Statistical Analysis with R - Module 1",
+      "type": "deadline",
+      "startTime": "2025-09-18T23:59:01.792712",
+      "endTime": "2025-09-18T23:59:01.792712",
+      "description": "Submit assignment for Statistical Analysis with R - Module 1",
+      "color": "bg-red-500",
+      "module_name": "Statistical Analysis with R - Module 1",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "study_4",
+      "title": "Study: Statistical Analysis with R - Module 2",
+      "type": "course",
+      "startTime": "2025-09-16T09:00:01.792712",
+      "endTime": "2025-09-16T13:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 2 (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 2",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_5",
+      "title": "Study: Statistical Analysis with R - Module 2",
+      "type": "course",
+      "startTime": "2025-09-17T09:00:01.792712",
+      "endTime": "2025-09-17T11:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 2 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 2",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_6",
+      "title": "Assignment Due: Statistical Analysis with R - Module 2",
+      "type": "deadline",
+      "startTime": "2025-09-20T23:59:01.792712",
+      "endTime": "2025-09-20T23:59:01.792712",
+      "description": "Submit assignment for Statistical Analysis with R - Module 2",
+      "color": "bg-red-500",
+      "module_name": "Statistical Analysis with R - Module 2",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "study_7",
+      "title": "Study: Statistical Analysis with R - Module 3",
+      "type": "course",
+      "startTime": "2025-09-18T09:00:01.792712",
+      "endTime": "2025-09-18T13:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 3 (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 3",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "review_1",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-09-26T16:00:01.792712",
+      "endTime": "2025-09-26T17:00:01.792712",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "study_9",
+      "title": "Study: Statistical Analysis with R - Module 3",
+      "type": "course",
+      "startTime": "2025-09-21T09:00:01.792712",
+      "endTime": "2025-09-21T11:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 3 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 3",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_10",
+      "title": "Assignment Due: Statistical Analysis with R - Module 3",
+      "type": "deadline",
+      "startTime": "2025-09-24T23:59:01.792712",
+      "endTime": "2025-09-24T23:59:01.792712",
+      "description": "Submit assignment for Statistical Analysis with R - Module 3",
+      "color": "bg-red-500",
+      "module_name": "Statistical Analysis with R - Module 3",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "study_11",
+      "title": "Study: Statistical Analysis with R - Module 4",
+      "type": "course",
+      "startTime": "2025-09-22T09:00:01.792712",
+      "endTime": "2025-09-22T13:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 4 (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 4",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_12",
+      "title": "Study: Statistical Analysis with R - Module 4",
+      "type": "course",
+      "startTime": "2025-09-23T09:00:01.792712",
+      "endTime": "2025-09-23T11:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Module 4 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Module 4",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_13",
+      "title": "Assignment Due: Statistical Analysis with R - Module 4",
+      "type": "deadline",
+      "startTime": "2025-09-26T23:59:01.792712",
+      "endTime": "2025-09-26T23:59:01.792712",
+      "description": "Submit assignment for Statistical Analysis with R - Module 4",
+      "color": "bg-red-500",
+      "module_name": "Statistical Analysis with R - Module 4",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "study_14",
+      "title": "Study: Statistical Analysis with R - Final Project",
+      "type": "course",
+      "startTime": "2025-09-24T09:00:01.792712",
+      "endTime": "2025-09-24T13:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Final Project (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Final Project",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_15",
+      "title": "Study: Statistical Analysis with R - Final Project",
+      "type": "course",
+      "startTime": "2025-09-25T09:00:01.792712",
+      "endTime": "2025-09-25T11:00:01.792712",
+      "description": "Study session for Statistical Analysis with R - Final Project (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Statistical Analysis with R - Final Project",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_16",
+      "title": "Assignment Due: Statistical Analysis with R - Final Project",
+      "type": "deadline",
+      "startTime": "2025-09-28T23:59:01.792712",
+      "endTime": "2025-09-28T23:59:01.792712",
+      "description": "Submit assignment for Statistical Analysis with R - Final Project",
+      "color": "bg-red-500",
+      "module_name": "Statistical Analysis with R - Final Project",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "review_2",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-03T16:00:01.792712",
+      "endTime": "2025-10-03T17:00:01.792712",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_3",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-10T16:00:01.792712",
+      "endTime": "2025-10-10T17:00:01.792712",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_4",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-17T16:00:01.792712",
+      "endTime": "2025-10-17T17:00:01.792712",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 20,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 4,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "Make it faster, I want to finish in 2 days",
+  "user_id": "tm002",
+  "status": "draft",
+  "previous_version": "timeline_20250913_230528",
+  "revision_request": "Make it faster, I want to finish in 2 days"
+}
