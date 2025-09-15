@@ -1,0 +1,19 @@
+[
+  {
+    "id": "fb-tm001-q3-2025",
+    "teamMemberId": "tm001",
+    "userId": "tm001",
+    "managerId": "mgr001",
+    "managerName": "Sarah Chen",
+    "date": "2025-09-15T00:00:00.000Z",
+    "technicalSkills": 3.2,
+    "communication": 4,
+    "teamwork": 3,
+    "problemSolving": 3,
+    "initiative": 3,
+    "qualitativeFeedback": "Overall, your performance has shown strengths in technical skills, with a score of 4/5. You have also demonstrated moderate skills in communication, teamwork, problem-solving, and initiative, with scores ranging from 3/5. To further improve, focus on developing your communication and teamwork skills, as they are essential for successful collaboration and project outcomes. Regarding your statistical analysis skills with R, you have shown potential, but there is room for growth.",
+    "goals": "Statistical Analysis with R",
+    "areasForImprovement": "Statistical Analysis with R",
+    "summary": "Here is a constructive summary of the performance feedback: Overall, your performance has shown strengths in technical skills, with a score of 4/5. You have also demonstrated moderate skills in communication, teamwork, problem-solving, and initiative, with scores ranging from 3/5. To further improve, focus on developing your communication and teamwork skills, as they are essential for successful collaboration and project outcomes. Regarding your statistical analysis skills with R, you have shown potential, but there is room for growth. To improve, focus on refining your skills in this area by practicing and seeking opportunities to apply your knowledge to real-world problems."
+  }
+]

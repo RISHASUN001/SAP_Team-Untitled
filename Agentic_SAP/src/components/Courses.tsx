@@ -614,6 +614,131 @@ const Courses: React.FC = () => {
                     {aiSkillAnalysis.strategic_advice}
                   </p>
                 </div>
+
+                {/* Debug Information - Context Used for Recommendations */}
+                <div className="border-t border-gray-200 dark:border-gray-600 pt-4 mt-4">
+                  <h5 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                    🔍 Context Used for AI Recommendations
+                  </h5>
+                  
+                  {/* User Profile Context */}
+                  <div className="mb-4">
+                    <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                      📊 User Profile Context:
+                    </h6>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border text-sm">
+                      <p><strong>Name:</strong> {userProfile?.name}</p>
+                      <p><strong>Role:</strong> {userProfile?.role}</p>
+                      <p><strong>Department:</strong> {userProfile?.department}</p>
+                      <p><strong>Experience:</strong> {userProfile?.experience}</p>
+                      <p><strong>Current Skills:</strong> {userProfile?.skills?.map(s => `${s.name} (${s.rating}/3)`).join(', ')}</p>
+                      <p><strong>Current Goals:</strong> {userProfile?.currentGoals?.join(', ')}</p>
+                      <p><strong>Mentoring Needs:</strong> {userProfile?.mentoringNeeds?.join(', ')}</p>
+                    </div>
+                  </div>
+
+                  {/* Skill Gaps Context */}
+                  <div className="mb-4">
+                    <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                      ⚡ Identified Skill Gaps:
+                    </h6>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border text-sm">
+                      {skillGaps.length > 0 ? (
+                        <ul className="list-disc list-inside">
+                          {skillGaps.map((gap, index) => (
+                            <li key={index}>
+                              <strong>{gap.name}</strong> - Required Level: {gap.level}/3
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No skill gaps identified</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* AI Analysis Context */}
+                  {aiSkillAnalysis.agent_insights && (
+                    <div className="mb-4">
+                      <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                        🤖 AI Agent Analysis:
+                      </h6>
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border text-sm">
+                        <pre className="whitespace-pre-wrap text-xs overflow-x-auto">
+                          {JSON.stringify(aiSkillAnalysis.agent_insights, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Debug: Agent Outputs */}
+                  {aiSkillAnalysis.debug_agent_outputs && (
+                    <div className="mb-4">
+                      <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                        🔧 Debug: Individual Agent Recommendations:
+                      </h6>
+                      <div className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded border border-yellow-200 dark:border-yellow-600 text-sm">
+                        <pre className="whitespace-pre-wrap text-xs overflow-x-auto">
+                          {JSON.stringify(aiSkillAnalysis.debug_agent_outputs, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Goals vs Recommendations Analysis */}
+                  <div className="mb-4">
+                    <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                      🎯 Goals vs Recommendations Analysis:
+                    </h6>
+                    <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded border border-blue-200 dark:border-blue-600 text-sm">
+                      <p><strong>Goals from Feedback:</strong> {aiSkillAnalysis.context_used?.feedback_context?.feedback_summary?.goals_mentioned?.filter(g => g).join(', ') || 'None'}</p>
+                      <p><strong>User Profile Goals:</strong> {userProfile?.currentGoals?.join(', ') || 'None'}</p>
+                      <p><strong>Recommended Courses:</strong> {aiSkillAnalysis.recommended_sequence?.map(r => r.course_title).join(', ') || 'None'}</p>
+                    </div>
+                  </div>
+
+                  {/* Feedback Context */}
+                  <div className="mb-4">
+                    <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                      💬 Feedback Data Context:
+                    </h6>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border text-sm">
+                      {aiSkillAnalysis.context_used?.feedback_context ? (
+                        <div>
+                          <p><strong>Feedback Records:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_count}</p>
+                          {aiSkillAnalysis.context_used.feedback_context.feedback_summary.technical_skills_avg > 0 && (
+                            <p><strong>Technical Skills Average:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_summary.technical_skills_avg.toFixed(1)}/5</p>
+                          )}
+                          {aiSkillAnalysis.context_used.feedback_context.feedback_summary.communication_avg > 0 && (
+                            <p><strong>Communication Average:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_summary.communication_avg.toFixed(1)}/5</p>
+                          )}
+                          <p><strong>Goals from Feedback:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_summary.goals_mentioned?.filter(g => g).join(', ') || 'None specified'}</p>
+                          {aiSkillAnalysis.context_used.feedback_context.latest_feedback && (
+                            <div className="mt-2 p-2 bg-white dark:bg-gray-700 rounded">
+                              <p><strong>Latest Feedback Summary:</strong></p>
+                              <p className="text-xs italic">"{aiSkillAnalysis.context_used.feedback_context.latest_feedback.summary?.substring(0, 200)}..."</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-600 dark:text-gray-400 italic">
+                          No feedback data available for analysis
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Available Courses Context */}
+                  <div className="mb-4">
+                    <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                      📚 Available Courses Context:
+                    </h6>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border text-sm">
+                      <p><strong>Total Courses Analyzed:</strong> {aiSkillAnalysis.context_used?.available_courses_count || 'Unknown'}</p>
+                      <p><strong>Generation Time:</strong> {aiSkillAnalysis.context_used?.recommendation_generation_timestamp ? new Date(aiSkillAnalysis.context_used.recommendation_generation_timestamp).toLocaleString() : 'Unknown'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

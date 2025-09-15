@@ -1,0 +1,72 @@
+{
+  "timeline_id": "timeline_20250915_204723",
+  "course_name": "Advanced Machine Learning",
+  "generated_at": "2025-09-15T20:47:23.174735",
+  "total_duration_weeks": 0.3,
+  "total_hours": 12,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-16T09:00:23.173228",
+      "endTime": "2025-09-16T13:00:23.173228",
+      "description": "Study session for Ensemble Methods (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-17T09:00:23.173228",
+      "endTime": "2025-09-17T11:00:23.173228",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_3",
+      "title": "Assignment Due: Ensemble Methods",
+      "type": "deadline",
+      "startTime": "2025-09-20T23:59:23.173228",
+      "endTime": "2025-09-20T23:59:23.173228",
+      "description": "Submit assignment for Ensemble Methods",
+      "color": "bg-red-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 20,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 4,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "Make it faster, I want to finish in 2 days",
+  "user_id": "tm001",
+  "status": "approved",
+  "previous_version": "timeline_20250915_204641",
+  "revision_request": "Make it faster, I want to finish in 2 days",
+  "approved_at": "2025-09-15T20:47:31.262170"
+}

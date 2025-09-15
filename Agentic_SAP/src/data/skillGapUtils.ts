@@ -63,8 +63,14 @@ export async function getAIRecommendedCourses(userId: string): Promise<AISkillAn
     if (response.ok) {
       const result = await response.json();
       
-      // Extract ai_recommendations from the wrapped response
+      // Return the full AI recommendations with context data
       const aiRecommendations = result.ai_recommendations;
+      
+      // Add context information to the recommendations
+      if (result.context_used) {
+        aiRecommendations.context_used = result.context_used;
+      }
+      
       return aiRecommendations;
     }
     
