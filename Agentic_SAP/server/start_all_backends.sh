@@ -24,6 +24,27 @@ echo "📂 Current directory: $(pwd)"
 echo "📁 Available files:"
 ls -la *.py
 
+# Verify agentic AI components are present
+echo ""
+echo "🤖 Verifying Agentic AI Components:"
+agentic_files=("skills_analysis_agent.py" "goals_analysis_agent.py" "feedback_analysis_agent.py" "agent_orchestrator.py")
+for file in "${agentic_files[@]}"; do
+    if [ -f "$file" ]; then
+        echo "   ✅ $file found"
+    else
+        echo "   ❌ $file MISSING"
+    fi
+done
+
+# Run agentic health check
+echo ""
+echo "🔍 Running Agentic AI Health Check..."
+if python3 agentic_health_check.py; then
+    echo "✅ Agentic AI components verified!"
+else
+    echo "⚠️ Agentic AI health check failed - continuing anyway..."
+fi
+
 # Step 1: Start mentor_mode.py first (initializes ChromaDB)
 echo ""
 echo "1️⃣ Starting Mentor Mode (Port 5001) - Initializes ChromaDB..."
@@ -48,9 +69,9 @@ python3 onboarding_mode.py &
 ONBOARDING_PID=$!
 echo "📚 Onboarding Mode started with PID: $ONBOARDING_PID"
 
-# Step 4: Start ai_skill_gap.py (new backend service)
+# Step 4: Start ai_skill_gap.py (AGENTIC AI enabled)
 echo ""
-echo "4️⃣ Starting AI Skill Gap (Port 5004)..."
+echo "4️⃣ Starting AI Skill Gap (Port 5004) - 🤖 AGENTIC AI ENABLED..."
 python3 ai_skill_gap.py &
 SKILL_PID=$!
 echo "🤖 AI Skill Gap started with PID: $SKILL_PID"
@@ -72,7 +93,7 @@ echo "🔗 Backend APIs:"
 echo "   • Mentor Mode API: http://localhost:5001"
 echo "   • Practice Mode API: http://localhost:5002" 
 echo "   • Onboarding Mode API: http://localhost:5003"
-echo "   • AI Skill Gap API: http://localhost:5004"
+echo "   • AI Skill Gap API: http://localhost:5004 (🤖 AGENTIC AI)"
 echo "   • Course Search API: http://localhost:5005"
 echo ""
 echo "📊 Process IDs:"

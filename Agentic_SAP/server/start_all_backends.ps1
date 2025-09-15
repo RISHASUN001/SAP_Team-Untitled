@@ -10,14 +10,54 @@ Write-Host "Current directory: $(Get-Location)" -ForegroundColor Cyan
 Write-Host "Available Python files:" -ForegroundColor Cyan
 Get-ChildItem *.py | Format-Table Name, Length -AutoSize
 
+# Verify agentic AI components are present
+Write-Host "Verifying Agentic AI Components:" -ForegroundColor Cyan
+$agenticFiles = @("skills_analysis_agent.py", "goals_analysis_agent.py", "feedback_analysis_agent.py", "agent_orchestrator.py")
+foreach ($file in $agenticFiles) {
+    if (Test-Path $file) {
+        Write-Host "   ✅ $file found" -ForegroundColor Green
+    } else {
+        Write-Host "   ❌ $file MISSING" -ForegroundColor Red
+    }
+}
+
+# Run agentic health check
+Write-Host ""
+Write-Host "Running Agentic AI Health Check..." -ForegroundColor Cyan
+try {
+    & $pythonExe "agentic_health_check.py"
+    Write-Host "✅ Agentic AI components verified!" -ForegroundColor Green
+} catch {
+    Write-Host "⚠️ Agentic AI health check failed - continuing anyway..." -ForegroundColor Yellow
+}
+
 # Activate virtual environment
 Write-Host "Activating virtual environment..." -ForegroundColor Cyan
-if (Test-Path ".\venv\Scripts\Activate.ps1") {
-    & ".\venv\Scripts\Activate.ps1"
-    Write-Host "Virtual environment activated!" -ForegroundColor Green
-} else {
-    Write-Host "Virtual environment not found. Please run setup first." -ForegroundColor Red
-    exit 1
+
+# Check multiple possible venv locations
+$venvPaths = @(
+    ".\venv\Scripts\Activate.ps1",           # Server directory venv
+    ".\chatbot\venv\Scripts\Activate.ps1",   # Chatbot directory venv
+    ".\.venv\Scripts\Activate.ps1"           # Hidden .venv directory
+)
+
+$venvFound = $false
+foreach ($venvPath in $venvPaths) {
+    if (Test-Path $venvPath) {
+        Write-Host "Found virtual environment at: $venvPath" -ForegroundColor Green
+        & $venvPath
+        Write-Host "Virtual environment activated!" -ForegroundColor Green
+        $venvFound = $true
+        break
+    }
+}
+
+if (-not $venvFound) {
+    Write-Host "Virtual environment not found in standard locations:" -ForegroundColor Yellow
+    foreach ($path in $venvPaths) {
+        Write-Host "   ❌ $path" -ForegroundColor Red
+    }
+    Write-Host "Attempting to use system Python..." -ForegroundColor Yellow
 }
 
 # Kill any existing Python processes (optional cleanup)
@@ -26,8 +66,37 @@ Get-Process python* -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAc
 
 Start-Sleep 2
 
-# Get Python executable from virtual environment
-$pythonExe = ".\venv\Scripts\python.exe"
+# Get Python executable from virtual environment or system
+$pythonExePaths = @(
+    ".\venv\Scripts\python.exe",           # Server directory venv
+    ".\chatbot\venv\Scripts\python.exe",   # Chatbot directory venv  
+    ".\.venv\Scripts\python.exe",          # Hidden .venv directory
+    "python"                               # System Python fallback
+)
+
+$pythonExe = $null
+foreach ($pythonPath in $pythonExePaths) {
+    if (Test-Path $pythonPath -ErrorAction SilentlyContinue) {
+        $pythonExe = $pythonPath
+        Write-Host "Using Python executable: $pythonExe" -ForegroundColor Green
+        break
+    } elseif ($pythonPath -eq "python") {
+        # Test if system python is available
+        try {
+            & $pythonPath --version 2>$null
+            $pythonExe = $pythonPath
+            Write-Host "Using system Python: $pythonExe" -ForegroundColor Yellow
+            break
+        } catch {
+            # Continue to next option
+        }
+    }
+}
+
+if (-not $pythonExe) {
+    Write-Host "❌ No Python executable found!" -ForegroundColor Red
+    exit 1
+}
 
 # Start all Python backends as background processes
 Write-Host ""
@@ -40,7 +109,7 @@ $practiceProcess = Start-Process $pythonExe -ArgumentList "practice_mode.py" -Pa
 Write-Host "Starting Onboarding Mode (Port 5003)..." -ForegroundColor Magenta
 $onboardingProcess = Start-Process $pythonExe -ArgumentList "onboarding_mode.py" -PassThru -WindowStyle Minimized
 
-Write-Host "Starting AI Skill Gap (Port 5004)..." -ForegroundColor Magenta
+Write-Host "Starting AI Skill Gap (Port 5004) - AGENTIC AI ENABLED..." -ForegroundColor Magenta
 $skillProcess = Start-Process $pythonExe -ArgumentList "ai_skill_gap.py" -PassThru -WindowStyle Minimized
 
 Write-Host "Starting Course Search (Port 5005)..." -ForegroundColor Magenta
@@ -72,7 +141,7 @@ Write-Host "   Node.js API Server: http://localhost:3001" -ForegroundColor White
 Write-Host "   Mentor Mode API: http://localhost:5001" -ForegroundColor White
 Write-Host "   Practice Mode API: http://localhost:5002" -ForegroundColor White
 Write-Host "   Onboarding Mode API: http://localhost:5003" -ForegroundColor White
-Write-Host "   AI Skill Gap API: http://localhost:5004" -ForegroundColor White
+Write-Host "   AI Skill Gap API: http://localhost:5004 (🤖 AGENTIC AI)" -ForegroundColor White
 Write-Host "   Course Search API: http://localhost:5005" -ForegroundColor White
 Write-Host ""
 Write-Host "Process IDs:" -ForegroundColor Cyan
