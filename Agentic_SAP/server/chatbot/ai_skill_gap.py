@@ -64,9 +64,14 @@ def get_ai_skill_recommendations(user_profile, skill_gaps, available_courses):
 
 def force_feedback_goal_prioritization(ai_recommendations, feedback_data, user_profile, available_courses):
     """
-    Force prioritization of courses mentioned in feedback goals
+    Force prioritization of courses mentioned in feedback goals ONLY if feedback exists
     """
     try:
+        # Only proceed if there is actual feedback data
+        if not feedback_data or len(feedback_data) == 0:
+            print(f"📋 No feedback data for {user_profile.get('name', 'user')} - using standard recommendations")
+            return ai_recommendations
+            
         # Check if feedback mentions Statistical Analysis with R
         feedback_mentions_r = any(fb.get('goals', '').lower().find('statistical analysis with r') >= 0 for fb in feedback_data)
         user_goals_mention_r = any('statistical analysis with r' in goal.lower() for goal in user_profile.get('currentGoals', []))
@@ -86,19 +91,26 @@ def force_feedback_goal_prioritization(ai_recommendations, feedback_data, user_p
                         "course_id": "course8",
                         "course_title": r_course_data['title'],
                         "sequence_order": 1,
-                        "reasoning": "TOP PRIORITY: Addresses 'Statistical Analysis with R' goal from feedback",
+                        "reasoning": "Top priority: Directly addresses 'Statistical Analysis with R' goal mentioned in feedback",
                         "agent_consensus": "high"
                     }
-                    # Insert at beginning and renumber other courses
+                    # Insert at beginning and renumber other courses with enhanced reasoning
                     recommendations.insert(0, r_course)
                     for i, rec in enumerate(recommendations[1:], 2):
                         rec["sequence_order"] = i
+                        # Enhance reasoning for subsequent courses
+                        if i == 2 and rec.get('course_id') == 'course4':
+                            rec["reasoning"] = f"As a {user_profile.get('role', 'Junior Data Scientist')}, SQL skills are essential for data analysis. This course will help {user_profile.get('name', 'the user')} improve their data manipulation and querying skills, building on the statistical foundation from R."
+                        elif i == 3 and rec.get('course_id') == 'course1':
+                            rec["reasoning"] = f"Building on the SQL and R skills, this course will help {user_profile.get('name', 'the user')} advance their Python proficiency. Given their {user_profile.get('experience', '1.5 years')} of experience, mastering Python is crucial for comprehensive data science capabilities."
                     
                     # Update the recommendations
                     ai_recommendations["recommended_sequence"] = recommendations[:3]  # Limit to top 3
                     ai_recommendations["strategic_advice"] = "Starting with Statistical Analysis with R as specifically requested in feedback, then building complementary skills."
                     
                     print("🎯 FORCED PRIORITIZATION: Added Statistical Analysis with R course as #1 priority")
+        else:
+            print(f"📋 No R-related goals found in feedback for {user_profile.get('name', 'user')} - using standard recommendations")
         
         return ai_recommendations
     except Exception as e:
@@ -207,23 +219,23 @@ PRIORITIZED COURSES:
         # Create a strict list of valid course options
         valid_courses_list = "\n".join([f"- {course['id']}: {course['title']}" for course in available_courses])
 
-        # Coordinator prompt - FORCE prioritization of feedback goals
-        prompt = f"""You MUST prioritize courses mentioned in user feedback above all else.
+        # Create dynamic prompt based on whether feedback exists
+        if feedback_data and len(feedback_data) > 0:
+            # Check if feedback mentions R
+            feedback_mentions_r = any(fb.get('goals', '').lower().find('statistical analysis with r') >= 0 for fb in feedback_data)
+            
+            if feedback_mentions_r:
+                # Coordinator prompt for users WITH R feedback
+                prompt = f"""You MUST prioritize courses mentioned in user feedback above all else.
 
 User: {user_profile['name']} ({user_profile['role']})
 
-MANDATORY REQUIREMENTS:
-1. User feedback mentions "Statistical Analysis with R" - YOU MUST include course8: Statistical Analysis with R as #1 priority
-2. User goals include "Learn TensorFlow" - YOU MUST include course3: Deep Learning with TensorFlow  
-3. ONLY use exact course IDs and titles from the list below
+MANDATORY: User feedback mentions "Statistical Analysis with R" - YOU MUST include course8 as #1 priority
 
 AVAILABLE COURSES:
 {valid_courses_list}
 
-FEEDBACK ANALYSIS: User explicitly mentioned "Statistical Analysis with R" in goals
-USER PROFILE GOALS: {user_profile.get('currentGoals', [])}
-
-YOU MUST RETURN EXACTLY THIS STRUCTURE WITH ACTUAL COURSES:
+YOU MUST RETURN THIS STRUCTURE:
 {{
   "recommended_sequence": [
     {{
@@ -234,25 +246,82 @@ YOU MUST RETURN EXACTLY THIS STRUCTURE WITH ACTUAL COURSES:
       "agent_consensus": "high"
     }},
     {{
-      "course_id": "course3",
-      "course_title": "Deep Learning with TensorFlow",
+      "course_id": "course4",
+      "course_title": "SQL for Data Analysis",
       "sequence_order": 2, 
-      "reasoning": "Addresses 'Learn TensorFlow' goal from user profile",
+      "reasoning": "As a {user_profile.get('role')}, SQL skills are essential for data analysis. This course will help {user_profile.get('name')} improve their data manipulation and querying skills.",
       "agent_consensus": "high"
     }},
     {{
-      "course_id": "course4",
-      "course_title": "SQL for Data Analysis",
+      "course_id": "course1",
+      "course_title": "Advanced Python for Data Science",
       "sequence_order": 3,
-      "reasoning": "Strengthens SQL skills identified in skill gaps",
+      "reasoning": "Building on the foundation, this will help {user_profile.get('name')} advance their Python skills for comprehensive data science capabilities.",
       "agent_consensus": "medium"
     }}
   ],
-  "strategic_advice": "Start with Statistical Analysis with R as requested in feedback, then progress to TensorFlow for deep learning capabilities",
-  "estimated_timeline": "19 weeks total (5 + 10 + 4 weeks)"
-}}
+  "strategic_advice": "Start with Statistical Analysis with R as requested in feedback, then build foundational data skills",
+  "estimated_timeline": "15 weeks total (5 + 4 + 6 weeks)"
+}}"""
+            else:
+                # Standard prompt for users with feedback but no R mention
+                prompt = f"""Recommend optimal learning path for this user based on their profile and goals.
 
-CRITICAL: DO NOT create fake course names. USE ONLY the course IDs and titles from the available list."""
+User: {user_profile['name']} ({user_profile['role']})
+Experience: {user_profile.get('experience')}
+Goals: {user_profile.get('currentGoals', [])}
+
+AVAILABLE COURSES:
+{valid_courses_list}
+
+Focus on their skill gaps and career goals. Provide detailed reasoning for each course."""
+        else:
+            # Standard prompt for users WITHOUT feedback
+            prompt = f"""Recommend optimal learning path for this user based on their profile and goals.
+
+User: {user_profile['name']} ({user_profile['role']})
+Experience: {user_profile.get('experience')}
+Current Goals: {user_profile.get('currentGoals', [])}
+
+AVAILABLE COURSES:
+{valid_courses_list}
+
+Since this user has no feedback data, focus on their stated goals and skill gaps. For Jordan Kim specifically:
+- Goal: "Transition to Data Science role" 
+- Goal: "Python proficiency"
+- Skill Gap: Python (needs level 2/3)
+- Already strong in SQL (3/3)
+
+Recommend courses that support their transition to Data Science, prioritizing Python skills and advanced analytics.
+
+Return JSON format:
+{{
+  "recommended_sequence": [
+    {{
+      "course_id": "course1",
+      "course_title": "Advanced Python for Data Science",
+      "sequence_order": 1,
+      "reasoning": "As a Data Analyst transitioning to Data Science, {user_profile.get('name')} needs strong Python skills. This course directly addresses their 'Python proficiency' goal and supports their career transition.",
+      "agent_consensus": "high"
+    }},
+    {{
+      "course_id": "course5",
+      "course_title": "Data Visualization with Tableau",
+      "sequence_order": 2,
+      "reasoning": "Building on their existing SQL expertise, Tableau skills will help {user_profile.get('name')} create compelling visualizations, essential for both Data Analyst and Data Scientist roles.",
+      "agent_consensus": "high"
+    }},
+    {{
+      "course_id": "course2",
+      "course_title": "Advanced Machine Learning",
+      "sequence_order": 3,
+      "reasoning": "To complete the transition to Data Science, {user_profile.get('name')} needs machine learning expertise. This advanced course builds on Python foundations.",
+      "agent_consensus": "medium"
+    }}
+  ],
+  "strategic_advice": "Focus on Python proficiency first to support your Data Science transition, then build visualization and machine learning capabilities",
+  "estimated_timeline": "17 weeks total (6 + 3 + 8 weeks)"
+}}"""
 
         response = client.chat.completions.create(
             model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
