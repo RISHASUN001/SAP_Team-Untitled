@@ -2,14 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import Layout from "./Layout";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  Send,
-  Brain,
-  User,
-  Lightbulb,
-  Zap,
-  RotateCcw,
-} from "lucide-react";
+import { Send, Brain, User, Lightbulb, Zap, RotateCcw } from "lucide-react";
 
 interface Button {
   text: string;
@@ -36,14 +29,27 @@ const Chat: React.FC = () => {
   const [practiceMode, setPracticeMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Check if current user is an employee (Alex or Jordan)
+  const isEmployee = currentUser?.id === "tm001" || currentUser?.id === "tm002";
+
   useEffect(() => {
     // Initialize with welcome message
     if (messages.length === 0) {
-      setMessages([
-        {
-          id: "1",
-          type: "ai",
-          content: `Hello **${currentUser?.name}**! I'm your AI mentoring assistant. I can help you in several ways:
+      let welcomeMessage = "";
+
+      if (isEmployee) {
+        welcomeMessage = `Hello **${currentUser?.name}**! I'm your AI onboarding assistant. I can help you with:
+
+---
+**Onboarding Assistant**  
+Get comprehensive information about the SAP Data Science department, team structure, processes, tools, and career development.  
+👉 If you ever want to revisit this, just click the **Refresh** button.
+
+---
+
+**How can I help you with your onboarding today?**`;
+      } else {
+        welcomeMessage = `Hello **${currentUser?.name}**! I'm your AI mentoring assistant. I can help you in several ways:
 
 ---
 **1. Mentor Mode**  
@@ -60,12 +66,19 @@ Get comprehensive information about the SAP Data Science department, team struct
 
 ---
 
-**How would you like to get started today?**`,
+**How would you like to get started today?**`;
+      }
+
+      setMessages([
+        {
+          id: "1",
+          type: "ai",
+          content: welcomeMessage,
           timestamp: new Date(),
         },
       ]);
     }
-  }, [currentUser, messages.length]);
+  }, [currentUser, messages.length, isEmployee]);
 
   useEffect(() => {
     scrollToBottom();
@@ -336,15 +349,18 @@ What aspect would you like to know more about?`,
   };
 
   // UPDATED FUNCTION: Now clears both frontend AND backend conversation history
-  // UPDATED FUNCTION: Now clears both frontend AND backend conversation history
   // This ensures a complete reset when user clicks the refresh button
   const resetConversation = async () => {
-    // Step 1: Clear frontend messages (UI reset)
-    setMessages([
-      {
-        id: "1",
-        type: "ai",
-        content: `**Conversation Reset!** 🔄
+    let resetMessage = "";
+
+    if (isEmployee) {
+      resetMessage = `**Conversation Reset!** 🔄
+
+I'm ready to help you with onboarding questions about the SAP Data Science department, team structure, processes, tools, and resources.
+
+**What would you like to discuss?**`;
+    } else {
+      resetMessage = `**Conversation Reset!** 🔄
 
 I'm ready to help you with mentoring guidance. Here's what I can assist with:
 
@@ -360,8 +376,15 @@ Practice your mentoring skills through simulated scenarios.
 Get comprehensive information about the SAP Data Science department, team structure, processes, tools, and career development.  
 👉 If you ever want to revisit this, just click the **Refresh** button.
 
+**What would you like to discuss?**`;
+    }
 
-**What would you like to discuss?**`,
+    // Step 1: Clear frontend messages (UI reset)
+    setMessages([
+      {
+        id: "1",
+        type: "ai",
+        content: resetMessage,
         timestamp: new Date(),
       },
     ]);
@@ -427,41 +450,45 @@ Get comprehensive information about the SAP Data Science department, team struct
               </div>
 
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => {
-                    setMentorMode(!mentorMode);
-                    setPracticeMode(false);
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mentorMode
-                      ? "bg-primary-500 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  <Lightbulb className="h-4 w-4 mr-2 inline" />
-                  Mentor Mode
-                </button>
+                {!isEmployee && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setMentorMode(!mentorMode);
+                        setPracticeMode(false);
+                      }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        mentorMode
+                          ? "bg-primary-500 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      <Lightbulb className="h-4 w-4 mr-2 inline" />
+                      Mentor Mode
+                    </button>
 
-                <button
-                  onClick={() => {
-                    const wasAlreadyActive = practiceMode;
-                    setPracticeMode(!practiceMode);
-                    setMentorMode(false);
+                    <button
+                      onClick={() => {
+                        const wasAlreadyActive = practiceMode;
+                        setPracticeMode(!practiceMode);
+                        setMentorMode(false);
 
-                    // NEW: Auto-start practice session when activating practice mode
-                    if (!wasAlreadyActive && !practiceMode) {
-                      startPracticeSession();
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    practiceMode
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  <Zap className="h-4 w-4 mr-2 inline" />
-                  Practice Mode
-                </button>
+                        // NEW: Auto-start practice session when activating practice mode
+                        if (!wasAlreadyActive && !practiceMode) {
+                          startPracticeSession();
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        practiceMode
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      <Zap className="h-4 w-4 mr-2 inline" />
+                      Practice Mode
+                    </button>
+                  </>
+                )}
 
                 <button
                   onClick={resetConversation}
@@ -676,26 +703,31 @@ Get comprehensive information about the SAP Data Science department, team struct
           </h2>
 
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-              <h3 className="font-medium text-blue-900 dark:text-blue-300 mb-2">
-                💡 Mentor Mode
-              </h3>
-              <p className="text-sm text-blue-700 dark:text-blue-400">
-                Get AI-powered suggestions for mentoring conversations. Share a
-                mentoring situation and receive tone, content, and approach
-                recommendations.
-              </p>
-            </div>
+            {!isEmployee && (
+              <>
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                  <h3 className="font-medium text-blue-900 dark:text-blue-300 mb-2">
+                    💡 Mentor Mode
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    Get AI-powered suggestions for mentoring conversations.
+                    Share a mentoring situation and receive tone, content, and
+                    approach recommendations.
+                  </p>
+                </div>
 
-            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-              <h3 className="font-medium text-green-900 dark:text-green-300 mb-2">
-                ⚡ Practice Mode
-              </h3>
-              <p className="text-sm text-green-700 dark:text-green-400">
-                Practice your mentoring skills! The AI will act as a mentee with
-                realistic questions and challenges for you to respond to.
-              </p>
-            </div>
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                  <h3 className="font-medium text-green-900 dark:text-green-300 mb-2">
+                    ⚡ Practice Mode
+                  </h3>
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    Practice your mentoring skills! The AI will act as a mentee
+                    with realistic questions and challenges for you to respond
+                    to.
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
               <h3 className="font-medium text-purple-900 dark:text-purple-300 mb-2">
