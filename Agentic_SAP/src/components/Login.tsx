@@ -27,10 +27,10 @@ const Login: React.FC = () => {
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            NexusOne
+            SAPhire
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Your Central Hub for Onboarding, Growth, and Continuous Learning
+            From onboarding to leadership, with AI brilliance
           </p>
         </div>
 
