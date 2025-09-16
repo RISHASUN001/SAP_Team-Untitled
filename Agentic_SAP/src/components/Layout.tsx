@@ -33,16 +33,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
 
   const navigation = [
-
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'AI Mentor Chat', href: '/chat', icon: MessageCircle },
-    { name: 'Courses', href: '/courses', icon: BookOpen },
-    { name: 'Skills', href: '/skills', icon: Award },
-    { name: 'Goals', href: '/goals', icon: Target },
-    { name: 'Calendar', href: '/calendar', icon: Calendar },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: "Dashboard", href: "/", icon: Home },
+    { name: "AI Chatbot", href: "/chat", icon: MessageCircle },
+    { name: "Courses", href: "/courses", icon: BookOpen },
+    { name: "Skills", href: "/skills", icon: Award },
+    { name: "Goals", href: "/goals", icon: Target },
+    { name: "Calendar", href: "/calendar", icon: Calendar },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Feedback", href: "/feedback", icon: MessageSquare },
-
   ];
 
   const handleLogout = () => {
