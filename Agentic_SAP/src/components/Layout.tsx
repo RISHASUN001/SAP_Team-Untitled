@@ -60,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="flex items-center justify-between h-16 px-6 bg-primary-600">
           <div className="flex items-center space-x-2">
             <Star className="h-8 w-8 text-white" />
-            <span className="text-xl font-bold text-white">NexusOne</span>
+            <span className="text-xl font-bold text-white">SAPhire</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
