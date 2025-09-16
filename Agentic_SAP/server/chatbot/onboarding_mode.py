@@ -81,12 +81,23 @@ def load_chroma_vector_db(doc_folder):
         raise FileNotFoundError("ChromaDB not found. Please run mentor_mode.py first to initialize the vector database.")
 
 def _is_work_relevant(user_message: str) -> bool:
-    """Check if the user message is relevant to work/SAP topics"""
+    """Check if the user message is relevant to SAP/work topics"""
     user_lower = user_message.lower()
     
-    # Work-related keywords
+    # SAP-specific keywords (high priority)
+    sap_keywords = [
+        'sap', 's/4hana', 's4hana', 'erp', 'btp', 'business technology platform',
+        'hana', 'fiori', 'ariba', 'concur', 'successfactors', 'fieldglass',
+        'analytics cloud', 'data intelligence', 'integration suite', 'commerce cloud',
+        'sales cloud', 'service cloud', 'marketing cloud', 'customer experience',
+        'cx', 'crm', 'customer relationship management', 'leonardo', 'ai core',
+        'launchpad', 'workflow', 'process orchestration', 'master data governance',
+        'data warehouse cloud', 'datasphere', 'event mesh', 'api management'
+    ]
+    
+    # Work-related keywords (medium priority)
     work_keywords = [
-        'sap', 'team', 'work', 'job', 'career', 'onboarding', 'training', 'project', 
+        'team', 'work', 'job', 'career', 'onboarding', 'training', 'project', 
         'technology', 'tool', 'platform', 'data science', 'machine learning', 'ai',
         'department', 'manager', 'colleague', 'meeting', 'process', 'policy',
         'skill', 'development', 'learning', 'certification', 'performance', 'review',
@@ -94,7 +105,16 @@ def _is_work_relevant(user_message: str) -> bool:
         'mentoring', 'feedback', 'collaboration', 'communication', 'leadership',
         'python', 'sql', 'analytics', 'cloud', 'database', 'software', 'programming',
         'code', 'development', 'engineering', 'research', 'innovation', 'product',
-        'customer', 'business', 'strategy', 'planning', 'reporting', 'analysis'
+        'customer', 'business', 'strategy', 'planning', 'reporting', 'analysis',
+        'enterprise', 'solution', 'implementation', 'integration', 'architecture'
+    ]
+    
+    # Business and enterprise keywords
+    business_keywords = [
+        'supply chain', 'procurement', 'finance', 'accounting', 'hr', 'human resources',
+        'sales', 'marketing', 'service', 'operations', 'manufacturing', 'retail',
+        'logistics', 'warehouse', 'inventory', 'planning', 'forecasting', 'budgeting',
+        'compliance', 'governance', 'security', 'privacy', 'gdpr', 'audit'
     ]
     
     # Non-work keywords that indicate personal/irrelevant topics
@@ -103,24 +123,32 @@ def _is_work_relevant(user_message: str) -> bool:
         'religion', 'politics', 'weather', 'sports', 'entertainment', 'movie', 'music',
         'food', 'cooking', 'recipe', 'vacation', 'travel', 'hobby', 'gaming', 'tv show',
         'celebrity', 'gossip', 'health', 'medical', 'doctor', 'medicine', 'fitness',
-        'diet', 'weight', 'appearance', 'fashion', 'shopping', 'money', 'finance',
-        'investment', 'stock', 'cryptocurrency', 'bitcoin'
+        'diet', 'weight', 'appearance', 'fashion', 'shopping', 'personal finance',
+        'investment', 'stock', 'cryptocurrency', 'bitcoin', 'lottery', 'gambling'
     ]
     
-    # Check for irrelevant topics first
+    # Check for irrelevant topics first (strong negative signal)
     if any(keyword in user_lower for keyword in irrelevant_keywords):
         return False
     
-    # Check for work-related topics
+    # Check for SAP-specific topics (highest priority)
+    if any(keyword in user_lower for keyword in sap_keywords):
+        return True
+    
+    # Check for work-related topics (medium priority)
     if any(keyword in user_lower for keyword in work_keywords):
         return True
     
-    # If it's a general question that could be work-related, allow it
-    question_words = ['what', 'how', 'when', 'where', 'who', 'why', 'can', 'should', 'do', 'does']
-    if any(user_lower.startswith(qw) for qw in question_words) and len(user_message.split()) <= 20:
+    # Check for business keywords (medium priority)
+    if any(keyword in user_lower for keyword in business_keywords):
         return True
     
-    # Default to allowing if uncertain (benefit of the doubt)
+    # If it's a general question that could be work-related, allow it
+    question_words = ['what', 'how', 'when', 'where', 'who', 'why', 'can', 'should', 'do', 'does', 'tell', 'explain', 'describe']
+    if any(user_lower.startswith(qw) for qw in question_words) and len(user_message.split()) <= 25:
+        return True
+    
+    # Default to allowing if uncertain (benefit of the doubt for work context)
     return True
 
 def _generate_suggestions(user_message: str, docs) -> List[str]:
@@ -128,31 +156,62 @@ def _generate_suggestions(user_message: str, docs) -> List[str]:
     user_lower = user_message.lower()
     suggestions = []
     
-    # Topic-based suggestions
-    if any(keyword in user_lower for keyword in ['onboarding', 'new']):
+    # SAP Product-specific suggestions
+    if any(keyword in user_lower for keyword in ['btp', 'business technology platform']):
         suggestions = [
-            "What should I prepare for my first week?",
-            "Who will be my mentor during onboarding?",
-            "What training materials should I review?"
+            "What services are available in SAP BTP?",
+            "How do I develop applications on BTP?",
+            "What is SAP HANA Cloud and how is it used?"
         ]
-    elif any(keyword in user_lower for keyword in ['tool', 'technology']):
+    elif any(keyword in user_lower for keyword in ['erp', 's/4hana', 's4hana']):
         suggestions = [
-            "Are there training resources for these tools?",
-            "What development environment should I set up?"
+            "What modules are available in S/4HANA?",
+            "How does real-time analytics work in S/4HANA?",
+            "What's the difference between ERP and S/4HANA?"
         ]
-    elif any(keyword in user_lower for keyword in ['career', 'growth']):
+    elif any(keyword in user_lower for keyword in ['cx', 'customer experience', 'sales cloud', 'service cloud']):
         suggestions = [
-            "What are the career progression paths?",
-            "How does the performance review process work?",
-            "What learning opportunities are available?"
+            "What is SAP Customer Experience suite?",
+            "How do Sales Cloud and Service Cloud work together?",
+            "What data science applications exist in CX?"
+        ]
+    elif any(keyword in user_lower for keyword in ['analytics', 'data science', 'machine learning']):
+        suggestions = [
+            "What analytics tools does SAP provide?",
+            "How is machine learning integrated in SAP products?",
+            "What is SAP Analytics Cloud used for?"
+        ]
+    elif any(keyword in user_lower for keyword in ['onboarding', 'new', 'first week']):
+        suggestions = [
+            "What SAP products should I learn first?",
+            "What training is available for new employees?",
+            "Who will be my mentor during onboarding?"
+        ]
+    elif any(keyword in user_lower for keyword in ['tool', 'technology', 'platform']):
+        suggestions = [
+            "What SAP development tools should I use?",
+            "How do I access SAP systems and platforms?",
+            "What's the architecture of SAP solutions?"
+        ]
+    elif any(keyword in user_lower for keyword in ['career', 'growth', 'development']):
+        suggestions = [
+            "What career paths exist in SAP data science?",
+            "What SAP certifications should I pursue?",
+            "How can I specialize in specific SAP products?"
+        ]
+    elif any(keyword in user_lower for keyword in ['integration', 'api', 'connectivity']):
+        suggestions = [
+            "How do SAP products integrate with each other?",
+            "What integration technologies does SAP use?",
+            "How do I connect external systems to SAP?"
         ]
     else:
-        # General suggestions
+        # General SAP-focused suggestions
         suggestions = [
-            "Tell me about the team structure",
-            "What should I know for my first week?",
-            "What tools and technologies do we use?",
-            "What career development opportunities exist?"
+            "What are the main SAP products I should know?",
+            "How does SAP support digital transformation?",
+            "What makes SAP's approach to enterprise software unique?",
+            "How do I get started with SAP development?"
         ]
     
     return suggestions[:3]  # Return top 3 suggestions
@@ -189,11 +248,11 @@ def onboarding_chat():
         # Check if the question is relevant to SAP or work
         if not _is_work_relevant(user_message):
             return jsonify({
-                'response': "This question doesn't seem to be related to SAP Data Science Department or work. Please ask questions about onboarding, team structure, processes, tools, or other work-related topics.",
+                'response': "This question doesn't seem to be related to SAP products, data science, or work. Please ask questions about SAP solutions like BTP (Business Technology Platform), ERP/S/4HANA, Customer Experience (CX), onboarding, or other SAP-related topics.",
                 'suggestions': [
-                    "Tell me about the team structure",
-                    "What should I know for my first week?",
-                    "What tools and technologies do we use?"
+                    "What are the main SAP products I should know?",
+                    "Tell me about SAP Business Technology Platform (BTP)",
+                    "How does data science apply to SAP solutions?"
                 ],
                 'sources': [],
                 'timestamp': datetime.now().isoformat()
@@ -205,45 +264,82 @@ def onboarding_chat():
         
         conversation_history = conversation_store[user_id]
         
-        # Search for relevant documents using vector similarity
-        docs = vector_index.similarity_search(user_message, k=3)
+        # Use vector search with cosine similarity to find most relevant chunks
+        docs_with_scores = vector_index.similarity_search_with_score(user_message, k=5)
         
-        # If no relevant documents found (low similarity), return specific message
-        if not docs:
+        # Filter documents based on similarity threshold (0.0 = identical, 2.0 = completely different for cosine)
+        similarity_threshold = 1.5  # More lenient threshold
+        relevant_docs = [(doc, score) for doc, score in docs_with_scores if score < similarity_threshold]
+        
+        if not relevant_docs:
             return jsonify({
-                'response': "No relevant information found. Please contact HR for more information or ask questions specifically related to the SAP Data Science Department.",
+                'response': "No relevant information found. Please contact HR for more information or ask questions specifically related to SAP products, the Data Science Department, or SAP's technology platform.",
                 'suggestions': [
-                    "Tell me about the team structure",
-                    "What should I know for my first week?",
-                    "What tools and technologies do we use?"
+                    "What are the main SAP products I should learn?",
+                    "Tell me about SAP's Business Technology Platform",
+                    "How is data science used in SAP solutions?"
                 ],
                 'sources': [],
                 'timestamp': datetime.now().isoformat()
             })
         
-        # Build context from retrieved documents
-        context = "\n\n".join([doc.page_content for doc in docs])
+        # Build concise context from only the most relevant chunks
+        context_parts = []
+        total_chars = 0
+        max_context_chars = 1500  # Strict limit
         
-        # Create system prompt with strict instructions
-        system_prompt = f"""You are an AI assistant helping new employees with onboarding at SAP's Data Science Department. 
+        for doc, score in relevant_docs:
+            # Only include the most relevant part of each document
+            content = doc.page_content
+            
+            # If the document is long, try to find the most relevant paragraph
+            if len(content) > 300:
+                # Split into sentences and find those most relevant to the query
+                sentences = content.split('. ')
+                query_keywords = set(user_message.lower().split())
+                
+                # Score sentences based on keyword overlap
+                sentence_scores = []
+                for sentence in sentences:
+                    sentence_lower = sentence.lower()
+                    overlap = len([word for word in query_keywords if word in sentence_lower])
+                    sentence_scores.append((sentence, overlap))
+                
+                # Take top sentences up to 300 chars
+                sentence_scores.sort(key=lambda x: x[1], reverse=True)
+                selected_text = ""
+                for sentence, _ in sentence_scores:
+                    if len(selected_text + sentence) < 300:
+                        selected_text += sentence + ". "
+                    else:
+                        break
+                content = selected_text.strip()
+            
+            if total_chars + len(content) <= max_context_chars:
+                context_parts.append(content)
+                total_chars += len(content)
+            else:
+                # Add partial content to fit within limit
+                remaining_chars = max_context_chars - total_chars
+                if remaining_chars > 100:  # Only add if meaningful amount
+                    context_parts.append(content[:remaining_chars] + "...")
+                break
+        
+        context = "\n\n".join(context_parts)
+        docs = [doc for doc, score in relevant_docs]  # For compatibility with rest of code
+        
+        # Create concise system prompt focused on SAP products
+        system_prompt = f"""You are a SAP Data Science onboarding assistant. Focus on BTP, ERP/S/4HANA, CX solutions.
 
-IMPORTANT INSTRUCTIONS:
-1. ONLY answer based on the provided context information below
-2. If the context doesn't contain relevant information to answer the question, respond with EXACTLY: "No relevant information found"
-3. Keep responses under 250 tokens
-4. Be helpful and encouraging when you have relevant information
-5. Include specific details from the context when available
+RULES:
+1. Answer ONLY from context below
+2. If no relevant info, say "No relevant information found"
+3. Keep under 150 words
+4. Emphasize SAP products and data science applications
 
-Context Information:
-{context}
+Context: {context}
 
-Guidelines:
-- Answer ONLY from the provided context
-- If context doesn't have the answer, say "No relevant information found"
-- Be concise but helpful
-- Include specific team names, tools, or processes when mentioned in context
-- Maintain a professional, supportive tone
-"""
+Be concise, helpful, and SAP-focused."""
 
         # Generate response using OpenRouter
         ai_response = None
@@ -252,7 +348,7 @@ Guidelines:
                 response = client.chat.completions.create(
                     model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
-                    max_tokens=250,
+                    max_tokens=150,
                     temperature=0.3
                 )
                 ai_response = response.choices[0].message.content.strip()
@@ -266,7 +362,7 @@ Guidelines:
         
         # If still no response, use basic fallback
         if not ai_response or "No relevant information found" in ai_response:
-            ai_response = "No relevant information found. Please contact HR for more information or ask questions specifically related to the SAP Data Science Department."
+            ai_response = "No relevant information found. Please contact HR for more information or ask questions specifically related to SAP products, data science applications, or the SAP Data Science Department."
         
         # Update conversation history
         conversation_history.extend([
@@ -284,9 +380,9 @@ Guidelines:
             suggestions = _generate_suggestions(user_message, docs)
         else:
             suggestions = [
-                "Tell me about the team structure",
-                "What should I know for my first week?",
-                "What tools and technologies do we use?"
+                "What are the main SAP products I should learn?",
+                "Tell me about SAP's Business Technology Platform",
+                "How is data science applied in SAP solutions?"
             ]
         
         return jsonify({
@@ -368,16 +464,43 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
         query = sys.argv[1]
-        context_docs = vector_index.similarity_search(query, k=3)
-        context = "\n".join([doc.page_content for doc in context_docs])
-        prompt = f"You are a helpful onboarding assistant for SAP Data Science Department. Use the following context to answer the user's query.\nContext:\n{context}\n\nQuery: {query}\n\nOnboarding Response:"
+        
+        # Use smart context selection for CLI too
+        docs_with_scores = vector_index.similarity_search_with_score(query, k=5)
+        print(f"DEBUG: Found {len(docs_with_scores)} documents with scores:")
+        for i, (doc, score) in enumerate(docs_with_scores):
+            print(f"  Doc {i+1}: Score {score:.3f}, Source: {doc.metadata.get('source', 'Unknown')}")
+            print(f"    Preview: {doc.page_content[:100]}...")
+        
+        relevant_docs = [(doc, score) for doc, score in docs_with_scores if score < 1.5]
+        print(f"DEBUG: After filtering, {len(relevant_docs)} documents meet threshold")
+        
+        if not relevant_docs:
+            print("No relevant information found for your query (all documents above similarity threshold).")
+            print("Trying with most similar document anyway...")
+            relevant_docs = docs_with_scores[:1]  # Use best match anyway
+        
+        # Build very concise context for CLI
+        context_parts = []
+        for doc, score in relevant_docs[:1]:  # Use only the best match
+            content = doc.page_content[:200]  # Very short for CLI
+            context_parts.append(content)
+        
+        context = context_parts[0] if context_parts else "No relevant context"
+        
+        prompt = f"""SAP assistant. Context: {context}
+
+Q: {query}
+A:"""
+        
         response = get_llm_response(prompt)
-        print("Onboarding Response:", response)
+        print("SAP Onboarding Response:", response)
     else:
         print("No CLI argument provided. Starting Flask server...")
-        logger.info("🤖 Starting SAP Data Science Onboarding Chatbot...")
-        logger.info(f"📚 Documents loaded from: {doc_folder}")
-        logger.info(f"📄 Vector database initialized with ChromaDB")
+        logger.info("🤖 Starting SAP Data Science Onboarding Chatbot with SAP Products Focus...")
+        logger.info(f"📚 SAP product documents loaded from: {doc_folder}")
+        logger.info(f"📄 Vector database initialized with SAP knowledge base")
+        logger.info("🎯 Focused on: BTP, ERP/S/4HANA, CX Solutions, Analytics Cloud, HANA")
         
         app.run(
             host='0.0.0.0',

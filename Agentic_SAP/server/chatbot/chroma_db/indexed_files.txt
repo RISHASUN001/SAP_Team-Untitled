@@ -1,4 +1,8 @@
-mentoring_evaluation_framework.txt
-sap_data_science_onboarding.txt
-practice_scenarios.txt
+sap_erp_s4hana_guide.txt
 mentor_guidelines.txt
+mentoring_evaluation_framework.txt
+sap_cx_solutions_guide.txt
+sap_btp_deep_dive.txt
+sap_data_science_onboarding.txt
+sap_products_comprehensive.txt
+practice_scenarios.txt
