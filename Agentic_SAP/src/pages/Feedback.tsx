@@ -35,6 +35,7 @@ const Feedback: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     technicalSkills: 3,
     communication: 3,
@@ -118,15 +119,16 @@ const Feedback: React.FC = () => {
   };
 
   const handleSubmitFeedback = async (feedbackData: any) => {
+    setIsSubmitting(true);
     setSubmitting(true);
     setLoading((prev) => ({ ...prev, [feedbackData.teamMemberId]: true }));
 
     try {
       const summary = await summarizeFeedback(
         `Quantitative Scores: Technical Skills: ${feedbackData.technicalSkills}/5, Communication: ${feedbackData.communication}/5, Teamwork: ${feedbackData.teamwork}/5, Problem Solving: ${feedbackData.problemSolving}/5, Initiative: ${feedbackData.initiative}/5. 
-        Qualitative Feedback: ${feedbackData.qualitativeFeedback}
-        Goals: ${feedbackData.goals}
-        Areas for Improvement: ${feedbackData.areasForImprovement}`
+      Qualitative Feedback: ${feedbackData.qualitativeFeedback}
+      Goals: ${feedbackData.goals}
+      Areas for Improvement: ${feedbackData.areasForImprovement}`
       );
 
       // Create a consistent ID based on teamMemberId and current quarter/year
@@ -151,6 +153,7 @@ const Feedback: React.FC = () => {
       console.error("Error submitting feedback:", error);
       alert("Failed to submit feedback. Please try again.");
     } finally {
+      setIsSubmitting(false);
       setSubmitting(false);
       setLoading((prev) => ({ ...prev, [feedbackData.teamMemberId]: false }));
     }
@@ -209,6 +212,17 @@ const Feedback: React.FC = () => {
     // Manager View
     return (
       <Layout>
+        {(isSubmitting || submitting) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 flex flex-col items-center">
+              <Loader className="h-8 w-8 animate-spin text-primary-600 mb-4" />
+              <p className="text-gray-800 dark:text-gray-200 font-medium">
+                Submitting feedback...
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-6">
           <div className="max-w-6xl mx-auto space-y-6">
             {/* Header Section */}
@@ -540,7 +554,6 @@ const Feedback: React.FC = () => {
                 </div>
               </div>
             )}
-
             {/* Feedback Form Modal */}
             {showForm && selectedMember && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
