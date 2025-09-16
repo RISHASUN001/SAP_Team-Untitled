@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { mockUsers } from '../data/mockData';
-import { User, Brain, ChevronRight } from 'lucide-react';
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { mockUsers } from "../data/mockData";
+import { User, Brain, Star, ChevronRight } from "lucide-react";
 
 const Login: React.FC = () => {
-  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedUser, setSelectedUser] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -13,7 +13,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (selectedUser) {
       login(selectedUser);
-      navigate('/');
+      navigate("/");
     }
   };
 
@@ -23,14 +23,14 @@ const Login: React.FC = () => {
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <div className="bg-primary-600 p-3 rounded-full">
-              <Brain className="h-12 w-12 text-white" />
+              <Star className="h-12 w-12 text-white" />
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            AI Mentoring Platform
+            NexusOne
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Empowering IT teams through intelligent mentoring
+            Your Central Hub for Onboarding, Growth, and Continuous Learning
           </p>
         </div>
 
@@ -39,14 +39,14 @@ const Login: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               Select Demo User
             </h3>
-            
+
             {mockUsers.map((user) => (
               <label
                 key={user.id}
                 className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
                   selectedUser === user.id
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                    : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                 }`}
               >
                 <input
@@ -58,9 +58,13 @@ const Login: React.FC = () => {
                   className="sr-only"
                 />
                 <div className="flex items-center flex-1">
-                  <div className={`p-2 rounded-full mr-3 ${
-                    selectedUser === user.id ? 'bg-primary-500' : 'bg-gray-400'
-                  }`}>
+                  <div
+                    className={`p-2 rounded-full mr-3 ${
+                      selectedUser === user.id
+                        ? "bg-primary-500"
+                        : "bg-gray-400"
+                    }`}
+                  >
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div>
@@ -72,9 +76,13 @@ const Login: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <ChevronRight className={`h-4 w-4 transition-colors ${
-                  selectedUser === user.id ? 'text-primary-500' : 'text-gray-400'
-                }`} />
+                <ChevronRight
+                  className={`h-4 w-4 transition-colors ${
+                    selectedUser === user.id
+                      ? "text-primary-500"
+                      : "text-gray-400"
+                  }`}
+                />
               </label>
             ))}
 
@@ -83,8 +91,8 @@ const Login: React.FC = () => {
               disabled={!selectedUser}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
                 selectedUser
-                  ? 'bg-primary-600 hover:bg-primary-700 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? "bg-primary-600 hover:bg-primary-700 text-white shadow-lg hover:shadow-xl"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
               Enter Platform
