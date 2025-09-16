@@ -42,12 +42,12 @@ const Chat: React.FC = () => {
 
 ---
 **Onboarding Assistant**  
-Get comprehensive information about the SAP Data Science department, team structure, processes, tools, and career development.  
+Get comprehensive information about SAP products (BTP, S/4HANA, Customer Experience), data science applications, team structure, and career development in the SAP ecosystem.  
 👉 If you ever want to revisit this, just click the **Refresh** button.
 
 ---
 
-**How can I help you with your onboarding today?**`;
+**How can I help you with your SAP onboarding today?**`;
       } else {
         welcomeMessage = `Hello **${currentUser?.name}**! I'm your AI mentoring assistant. I can help you in several ways:
 
@@ -61,7 +61,7 @@ Practice your mentoring skills through simulated scenarios.
 👉 Click the **Practice Mode** button to begin.
 
 **3. Onboarding Assistant**  
-Get comprehensive information about the SAP Data Science department, team structure, processes, tools, and career development.  
+Get comprehensive information about SAP products (BTP, S/4HANA, CX), data science applications, team structure, and career development in the SAP ecosystem.  
 👉 If you ever want to revisit this, just click the **Refresh** button.
 
 ---
@@ -734,9 +734,10 @@ Get comprehensive information about the SAP Data Science department, team struct
                 💬 Onboarding Assistant
               </h3>
               <p className="text-sm text-purple-700 dark:text-purple-400">
-                Get help with onboarding questions about the SAP Data Science
-                department, team structure, processes, tools, and resources.
-                Powered by AI with comprehensive knowledge base.
+                Get help with onboarding questions about SAP products including
+                BTP, S/4HANA, Customer Experience, Analytics Cloud, and how
+                data science applies to SAP solutions. Powered by AI with
+                comprehensive SAP knowledge base.
               </p>
             </div>
           </div>
@@ -765,13 +766,13 @@ Get comprehensive information about the SAP Data Science department, team struct
                     "Exit practice mode",
                   ];
                 } else {
-                  // onboarding topics
+                  // SAP product-focused onboarding topics
                   topics = [
-                    "Tell me about the SAP Data Science team structure",
-                    "What should I prepare for my first week?",
-                    "What tools and technologies do we use?",
-                    "How does the onboarding process work?",
-                    "What are the current projects and initiatives?",
+                    "What is SAP Business Technology Platform (BTP)?",
+                    "Tell me about SAP Customer Experience suite",
+                    "What are the main SAP products I should learn?",
+                    "How does SAP S/4HANA work with data science?",
+                    "What is SAP Analytics Cloud used for?",
                   ];
                 }
                 return topics;

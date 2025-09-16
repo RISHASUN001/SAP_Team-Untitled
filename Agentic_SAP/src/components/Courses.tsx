@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import Layout from './Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
-import TimelinePlanner from './TimelinePlanner';
 import {
   BookOpen,
   Clock,
@@ -12,9 +11,7 @@ import {
   Play,
   CheckCircle,
   Target,
-  TrendingUp,
-  Calendar,
-  Sparkles
+  TrendingUp
 } from 'lucide-react';
 import { getRecommendedCourses, getSkillGaps, completeCourse, getAIRecommendedCourses, AISkillAnalysis } from '../data/skillGapUtils';
 import { userProfiles } from '../data/userProfiles';
@@ -114,10 +111,6 @@ const Courses: React.FC = () => {
     loadAIRecommendations();
   }, [userProfile.userId, skillGaps.length, aiSkillAnalysis]);
 
-  // Extract unique values for filters from our course database
-  const difficulties = [...new Set(courses.map(c => c.difficulty))];
-  const skills = [...new Set(courses.flatMap(c => c.skills.map(s => s.name)))];
-
   // Filter and search courses from our course database
   const filteredCourses = useMemo(() => {
     // Always use regular filtering for the main course list
@@ -165,10 +158,7 @@ const Courses: React.FC = () => {
     }
   };
 
-  const handleEnrollmentComplete = () => {
-    setIsEnrollmentFlowOpen(false);
-    setSelectedCourse(null);
-  };
+
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
@@ -691,7 +681,7 @@ const Courses: React.FC = () => {
                       🎯 Goals vs Recommendations Analysis:
                     </h6>
                     <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded border border-blue-200 dark:border-blue-600 text-sm">
-                      <p><strong>Goals from Feedback:</strong> {aiSkillAnalysis.context_used?.feedback_context?.feedback_summary?.goals_mentioned?.filter(g => g).join(', ') || 'None'}</p>
+                      <p><strong>Goals from Feedback:</strong> {aiSkillAnalysis.context_used?.feedback_context?.feedback_summary?.goals_mentioned?.filter((g: string) => g).join(', ') || 'None'}</p>
                       <p><strong>User Profile Goals:</strong> {userProfile?.currentGoals?.join(', ') || 'None'}</p>
                       <p><strong>Recommended Courses:</strong> {aiSkillAnalysis.recommended_sequence?.map(r => r.course_title).join(', ') || 'None'}</p>
                     </div>
@@ -712,7 +702,7 @@ const Courses: React.FC = () => {
                           {aiSkillAnalysis.context_used.feedback_context.feedback_summary.communication_avg > 0 && (
                             <p><strong>Communication Average:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_summary.communication_avg.toFixed(1)}/5</p>
                           )}
-                          <p><strong>Goals from Feedback:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_summary.goals_mentioned?.filter(g => g).join(', ') || 'None specified'}</p>
+                          <p><strong>Goals from Feedback:</strong> {aiSkillAnalysis.context_used.feedback_context.feedback_summary.goals_mentioned?.filter((g: string) => g).join(', ') || 'None specified'}</p>
                           {aiSkillAnalysis.context_used.feedback_context.latest_feedback && (
                             <div className="mt-2 p-2 bg-white dark:bg-gray-700 rounded">
                               <p><strong>Latest Feedback Summary:</strong></p>

@@ -14,6 +14,23 @@ export interface AISkillAnalysis {
   recommended_sequence: AIRecommendation[];
   strategic_advice: string;
   estimated_timeline: string;
+  agent_insights?: any;
+  debug_agent_outputs?: any;
+  context_used?: {
+    feedback_context?: {
+      feedback_count: number;
+      feedback_summary: {
+        technical_skills_avg: number;
+        communication_avg: number;
+        goals_mentioned?: string[];
+      };
+      latest_feedback?: {
+        summary?: string;
+      };
+    };
+    available_courses_count?: number;
+    recommendation_generation_timestamp?: string;
+  };
 }
 
 // Skill Gap Analysis: returns missing skills for a user
