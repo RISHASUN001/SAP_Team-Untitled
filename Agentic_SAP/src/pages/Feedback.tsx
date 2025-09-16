@@ -4,6 +4,7 @@ import { useFeedback } from "../contexts/FeedbackContext";
 import { mockUsers } from "../data/mockData";
 import FeedbackForm from "../components/FeedbackForm";
 import { summarizeFeedback } from "../utils/feedbackSummarizer";
+import ReactMarkdown from "react-markdown";
 import {
   Star,
   Calendar,
@@ -12,6 +13,7 @@ import {
   TrendingDown,
   Plus,
   X,
+  Sparkles,
 } from "lucide-react";
 
 const DebugInfo: React.FC = () => {
@@ -188,6 +190,21 @@ const Feedback: React.FC = () => {
     return <TrendingDown className="h-4 w-4" />;
   };
 
+  // Component to render AI Summary with proper formatting
+  const AISummary = ({ summary }: { summary: string }) => (
+    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-100 dark:border-blue-800/30">
+      <div className="flex items-center mb-3">
+        <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+        <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+          AI Summary
+        </h4>
+      </div>
+      <div className="prose prose-sm max-w-none text-blue-800 dark:text-blue-200">
+        <ReactMarkdown>{summary}</ReactMarkdown>
+      </div>
+    </div>
+  );
+
   if (
     currentUser?.role.toLowerCase().includes("lead") ||
     currentUser?.role.toLowerCase().includes("manager")
@@ -215,7 +232,7 @@ const Feedback: React.FC = () => {
             return (
               <div
                 key={member.id}
-                className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border dark:border-gray-700 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center mb-4">
                   <div className="bg-primary-500 p-3 rounded-full mr-4">
@@ -235,7 +252,7 @@ const Feedback: React.FC = () => {
                   <button
                     onClick={() => handleEditFeedback(member.id)}
                     disabled={loading[member.id]}
-                    className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md disabled:opacity-50"
+                    className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md disabled:opacity-50 transition-colors"
                   >
                     {loading[member.id] ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -361,14 +378,7 @@ const Feedback: React.FC = () => {
                     </div>
 
                     {feedback.summary && (
-                      <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                          AI Summary
-                        </h4>
-                        <p className="text-blue-800 dark:text-blue-200 text-sm">
-                          {feedback.summary}
-                        </p>
-                      </div>
+                      <AISummary summary={feedback.summary} />
                     )}
 
                     <div className="space-y-3">
@@ -431,15 +441,15 @@ const Feedback: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             No feedback yet
           </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Your manager hasn't provided any quarterly feedback yet.
+          </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md"
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors"
           >
             Refresh
           </button>
-          <p className="text-gray-600 dark:text-gray-400">
-            Your manager hasn't provided any quarterly feedback yet.
-          </p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -497,16 +507,7 @@ const Feedback: React.FC = () => {
                   ))}
                 </div>
 
-                {feedback.summary && (
-                  <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                      Summary
-                    </h4>
-                    <p className="text-blue-800 dark:text-blue-200 text-sm">
-                      {feedback.summary}
-                    </p>
-                  </div>
-                )}
+                {feedback.summary && <AISummary summary={feedback.summary} />}
 
                 <div className="space-y-3">
                   <div>
