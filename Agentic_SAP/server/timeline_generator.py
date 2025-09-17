@@ -189,19 +189,28 @@ class TimelineGenerator:
 
 User Request: "{revision_request}"
 
-Based on this request, provide a JSON response with revised preferences. Consider:
-1. If user wants to finish faster (like "2 days"), increase study hours per week dramatically and adjust preferred days
-2. If user mentions specific days (weekends, weekdays), update preferred_days accordingly  
-3. If user wants longer/shorter sessions, adjust max_session_length
-4. Be realistic about time constraints - finishing a course in 2 days might require 15-20 hours per day
+Analyze the user's request carefully and make proportional adjustments. Guidelines:
+- For "faster" requests: Moderately increase study hours (10-15/week) and reduce weeks by 20-30%
+- For "slower" requests: Decrease study hours (5-8/week) and increase weeks by 20-50%
+- For specific time mentions: Only use EXACT timeframes if explicitly stated (e.g., "I need this done in exactly 2 days")
+- For day preferences: Update preferred_days only if specific days are mentioned
+- For session length: Adjust max_session_length only if explicitly requested
+- For start date requests: Extract the date and convert to ISO format (YYYY-MM-DD)
+- Default to reasonable, sustainable study schedules unless extreme urgency is clearly stated
+
+IMPORTANT: If the user mentions a specific start date (like "start from 25th Sept" or "begin on October 1st"), 
+include a "start_date" field in your response with the date in YYYY-MM-DD format.
+
+Be conservative with changes unless the request is very specific about timeline requirements.
 
 Respond with ONLY this JSON format:
 {{
   "study_hours_per_week": <number>,
-  "preferred_days": ["day1", "day2"],
+  "preferred_days": ["day1", "day2", "day3", "day4", "day5"],
   "max_session_length": <number>,
   "total_weeks": <number>,
-  "reasoning": "Brief explanation"
+  "start_date": "YYYY-MM-DD (only include if user specifies a start date)",
+  "reasoning": "Brief explanation of the specific adjustments made"
 }}"""
 
             # Call OpenRouter API
@@ -212,6 +221,8 @@ Respond with ONLY this JSON format:
                 "X-Title": "Timeline Revision System"  # Optional: for analytics
             }
             
+            print(f"🔥 Sending LLM request with prompt: {user_prompt[:200]}...")
+            
             response = requests.post(
                 f"{api_base}/chat/completions",
                 json={
@@ -220,7 +231,7 @@ Respond with ONLY this JSON format:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    "temperature": 0.3,  # Lower temperature for more consistent JSON
+                    "temperature": 0.7,  # Higher temperature for more varied responses
                     "max_tokens": 500
                 },
                 headers=headers,
@@ -241,8 +252,18 @@ Respond with ONLY this JSON format:
                         if content.startswith("```json"):
                             content = content.replace("```json", "").replace("```", "").strip()
                         
-                        revised_prefs = json.loads(content)
-                        print(f"✅ LLM successfully parsed revision: {revised_prefs}")
+                        raw_prefs = json.loads(content)
+                        # Only keep expected fields
+                        expected_fields = [
+                            "study_hours_per_week",
+                            "preferred_days",
+                            "max_session_length",
+                            "total_weeks",
+                            "reasoning",
+                            "start_date"
+                        ]
+                        revised_prefs = {k: v for k, v in raw_prefs.items() if k in expected_fields}
+                        print(f"✅ LLM successfully parsed revision (filtered): {revised_prefs}")
                         return revised_prefs
                         
                     except json.JSONDecodeError as e:
@@ -285,18 +306,22 @@ Respond with ONLY this JSON format:
 
 User Requirement: "{requirements}"
 
-Modify the course structure to meet this requirement. Consider:
-1. If user wants "2 days" completion, set total_weeks to 0.3 (2/7 days) and reduce modules drastically
-2. If "faster" or "accelerated", reduce total_weeks and possibly modules
-3. If "slower" or "extended", increase total_weeks
-4. If "intensive", reduce total_weeks but keep more hours per week
+Analyze the requirement carefully and make proportional adjustments to the course structure:
+
+- For general "faster" requests: Reduce weeks by 20-30% (e.g., 8 weeks → 5-6 weeks)
+- For general "slower" requests: Increase weeks by 30-50% (e.g., 8 weeks → 10-12 weeks)
+- For "intensive" requests: Keep same content but compress timeline (reduce weeks, keep all modules)
+- For specific timeframes: Only use EXACT durations if clearly stated (e.g., "complete in exactly 2 days")
+- For content changes: Only reduce modules if explicitly requested or for extreme time constraints
+
+Be conservative and maintain educational value unless extreme urgency is clearly specified.
 
 Respond with ONLY this JSON format:
 {{
-  "total_weeks": <number (can be decimal like 0.3 for 2 days)>,
-  "total_hours": <number>,
-  "modules_to_keep": <number of modules to keep>,
-  "reasoning": "Brief explanation"
+  "total_weeks": <number (use decimals only for very specific short requests)>,
+  "total_hours": <number (usually keep original unless modules change)>,
+  "modules_to_keep": <number (usually keep all unless extreme constraints)>,
+  "reasoning": "Brief explanation of the specific changes made"
 }}"""
 
             headers = {
@@ -306,6 +331,8 @@ Respond with ONLY this JSON format:
                 "X-Title": "Course Structure Modification"
             }
             
+            print(f"🔥 Sending course structure LLM request: {requirements}")
+            
             response = requests.post(
                 f"{api_base}/chat/completions",
                 json={
@@ -314,7 +341,7 @@ Respond with ONLY this JSON format:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    "temperature": 0.3,
+                    "temperature": 0.7,  # Higher temperature for more varied responses
                     "max_tokens": 300
                 },
                 headers=headers,
@@ -353,7 +380,14 @@ Respond with ONLY this JSON format:
     def _generate_events(self, course_data: Dict, preferences: Dict) -> List[Dict]:
         """Generate calendar events based on course structure and user preferences"""
         events = []
-        start_date = datetime.now() + timedelta(days=1)  # Start tomorrow
+        # Use start_date from preferences if provided, else default to tomorrow
+        custom_start_date = None
+        if 'start_date' in preferences and preferences['start_date']:
+            try:
+                custom_start_date = datetime.strptime(preferences['start_date'], "%Y-%m-%d")
+            except Exception as e:
+                print(f"⚠️ Invalid start_date format: {preferences['start_date']} - {e}")
+        start_date = custom_start_date if custom_start_date else (datetime.now() + timedelta(days=1))
         
         # Calculate weekly schedule
         study_hours_per_week = preferences["study_hours_per_week"]
@@ -537,7 +571,6 @@ Respond with ONLY this JSON format:
         # Apply LLM suggestions if we got valid response
         if llm_revisions:
             print(f"🧠 LLM suggested changes: {llm_revisions}")
-            
             if "study_hours_per_week" in llm_revisions:
                 modified_preferences["study_hours_per_week"] = llm_revisions["study_hours_per_week"]
             if "preferred_days" in llm_revisions:
@@ -545,28 +578,46 @@ Respond with ONLY this JSON format:
             if "max_session_length" in llm_revisions:
                 modified_preferences["max_session_length"] = llm_revisions["max_session_length"]
             if "preferred_times" in llm_revisions and "preferred_times" in modified_preferences:
-                # Only update if the LLM provided time preferences
                 if isinstance(llm_revisions["preferred_times"], list):
                     modified_preferences["preferred_times"] = llm_revisions["preferred_times"]
+            # Actually set the start_date in preferences if provided
+            if "start_date" in llm_revisions and llm_revisions["start_date"]:
+                modified_preferences["start_date"] = llm_revisions["start_date"]
+                print(f"📅 LLM specified start date: {llm_revisions['start_date']}")
                     
         else:
             print("⚠️ LLM unavailable - timeline revision will not work properly without AI")
             # No hardcoded fallback - we want to encourage LLM usage
         
-        # Combine existing custom requirements with new revision request
-        combined_requirements = f"{existing_custom_requirements} {revision_request}".strip()
+        # Don't pass combined requirements to avoid double LLM processing
+        # The LLM has already processed the revision request above
         
-        # Also update course structure if needed for extreme time constraints
+        # Manually apply course structure changes if LLM provided them
         course_data = self.course_templates.get(course_name, self._create_default_course(course_name)).copy()
         if llm_revisions and "total_weeks" in llm_revisions:
             course_data["total_weeks"] = llm_revisions["total_weeks"]
-            print(f"📅 Adjusting course duration to {course_data['total_weeks']} weeks")
+            print(f"📅 Manually adjusting course duration to {course_data['total_weeks']} weeks based on LLM")
         
         print(f"🎯 Final preferences for new timeline: {modified_preferences}")
         print(f"📚 Course data weeks: {course_data['total_weeks']}")
         
-        # Generate new timeline with AI-modified preferences  
-        new_timeline = self.generate_timeline(course_name, modified_preferences, combined_requirements)
+        # Generate timeline directly with pre-modified course data and preferences
+        # Skip LLM processing in generate_timeline since we already processed the revision
+        events = self._generate_events(course_data, modified_preferences)
+        
+        # Build timeline manually to avoid double LLM calls
+        new_timeline = {
+            "timeline_id": f"timeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "course_name": course_name,
+            "generated_at": datetime.now().isoformat(),
+            "total_duration_weeks": course_data["total_weeks"],
+            "total_hours": course_data["total_hours"],
+            "events": events,
+            "user_preferences": modified_preferences,
+            "custom_requirements": f"{existing_custom_requirements} {revision_request}".strip(),
+            "revision_request": revision_request,
+            "llm_revisions_applied": llm_revisions
+        }
         print(f"✨ Generated new timeline: {new_timeline['total_duration_weeks']} weeks, {new_timeline['total_hours']} hours, {len(new_timeline['events'])} events")
         return new_timeline
 

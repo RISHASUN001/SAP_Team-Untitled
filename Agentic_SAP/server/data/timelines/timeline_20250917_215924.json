@@ -1,0 +1,182 @@
+{
+  "timeline_id": "timeline_20250917_215924",
+  "course_name": "Advanced Machine Learning",
+  "generated_at": "2025-09-17T21:59:24.391207",
+  "total_duration_weeks": 8,
+  "total_hours": 40,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-18T09:00:24.391052",
+      "endTime": "2025-09-18T11:00:24.391052",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-19T09:00:24.391052",
+      "endTime": "2025-09-19T11:00:24.391052",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_3",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-22T09:00:24.391052",
+      "endTime": "2025-09-22T11:00:24.391052",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_4",
+      "title": "Assignment Due: Ensemble Methods",
+      "type": "deadline",
+      "startTime": "2025-09-25T23:59:24.391052",
+      "endTime": "2025-09-25T23:59:24.391052",
+      "description": "Submit assignment for Ensemble Methods",
+      "color": "bg-red-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "study_5",
+      "title": "Study: Feature Engineering",
+      "type": "course",
+      "startTime": "2025-09-23T09:00:24.391052",
+      "endTime": "2025-09-23T11:00:24.391052",
+      "description": "Study session for Feature Engineering (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Feature Engineering",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "review_1",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-09-24T16:00:24.391052",
+      "endTime": "2025-09-24T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_2",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-01T16:00:24.391052",
+      "endTime": "2025-10-01T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_3",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-08T16:00:24.391052",
+      "endTime": "2025-10-08T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_4",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-15T16:00:24.391052",
+      "endTime": "2025-10-15T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_5",
+      "title": "Week 5 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-22T16:00:24.391052",
+      "endTime": "2025-10-22T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_6",
+      "title": "Week 6 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-29T16:00:24.391052",
+      "endTime": "2025-10-29T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_7",
+      "title": "Week 7 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-05T16:00:24.391052",
+      "endTime": "2025-11-05T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_8",
+      "title": "Week 8 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-12T16:00:24.391052",
+      "endTime": "2025-11-12T17:00:24.391052",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 8,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 2,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "I want to start from 20th September 2025",
+  "revision_request": "I want to start from 20th September 2025",
+  "llm_revisions_applied": {},
+  "user_id": "tm001",
+  "status": "draft",
+  "previous_version": "timeline_20250917_215858"
+}

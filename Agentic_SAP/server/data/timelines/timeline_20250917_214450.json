@@ -1,0 +1,71 @@
+{
+  "timeline_id": "timeline_20250917_214450",
+  "course_name": "Deep Learning with TensorFlow",
+  "generated_at": "2025-09-17T21:44:50.631347",
+  "total_duration_weeks": 0.3,
+  "total_hours": 16,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: TensorFlow Fundamentals",
+      "type": "course",
+      "startTime": "2025-09-18T09:00:50.631210",
+      "endTime": "2025-09-18T13:00:50.631210",
+      "description": "Study session for TensorFlow Fundamentals (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: TensorFlow Fundamentals",
+      "type": "course",
+      "startTime": "2025-09-19T09:00:50.631210",
+      "endTime": "2025-09-19T13:00:50.631210",
+      "description": "Study session for TensorFlow Fundamentals (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_3",
+      "title": "Assignment Due: TensorFlow Fundamentals",
+      "type": "deadline",
+      "startTime": "2025-09-22T23:59:50.631210",
+      "endTime": "2025-09-22T23:59:50.631210",
+      "description": "Submit assignment for TensorFlow Fundamentals",
+      "color": "bg-red-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 20,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 4,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "I want to start from 20th september 2025",
+  "user_id": "tm001",
+  "status": "draft",
+  "previous_version": "timeline_20250917_214400",
+  "revision_request": "I want to start from 20th september 2025"
+}

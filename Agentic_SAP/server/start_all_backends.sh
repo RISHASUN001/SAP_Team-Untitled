@@ -83,6 +83,13 @@ python3 course_search.py &
 COURSE_PID=$!
 echo "🔍 Course Search started with PID: $COURSE_PID"
 
+# Step 6: Start calendar_api.py (new backend service)
+echo ""
+echo "6️⃣ Starting Timeline API (Port 5006)..."
+ python3 ../timeline_api.py &
+CALENDAR_PID=$!
+echo "📅 Timeline API started with PID: $CALENDAR_PID"
+
 # Wait a bit for Python backends to fully start
 sleep 3
 
@@ -95,6 +102,7 @@ echo "   • Practice Mode API: http://localhost:5002"
 echo "   • Onboarding Mode API: http://localhost:5003"
 echo "   • AI Skill Gap API: http://localhost:5004 (🤖 AGENTIC AI)"
 echo "   • Course Search API: http://localhost:5005"
+echo "   • Timeline API: http://localhost:5006"
 echo ""
 echo "📊 Process IDs:"
 echo "   • Mentor Mode: $MENTOR_PID"
@@ -102,6 +110,7 @@ echo "   • Practice Mode: $PRACTICE_PID"
 echo "   • Onboarding Mode: $ONBOARDING_PID"
 echo "   • AI Skill Gap: $SKILL_PID"
 echo "   • Course Search: $COURSE_PID"
+echo "   • Timeline API: $CALENDAR_PID"
 echo ""
 echo "💡 To start the full application:"
 echo "   1. Run 'npm run dev' in the main Agentic_SAP directory"

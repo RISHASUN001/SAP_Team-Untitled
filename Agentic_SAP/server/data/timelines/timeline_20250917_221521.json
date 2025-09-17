@@ -1,0 +1,201 @@
+{
+  "timeline_id": "timeline_20250917_221521",
+  "course_name": "Deep Learning with TensorFlow",
+  "generated_at": "2025-09-17T22:15:21.814934",
+  "total_duration_weeks": 10,
+  "total_hours": 50,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: TensorFlow Fundamentals",
+      "type": "course",
+      "startTime": "2025-09-18T09:00:21.814774",
+      "endTime": "2025-09-18T11:00:21.814774",
+      "description": "Study session for TensorFlow Fundamentals (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: TensorFlow Fundamentals",
+      "type": "course",
+      "startTime": "2025-09-19T09:00:21.814774",
+      "endTime": "2025-09-19T11:00:21.814774",
+      "description": "Study session for TensorFlow Fundamentals (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_3",
+      "title": "Study: TensorFlow Fundamentals",
+      "type": "course",
+      "startTime": "2025-09-22T09:00:21.814774",
+      "endTime": "2025-09-22T11:00:21.814774",
+      "description": "Study session for TensorFlow Fundamentals (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_4",
+      "title": "Study: TensorFlow Fundamentals",
+      "type": "course",
+      "startTime": "2025-09-23T09:00:21.814774",
+      "endTime": "2025-09-23T11:00:21.814774",
+      "description": "Study session for TensorFlow Fundamentals (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_5",
+      "title": "Assignment Due: TensorFlow Fundamentals",
+      "type": "deadline",
+      "startTime": "2025-09-26T23:59:21.814774",
+      "endTime": "2025-09-26T23:59:21.814774",
+      "description": "Submit assignment for TensorFlow Fundamentals",
+      "color": "bg-red-500",
+      "module_name": "TensorFlow Fundamentals",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "review_1",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-09-24T16:00:21.814774",
+      "endTime": "2025-09-24T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_2",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-01T16:00:21.814774",
+      "endTime": "2025-10-01T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_3",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-08T16:00:21.814774",
+      "endTime": "2025-10-08T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_4",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-15T16:00:21.814774",
+      "endTime": "2025-10-15T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_5",
+      "title": "Week 5 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-22T16:00:21.814774",
+      "endTime": "2025-10-22T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_6",
+      "title": "Week 6 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-29T16:00:21.814774",
+      "endTime": "2025-10-29T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_7",
+      "title": "Week 7 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-05T16:00:21.814774",
+      "endTime": "2025-11-05T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_8",
+      "title": "Week 8 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-12T16:00:21.814774",
+      "endTime": "2025-11-12T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_9",
+      "title": "Week 9 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-19T16:00:21.814774",
+      "endTime": "2025-11-19T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_10",
+      "title": "Week 10 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-26T16:00:21.814774",
+      "endTime": "2025-11-26T17:00:21.814774",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 8,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 2,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "",
+  "user_id": "tm001",
+  "status": "draft"
+}

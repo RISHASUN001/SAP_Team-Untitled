@@ -1,0 +1,71 @@
+{
+  "timeline_id": "timeline_20250917_214238",
+  "course_name": "Advanced Machine Learning",
+  "generated_at": "2025-09-17T21:42:38.521662",
+  "total_duration_weeks": 0.3,
+  "total_hours": 12,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-18T09:00:38.521536",
+      "endTime": "2025-09-18T13:00:38.521536",
+      "description": "Study session for Ensemble Methods (4.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2025-09-19T09:00:38.521536",
+      "endTime": "2025-09-19T11:00:38.521536",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_3",
+      "title": "Assignment Due: Ensemble Methods",
+      "type": "deadline",
+      "startTime": "2025-09-22T23:59:38.521536",
+      "endTime": "2025-09-22T23:59:38.521536",
+      "description": "Submit assignment for Ensemble Methods",
+      "color": "bg-red-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 20,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 4,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ]
+  },
+  "custom_requirements": "I want to finish this in 2 days",
+  "user_id": "tm001",
+  "status": "draft",
+  "previous_version": "timeline_20250917_214144",
+  "revision_request": "I want to finish this in 2 days"
+}
