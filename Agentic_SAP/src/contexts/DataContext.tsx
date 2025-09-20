@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 // Types for our data structures
 export interface CourseEnrollment {
@@ -6,7 +12,7 @@ export interface CourseEnrollment {
   userId: string;
   courseId: string;
   enrolledAt: Date;
-  status: 'active' | 'completed' | 'paused';
+  status: "active" | "completed" | "paused";
   progress: number;
   estimatedCompletionDate: Date;
   actualCompletionDate?: Date;
@@ -21,7 +27,7 @@ export interface TimelineEvent {
   description: string;
   scheduledDate: Date;
   estimatedHours: number;
-  type: 'study' | 'assignment' | 'exam' | 'project' | 'review';
+  type: "study" | "assignment" | "exam" | "project" | "review";
   completed: boolean;
   completedAt?: Date;
   proofRequired: boolean;
@@ -33,9 +39,9 @@ export interface CompletionProof {
   timelineEventId: string;
   userId: string;
   submittedAt: Date;
-  proofType: 'image' | 'document' | 'link' | 'text';
+  proofType: "image" | "document" | "link" | "text";
   content: string; // Base64 for images, URL for links, text content for text
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   reviewedBy?: string;
   reviewedAt?: Date;
   reviewComments?: string;
@@ -44,7 +50,7 @@ export interface CompletionProof {
 export interface CalendarEvent {
   id: string;
   title: string;
-  type: 'meeting' | 'deadline' | 'course' | 'goal_milestone' | 'study_session';
+  type: "meeting" | "deadline" | "course" | "goal_milestone" | "study_session";
   startTime: string;
   endTime: string;
   description?: string;
@@ -66,7 +72,7 @@ export interface LearningPlan {
   revisions: PlanRevision[];
   createdAt: Date;
   lastModified: Date;
-  status: 'draft' | 'active' | 'completed' | 'paused';
+  status: "draft" | "active" | "completed" | "paused";
 }
 
 export interface PlanRevision {
@@ -74,7 +80,7 @@ export interface PlanRevision {
   planId: string;
   reason: string;
   changes: string;
-  revisedBy: 'ai' | 'user';
+  revisedBy: "ai" | "user";
   createdAt: Date;
   previousPlan: TimelineEvent[];
   newPlan: TimelineEvent[];
@@ -83,33 +89,53 @@ export interface PlanRevision {
 interface DataContextType {
   // Calendar Events
   calendarEvents: CalendarEvent[];
-  addCalendarEvent: (event: Omit<CalendarEvent, 'id'>) => void;
+  addCalendarEvent: (event: Omit<CalendarEvent, "id">) => void;
   updateCalendarEvent: (id: string, event: Partial<CalendarEvent>) => void;
   deleteCalendarEvent: (id: string) => void;
-  
+
   // Course Enrollments
   courseEnrollments: CourseEnrollment[];
   enrollInCourse: (courseId: string, userId: string) => Promise<string>;
   updateEnrollmentProgress: (enrollmentId: string, progress: number) => void;
-  
+
   // Learning Plans
   learningPlans: LearningPlan[];
   createLearningPlan: (courseId: string, userId: string) => Promise<string>;
-  revisePlan: (planId: string, reason: string, revisedBy: 'ai' | 'user') => Promise<void>;
+  revisePlan: (
+    planId: string,
+    reason: string,
+    revisedBy: "ai" | "user"
+  ) => Promise<void>;
   approvePlan: (planId: string) => void;
-  
+
   // Timeline Events
   timelineEvents: TimelineEvent[];
   updateTimelineEvent: (id: string, updates: Partial<TimelineEvent>) => void;
-  
+
   // Completion Proofs
   completionProofs: CompletionProof[];
-  submitProof: (eventId: string, userId: string, proof: Omit<CompletionProof, 'id' | 'submittedAt' | 'status'>) => void;
-  reviewProof: (proofId: string, status: 'approved' | 'rejected', comments?: string, reviewerId?: string) => void;
-  
+  submitProof: (
+    eventId: string,
+    userId: string,
+    proof: Omit<CompletionProof, "id" | "submittedAt" | "status">
+  ) => void;
+  reviewProof: (
+    proofId: string,
+    status: "approved" | "rejected",
+    comments?: string,
+    reviewerId?: string
+  ) => void;
+
   // AI Integration
-  generateTimelineWithAI: (courseId: string, userId: string, constraints?: any) => Promise<TimelineEvent[]>;
-  adjustTimelineForConflicts: (planId: string, newEnrollments: string[]) => Promise<TimelineEvent[]>;
+  generateTimelineWithAI: (
+    courseId: string,
+    userId: string,
+    constraints?: any
+  ) => Promise<TimelineEvent[]>;
+  adjustTimelineForConflicts: (
+    planId: string,
+    newEnrollments: string[]
+  ) => Promise<TimelineEvent[]>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -117,7 +143,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const useData = () => {
   const context = useContext(DataContext);
   if (!context) {
-    throw new Error('useData must be used within a DataProvider');
+    throw new Error("useData must be used within a DataProvider");
   }
   return context;
 };
@@ -128,20 +154,24 @@ interface DataProviderProps {
 
 export const DataProvider = ({ children }: DataProviderProps) => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
-  const [courseEnrollments, setCourseEnrollments] = useState<CourseEnrollment[]>([]);
+  const [courseEnrollments, setCourseEnrollments] = useState<
+    CourseEnrollment[]
+  >([]);
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>([]);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
-  const [completionProofs, setCompletionProofs] = useState<CompletionProof[]>([]);
+  const [completionProofs, setCompletionProofs] = useState<CompletionProof[]>(
+    []
+  );
 
   // Load data from localStorage on initial render
   useEffect(() => {
     const loadData = () => {
       try {
-        const savedCalendarEvents = localStorage.getItem('calendarEvents');
-        const savedEnrollments = localStorage.getItem('courseEnrollments');
-        const savedPlans = localStorage.getItem('learningPlans');
-        const savedTimeline = localStorage.getItem('timelineEvents');
-        const savedProofs = localStorage.getItem('completionProofs');
+        const savedCalendarEvents = localStorage.getItem("calendarEvents");
+        const savedEnrollments = localStorage.getItem("courseEnrollments");
+        const savedPlans = localStorage.getItem("learningPlans");
+        const savedTimeline = localStorage.getItem("timelineEvents");
+        const savedProofs = localStorage.getItem("completionProofs");
 
         if (savedCalendarEvents) {
           setCalendarEvents(JSON.parse(savedCalendarEvents));
@@ -159,7 +189,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
           setCompletionProofs(JSON.parse(savedProofs));
         }
       } catch (error) {
-        console.error('Error loading data from localStorage:', error);
+        console.error("Error loading data from localStorage:", error);
       }
     };
 
@@ -168,27 +198,30 @@ export const DataProvider = ({ children }: DataProviderProps) => {
 
   // Save data to localStorage whenever state changes
   useEffect(() => {
-    localStorage.setItem('calendarEvents', JSON.stringify(calendarEvents));
+    localStorage.setItem("calendarEvents", JSON.stringify(calendarEvents));
   }, [calendarEvents]);
 
   useEffect(() => {
-    localStorage.setItem('courseEnrollments', JSON.stringify(courseEnrollments));
+    localStorage.setItem(
+      "courseEnrollments",
+      JSON.stringify(courseEnrollments)
+    );
   }, [courseEnrollments]);
 
   useEffect(() => {
-    localStorage.setItem('learningPlans', JSON.stringify(learningPlans));
+    localStorage.setItem("learningPlans", JSON.stringify(learningPlans));
   }, [learningPlans]);
 
   useEffect(() => {
-    localStorage.setItem('timelineEvents', JSON.stringify(timelineEvents));
+    localStorage.setItem("timelineEvents", JSON.stringify(timelineEvents));
   }, [timelineEvents]);
 
   useEffect(() => {
-    localStorage.setItem('completionProofs', JSON.stringify(completionProofs));
+    localStorage.setItem("completionProofs", JSON.stringify(completionProofs));
   }, [completionProofs]);
 
   // Calendar Events Functions
-  const addCalendarEvent = (event: Omit<CalendarEvent, 'id'>) => {
+  const addCalendarEvent = (event: Omit<CalendarEvent, "id">) => {
     const newEvent: CalendarEvent = {
       ...event,
       id: Date.now().toString(),
@@ -197,28 +230,35 @@ export const DataProvider = ({ children }: DataProviderProps) => {
   };
 
   const updateCalendarEvent = (id: string, updates: Partial<CalendarEvent>) => {
-    setCalendarEvents((prev: CalendarEvent[]) => 
-      prev.map((event: CalendarEvent) => event.id === id ? { ...event, ...updates } : event)
+    setCalendarEvents((prev: CalendarEvent[]) =>
+      prev.map((event: CalendarEvent) =>
+        event.id === id ? { ...event, ...updates } : event
+      )
     );
   };
 
   const deleteCalendarEvent = (id: string) => {
-    setCalendarEvents((prev: CalendarEvent[]) => prev.filter((event: CalendarEvent) => event.id !== id));
+    setCalendarEvents((prev: CalendarEvent[]) =>
+      prev.filter((event: CalendarEvent) => event.id !== id)
+    );
   };
 
   // Course Enrollment Functions
-  const enrollInCourse = async (courseId: string, userId: string): Promise<string> => {
+  const enrollInCourse = async (
+    courseId: string,
+    userId: string
+  ): Promise<string> => {
     const enrollmentId = Date.now().toString();
     const enrollment: CourseEnrollment = {
       id: enrollmentId,
       userId,
       courseId,
       enrolledAt: new Date(),
-      status: 'active',
+      status: "active",
       progress: 0,
       estimatedCompletionDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       timeline: [],
-      completionProofs: []
+      completionProofs: [],
     };
 
     setCourseEnrollments((prev: CourseEnrollment[]) => [...prev, enrollment]);
@@ -228,16 +268,21 @@ export const DataProvider = ({ children }: DataProviderProps) => {
   const updateEnrollmentProgress = (enrollmentId: string, progress: number) => {
     setCourseEnrollments((prev: CourseEnrollment[]) =>
       prev.map((enrollment: CourseEnrollment) =>
-        enrollment.id === enrollmentId ? { ...enrollment, progress } : enrollment
+        enrollment.id === enrollmentId
+          ? { ...enrollment, progress }
+          : enrollment
       )
     );
   };
 
   // Learning Plan Functions
-  const createLearningPlan = async (courseId: string, userId: string): Promise<string> => {
+  const createLearningPlan = async (
+    courseId: string,
+    userId: string
+  ): Promise<string> => {
     // Generate AI timeline
     const aiTimeline = await generateTimelineWithAI(courseId, userId);
-    
+
     const planId = Date.now().toString();
     const plan: LearningPlan = {
       id: planId,
@@ -248,25 +293,34 @@ export const DataProvider = ({ children }: DataProviderProps) => {
       revisions: [],
       createdAt: new Date(),
       lastModified: new Date(),
-      status: 'draft'
+      status: "draft",
     };
 
     setLearningPlans((prev: LearningPlan[]) => [...prev, plan]);
     setTimelineEvents((prev: TimelineEvent[]) => [...prev, ...aiTimeline]);
-    
+
     return planId;
   };
 
-  const revisePlan = async (planId: string, reason: string, revisedBy: 'ai' | 'user') => {
+  const revisePlan = async (
+    planId: string,
+    reason: string,
+    revisedBy: "ai" | "user"
+  ) => {
     const plan = learningPlans.find((p: LearningPlan) => p.id === planId);
     if (!plan) return;
 
     let newTimeline: TimelineEvent[];
-    
-    if (revisedBy === 'ai') {
+
+    if (revisedBy === "ai") {
       // Use AI to adjust the timeline
-      const allEnrollments = courseEnrollments.filter((e: CourseEnrollment) => e.userId === plan.userId);
-      newTimeline = await adjustTimelineForConflicts(planId, allEnrollments.map((e: CourseEnrollment) => e.id));
+      const allEnrollments = courseEnrollments.filter(
+        (e: CourseEnrollment) => e.userId === plan.userId
+      );
+      newTimeline = await adjustTimelineForConflicts(
+        planId,
+        allEnrollments.map((e: CourseEnrollment) => e.id)
+      );
     } else {
       // For user revisions, we'll handle this through the UI
       newTimeline = plan.currentPlan;
@@ -276,11 +330,11 @@ export const DataProvider = ({ children }: DataProviderProps) => {
       id: Date.now().toString(),
       planId,
       reason,
-      changes: 'Timeline adjusted based on workload and conflicts',
+      changes: "Timeline adjusted based on workload and conflicts",
       revisedBy,
       createdAt: new Date(),
       previousPlan: plan.currentPlan,
-      newPlan: newTimeline
+      newPlan: newTimeline,
     };
 
     setLearningPlans((prev: LearningPlan[]) =>
@@ -290,7 +344,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
               ...p,
               currentPlan: newTimeline,
               revisions: [...p.revisions, revision],
-              lastModified: new Date()
+              lastModified: new Date(),
             }
           : p
       )
@@ -298,7 +352,10 @@ export const DataProvider = ({ children }: DataProviderProps) => {
 
     // Update timeline events
     setTimelineEvents((prev: TimelineEvent[]) => {
-      const filtered = prev.filter((te: TimelineEvent) => !plan.currentPlan.find((tp: TimelineEvent) => tp.id === te.id));
+      const filtered = prev.filter(
+        (te: TimelineEvent) =>
+          !plan.currentPlan.find((tp: TimelineEvent) => tp.id === te.id)
+      );
       return [...filtered, ...newTimeline];
     });
   };
@@ -307,73 +364,114 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     const plan = learningPlans.find((p: LearningPlan) => p.id === planId);
     if (!plan) return;
 
+    // Convert timeline events to calendar events
+    const newCalendarEvents: CalendarEvent[] = [];
+
+    plan.currentPlan.forEach((event: TimelineEvent) => {
+      // Check if calendar event already exists for this timeline event
+      const existingCalendarEvent = calendarEvents.find(
+        (ce: CalendarEvent) => ce.timelineEventId === event.id
+      );
+
+      if (!existingCalendarEvent) {
+        const calendarEvent: CalendarEvent = {
+          id: `calendar_${event.id}`,
+          title: event.title,
+          type: "study_session" as const,
+          startTime: event.scheduledDate.toISOString(),
+          endTime: new Date(
+            event.scheduledDate.getTime() +
+              event.estimatedHours * 60 * 60 * 1000
+          ).toISOString(),
+          description: event.description,
+          color: "bg-purple-500",
+          timelineEventId: event.id,
+          courseEnrollmentId: event.courseEnrollmentId,
+          proofRequired: event.proofRequired,
+          proofSubmitted: false,
+        };
+
+        newCalendarEvents.push(calendarEvent);
+      }
+    });
+
+    // Add ALL new events to the calendar at once
+    setCalendarEvents((prev: CalendarEvent[]) => [
+      ...prev,
+      ...newCalendarEvents,
+    ]);
+
+    // Update the plan status
     setLearningPlans((prev: LearningPlan[]) =>
       prev.map((p: LearningPlan) =>
-        p.id === planId ? { ...p, status: 'active' as const } : p
+        p.id === planId ? { ...p, status: "active" as const } : p
       )
     );
 
-    // Convert timeline events to calendar events
-    plan.currentPlan.forEach((event: TimelineEvent) => {
-      const calendarEvent: CalendarEvent = {
-        id: `calendar_${event.id}`,
-        title: event.title,
-        type: 'study_session',
-        startTime: event.scheduledDate.toISOString(),
-        endTime: new Date(event.scheduledDate.getTime() + event.estimatedHours * 60 * 60 * 1000).toISOString(),
-        description: event.description,
-        color: 'bg-purple-500',
-        timelineEventId: event.id,
-        proofRequired: event.proofRequired,
-        proofSubmitted: false
-      };
-      
-      addCalendarEvent(calendarEvent);
-    });
+    console.log(
+      `Added ${newCalendarEvents.length} events to calendar from timeline`
+    );
   };
-
   // Timeline Events Functions
   const updateTimelineEvent = (id: string, updates: Partial<TimelineEvent>) => {
     setTimelineEvents((prev: TimelineEvent[]) =>
-      prev.map((event: TimelineEvent) => event.id === id ? { ...event, ...updates } : event)
+      prev.map((event: TimelineEvent) =>
+        event.id === id ? { ...event, ...updates } : event
+      )
     );
 
     // Also update corresponding calendar event if it exists
-    const calendarEvent = calendarEvents.find((ce: CalendarEvent) => ce.timelineEventId === id);
+    const calendarEvent = calendarEvents.find(
+      (ce: CalendarEvent) => ce.timelineEventId === id
+    );
     if (calendarEvent && updates.scheduledDate) {
       updateCalendarEvent(calendarEvent.id, {
         startTime: updates.scheduledDate.toISOString(),
-        endTime: new Date(updates.scheduledDate.getTime() + (updates.estimatedHours || 2) * 60 * 60 * 1000).toISOString()
+        endTime: new Date(
+          updates.scheduledDate.getTime() +
+            (updates.estimatedHours || 2) * 60 * 60 * 1000
+        ).toISOString(),
       });
     }
   };
 
   // Completion Proof Functions
-  const submitProof = (eventId: string, _userId: string, proof: Omit<CompletionProof, 'id' | 'submittedAt' | 'status'>) => {
+  const submitProof = (
+    eventId: string,
+    _userId: string,
+    proof: Omit<CompletionProof, "id" | "submittedAt" | "status">
+  ) => {
     const newProof: CompletionProof = {
       ...proof,
       id: Date.now().toString(),
       submittedAt: new Date(),
-      status: 'pending'
+      status: "pending",
     };
 
     setCompletionProofs((prev: CompletionProof[]) => [...prev, newProof]);
 
     // Update timeline event
-    updateTimelineEvent(eventId, { 
-      completed: true, 
+    updateTimelineEvent(eventId, {
+      completed: true,
       completedAt: new Date(),
-      proofSubmitted: newProof
+      proofSubmitted: newProof,
     });
 
     // Update calendar event
-    const calendarEvent = calendarEvents.find((ce: CalendarEvent) => ce.timelineEventId === eventId);
+    const calendarEvent = calendarEvents.find(
+      (ce: CalendarEvent) => ce.timelineEventId === eventId
+    );
     if (calendarEvent) {
       updateCalendarEvent(calendarEvent.id, { proofSubmitted: true });
     }
   };
 
-  const reviewProof = (proofId: string, status: 'approved' | 'rejected', comments?: string, reviewerId?: string) => {
+  const reviewProof = (
+    proofId: string,
+    status: "approved" | "rejected",
+    comments?: string,
+    reviewerId?: string
+  ) => {
     setCompletionProofs((prev: CompletionProof[]) =>
       prev.map((proof: CompletionProof) =>
         proof.id === proofId
@@ -382,7 +480,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
               status,
               reviewComments: comments,
               reviewedBy: reviewerId,
-              reviewedAt: new Date()
+              reviewedAt: new Date(),
             }
           : proof
       )
@@ -390,67 +488,86 @@ export const DataProvider = ({ children }: DataProviderProps) => {
   };
 
   // AI Integration Functions
-  const generateTimelineWithAI = async (courseId: string, userId: string, constraints?: any): Promise<TimelineEvent[]> => {
+  const generateTimelineWithAI = async (
+    courseId: string,
+    userId: string,
+    constraints?: any
+  ): Promise<TimelineEvent[]> => {
     try {
       // This would call your LLama API via OpenRouter
-      const response = await fetch('http://localhost:5005/api/generate-timeline', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          courseId,
-          userId,
-          constraints,
-          existingEnrollments: courseEnrollments.filter(e => e.userId === userId)
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:5005/api/generate-timeline",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            courseId,
+            userId,
+            constraints,
+            existingEnrollments: courseEnrollments.filter(
+              (e) => e.userId === userId
+            ),
+          }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
-        return result.timeline.map((event: any, index: number): TimelineEvent => ({
-          id: `timeline_${Date.now()}_${index}`,
-          courseEnrollmentId: '', // Will be set when enrollment is created
-          title: event.title,
-          description: event.description,
-          scheduledDate: new Date(event.scheduledDate),
-          estimatedHours: event.estimatedHours,
-          type: event.type,
-          completed: false,
-          proofRequired: event.proofRequired || false
-        }));
+        return result.timeline.map(
+          (event: any, index: number): TimelineEvent => ({
+            id: `timeline_${Date.now()}_${index}`,
+            courseEnrollmentId: "", // Will be set when enrollment is created
+            title: event.title,
+            description: event.description,
+            scheduledDate: new Date(event.scheduledDate),
+            estimatedHours: event.estimatedHours,
+            type: event.type,
+            completed: false,
+            proofRequired: event.proofRequired || false,
+          })
+        );
       }
     } catch (error) {
-      console.error('Error generating AI timeline:', error);
+      console.error("Error generating AI timeline:", error);
     }
 
     // Fallback: Generate a basic timeline
     return generateBasicTimeline(courseId);
   };
 
-  const adjustTimelineForConflicts = async (planId: string, newEnrollments: string[]): Promise<TimelineEvent[]> => {
-    const plan = learningPlans.find(p => p.id === planId);
+  const adjustTimelineForConflicts = async (
+    planId: string,
+    newEnrollments: string[]
+  ): Promise<TimelineEvent[]> => {
+    const plan = learningPlans.find((p) => p.id === planId);
     if (!plan) return [];
 
     try {
-      const response = await fetch('http://localhost:5005/api/adjust-timeline', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentPlan: plan.currentPlan,
-          allEnrollments: courseEnrollments.filter(e => newEnrollments.includes(e.id)),
-          userId: plan.userId
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:5005/api/adjust-timeline",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            currentPlan: plan.currentPlan,
+            allEnrollments: courseEnrollments.filter((e) =>
+              newEnrollments.includes(e.id)
+            ),
+            userId: plan.userId,
+          }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
         return result.adjustedTimeline;
       }
     } catch (error) {
-      console.error('Error adjusting timeline with AI:', error);
+      console.error("Error adjusting timeline with AI:", error);
     }
 
     return plan.currentPlan;
@@ -462,37 +579,38 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     return [
       {
         id: `timeline_${Date.now()}_0`,
-        courseEnrollmentId: '',
-        title: 'Course Introduction & Setup',
-        description: 'Complete course registration and setup learning environment',
+        courseEnrollmentId: "",
+        title: "Course Introduction & Setup",
+        description:
+          "Complete course registration and setup learning environment",
         scheduledDate: new Date(baseDate.getTime() + 1 * 24 * 60 * 60 * 1000),
         estimatedHours: 2,
-        type: 'study',
+        type: "study",
         completed: false,
-        proofRequired: true
+        proofRequired: true,
       },
       {
         id: `timeline_${Date.now()}_1`,
-        courseEnrollmentId: '',
-        title: 'Module 1 - Fundamentals',
-        description: 'Complete first module assignments and readings',
+        courseEnrollmentId: "",
+        title: "Module 1 - Fundamentals",
+        description: "Complete first module assignments and readings",
         scheduledDate: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000),
         estimatedHours: 8,
-        type: 'assignment',
+        type: "assignment",
         completed: false,
-        proofRequired: true
+        proofRequired: true,
       },
       {
         id: `timeline_${Date.now()}_2`,
-        courseEnrollmentId: '',
-        title: 'Module 1 Assessment',
-        description: 'Take module 1 quiz and submit project',
+        courseEnrollmentId: "",
+        title: "Module 1 Assessment",
+        description: "Take module 1 quiz and submit project",
         scheduledDate: new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000),
         estimatedHours: 3,
-        type: 'exam',
+        type: "exam",
         completed: false,
-        proofRequired: true
-      }
+        proofRequired: true,
+      },
     ];
   };
 
@@ -514,12 +632,8 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     submitProof,
     reviewProof,
     generateTimelineWithAI,
-    adjustTimelineForConflicts
+    adjustTimelineForConflicts,
   };
 
-  return (
-    <DataContext.Provider value={value}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

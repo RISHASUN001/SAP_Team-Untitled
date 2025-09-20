@@ -1,8 +1,17 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Users, Sparkles, CheckCircle, ArrowRight, Edit, Loader2 } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Calendar,
+  Clock,
+  Users,
+  Sparkles,
+  CheckCircle,
+  ArrowRight,
+  Edit,
+  Loader2,
+} from "lucide-react";
+import { useData } from "../contexts/DataContext";
+import { useAuth } from "../contexts/AuthContext";
 
 interface CourseEnrollmentFlowProps {
   course: any;
@@ -13,48 +22,57 @@ interface CourseEnrollmentFlowProps {
 const CourseEnrollmentFlow = ({
   course,
   isOpen,
-  onClose
+  onClose,
 }: CourseEnrollmentFlowProps) => {
   const { currentUser } = useAuth();
-  const { enrollInCourse } = useData();
+  const { enrollInCourse, addCalendarEvent } = useData();
   const navigate = useNavigate();
-  
+
   const [currentStep, setCurrentStep] = useState(1); // 1: Confirm, 2: Timeline, 3: Edit Timeline, 4: Success
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false);
   const [generatedTimeline, setGeneratedTimeline] = useState<any>(null);
-  const [editPrompt, setEditPrompt] = useState('');
+  const [editPrompt, setEditPrompt] = useState("");
 
   const generateTimeline = async () => {
     if (!currentUser) return;
-    
+
     setIsGeneratingTimeline(true);
     try {
-      const response = await fetch('http://localhost:5006/api/timeline/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          course_name: course.title,
-          user_id: currentUser.id,
-          user_preferences: {
-            study_hours_per_week: 8,
-            preferred_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            max_session_length: 2
-          }
-        }),
-      });
-      
+      const response = await fetch(
+        "http://localhost:5006/api/timeline/generate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            course_name: course.title,
+            user_id: currentUser.id,
+            user_preferences: {
+              study_hours_per_week: 8,
+              preferred_days: [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+              ],
+              max_session_length: 2,
+            },
+          }),
+        }
+      );
+
       const data = await response.json();
       if (data.success) {
         setGeneratedTimeline(data.timeline);
         setCurrentStep(2);
       } else {
-        console.error('Timeline generation failed:', data.error);
+        console.error("Timeline generation failed:", data.error);
       }
     } catch (error) {
-      console.error('Timeline generation error:', error);
+      console.error("Timeline generation error:", error);
     } finally {
       setIsGeneratingTimeline(false);
     }
@@ -62,7 +80,7 @@ const CourseEnrollmentFlow = ({
 
   const handleEnroll = async () => {
     if (!currentUser) return;
-    
+
     setIsEnrolling(true);
     try {
       await enrollInCourse(course.id, currentUser.id);
@@ -71,7 +89,7 @@ const CourseEnrollmentFlow = ({
       // Reset enrolling state after successful timeline generation
       setIsEnrolling(false);
     } catch (error) {
-      console.error('Enrollment error:', error);
+      console.error("Enrollment error:", error);
       setIsEnrolling(false);
     }
   };
@@ -82,30 +100,33 @@ const CourseEnrollmentFlow = ({
 
   const handleReviseTimeline = async () => {
     if (!generatedTimeline || !editPrompt.trim()) return;
-    
+
     setIsGeneratingTimeline(true);
     try {
-      const response = await fetch('http://localhost:5006/api/timeline/revise', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          timeline_id: generatedTimeline.timeline_id,
-          revision_request: editPrompt
-        }),
-      });
-      
+      const response = await fetch(
+        "http://localhost:5006/api/timeline/revise",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            timeline_id: generatedTimeline.timeline_id,
+            revision_request: editPrompt,
+          }),
+        }
+      );
+
       const data = await response.json();
       if (data.success) {
         setGeneratedTimeline(data.timeline);
-        setEditPrompt('');
+        setEditPrompt("");
         setCurrentStep(2);
       } else {
-        console.error('Timeline revision failed:', data.error);
+        console.error("Timeline revision failed:", data.error);
       }
     } catch (error) {
-      console.error('Timeline revision error:', error);
+      console.error("Timeline revision error:", error);
     } finally {
       setIsGeneratingTimeline(false);
     }
@@ -113,46 +134,59 @@ const CourseEnrollmentFlow = ({
 
   const handleApproveTimeline = async () => {
     if (!generatedTimeline) return;
-    
+
     try {
-      const response = await fetch('http://localhost:5006/api/timeline/approve', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          timeline_id: generatedTimeline.timeline_id
-        }),
-      });
-      
+      const response = await fetch(
+        "http://localhost:5006/api/timeline/approve",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            timeline_id: generatedTimeline.timeline_id,
+          }),
+        }
+      );
+
       const data = await response.json();
       if (data.success) {
-        // Add events to local calendar
-        const existingEvents = JSON.parse(localStorage.getItem('calendarEvents') || '[]');
+        // Add events to local calendar using the DataContext
         const newEvents = data.events.map((event: any) => ({
           ...event,
-          id: `timeline_${event.id}`
+          id: `timeline_${event.id || Date.now()}`,
+          // Ensure all required properties are present
+          color: event.color || "bg-purple-500",
+          type: event.type || "course",
+          requires_proof:
+            event.requires_proof !== undefined ? event.requires_proof : true,
+          proof_type: event.proof_type || "study_session",
         }));
-        localStorage.setItem('calendarEvents', JSON.stringify([...existingEvents, ...newEvents]));
+
+        // Use your DataContext to add events
+        newEvents.forEach((event: any) => {
+          addCalendarEvent(event);
+        });
+
         setCurrentStep(4);
       } else {
-        console.error('Timeline approval failed:', data.error);
+        console.error("Timeline approval failed:", data.error);
       }
     } catch (error) {
-      console.error('Timeline approval error:', error);
+      console.error("Timeline approval error:", error);
     }
   };
 
   const handleClose = () => {
     setCurrentStep(1);
     setGeneratedTimeline(null);
-    setEditPrompt('');
+    setEditPrompt("");
     onClose();
   };
 
   const handleGoToCalendar = () => {
     handleClose();
-    navigate('/calendar');
+    navigate("/calendar");
   };
 
   if (!isOpen) return null;
@@ -160,7 +194,6 @@ const CourseEnrollmentFlow = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        
         {/* Step 1: Course Confirmation */}
         {currentStep === 1 && (
           <div className="p-6">
@@ -254,7 +287,9 @@ const CourseEnrollmentFlow = ({
                   <ul className="text-sm text-yellow-700 dark:text-yellow-400 space-y-1">
                     <li>• AI will generate a personalized learning timeline</li>
                     <li>• You can review and adjust the schedule</li>
-                    <li>• Events will be added to your calendar automatically</li>
+                    <li>
+                      • Events will be added to your calendar automatically
+                    </li>
                     <li>• Track progress with proof submissions</li>
                   </ul>
                 </div>
@@ -271,7 +306,7 @@ const CourseEnrollmentFlow = ({
                 {isEnrolling || isGeneratingTimeline ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    {isEnrolling ? 'Enrolling...' : 'Generating Timeline...'}
+                    {isEnrolling ? "Enrolling..." : "Generating Timeline..."}
                   </>
                 ) : (
                   <>
@@ -314,28 +349,34 @@ const CourseEnrollmentFlow = ({
                   AI-Generated Study Plan
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {generatedTimeline.total_duration_weeks}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">weeks duration</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    weeks duration
+                  </p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {generatedTimeline.total_hours}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">total hours</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    total hours
+                  </p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {generatedTimeline.events.length}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">scheduled events</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    scheduled events
+                  </p>
                 </div>
               </div>
-              
+
               {generatedTimeline.custom_requirements && (
                 <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
                   <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
@@ -354,25 +395,38 @@ const CourseEnrollmentFlow = ({
                 Upcoming Events (First 5):
               </h4>
               <div className="space-y-3 max-h-60 overflow-y-auto">
-                {generatedTimeline.events.slice(0, 5).map((event: any, index: number) => (
-                  <div key={index} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <div className={`w-3 h-3 rounded-full ${event.color} mr-3`}></div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">
-                        {event.title}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {new Date(event.startTime).toLocaleDateString()} at {new Date(event.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </p>
-                      {event.requires_proof && (
-                        <div className="flex items-center mt-1">
-                          <CheckCircle className="h-3 w-3 text-blue-500 mr-1" />
-                          <span className="text-xs text-blue-600 dark:text-blue-400">Proof required</span>
-                        </div>
-                      )}
+                {generatedTimeline.events
+                  .slice(0, 5)
+                  .map((event: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    >
+                      <div
+                        className={`w-3 h-3 rounded-full ${event.color} mr-3`}
+                      ></div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">
+                          {event.title}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {new Date(event.startTime).toLocaleDateString()} at{" "}
+                          {new Date(event.startTime).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        {event.requires_proof && (
+                          <div className="flex items-center mt-1">
+                            <CheckCircle className="h-3 w-3 text-blue-500 mr-1" />
+                            <span className="text-xs text-blue-600 dark:text-blue-400">
+                              Proof required
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
 
@@ -385,7 +439,7 @@ const CourseEnrollmentFlow = ({
                 <CheckCircle className="h-5 w-5 mr-2" />
                 Approve & Add to Calendar
               </button>
-              
+
               <button
                 onClick={handleEditTimeline}
                 className="px-6 py-3 flex items-center text-gray-700 dark:text-gray-300 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -393,7 +447,7 @@ const CourseEnrollmentFlow = ({
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Timeline
               </button>
-              
+
               <button
                 onClick={handleClose}
                 className="px-6 py-3 text-gray-700 dark:text-gray-300 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -427,7 +481,8 @@ const CourseEnrollmentFlow = ({
                     Tell us how you'd like to adjust your timeline
                   </h4>
                   <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
-                    Describe your preferences and our AI will regenerate the timeline accordingly.
+                    Describe your preferences and our AI will regenerate the
+                    timeline accordingly.
                   </p>
                   <div className="text-xs text-yellow-600 dark:text-yellow-500 space-y-1">
                     <p>• "I need more time for each module"</p>
@@ -440,7 +495,10 @@ const CourseEnrollmentFlow = ({
             </div>
 
             <div className="mb-6">
-              <label htmlFor="editPrompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="editPrompt"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Your timeline adjustment request:
               </label>
               <textarea
@@ -464,9 +522,11 @@ const CourseEnrollmentFlow = ({
                 ) : (
                   <Sparkles className="h-5 w-5 mr-2" />
                 )}
-                {isGeneratingTimeline ? 'Regenerating...' : 'Regenerate Timeline'}
+                {isGeneratingTimeline
+                  ? "Regenerating..."
+                  : "Regenerate Timeline"}
               </button>
-              
+
               <button
                 onClick={() => setCurrentStep(2)}
                 className="px-6 py-3 text-gray-700 dark:text-gray-300 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -489,8 +549,9 @@ const CourseEnrollmentFlow = ({
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              You're all set! Your personalized learning timeline has been added to your calendar. 
-              You'll receive reminders for upcoming activities and deadlines.
+              You're all set! Your personalized learning timeline has been added
+              to your calendar. You'll receive reminders for upcoming activities
+              and deadlines.
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
@@ -520,7 +581,7 @@ const CourseEnrollmentFlow = ({
               >
                 Go to Calendar
               </button>
-              
+
               <button
                 onClick={handleClose}
                 className="px-6 py-3 text-gray-700 dark:text-gray-300 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

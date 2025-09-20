@@ -98,7 +98,6 @@ def revise_timeline():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 @app.route('/api/timeline/approve', methods=['POST'])
 def approve_timeline():
     """Approve a timeline and add events to calendar"""
@@ -120,6 +119,25 @@ def approve_timeline():
         # Update status to approved
         timeline['status'] = 'approved'
         timeline['approved_at'] = datetime.now().isoformat()
+        
+        # Ensure events have unique IDs and current dates
+        current_date = datetime.now()
+        for i, event in enumerate(timeline.get('events', [])):
+            # Fix duplicate IDs by making them unique
+            event['id'] = f"{timeline_id}_{i}_{int(current_date.timestamp())}"
+            
+            # Fix dates to be current instead of 2023
+            if '2023-' in event.get('startTime', ''):
+                # Parse the original date but update the year
+                original_date = datetime.fromisoformat(event['startTime'].replace('Z', ''))
+                # Keep the month/day but use current year
+                updated_date = original_date.replace(year=current_date.year)
+                event['startTime'] = updated_date.isoformat()
+                
+                # Also update endTime if it exists
+                if 'endTime' in event and '2023-' in event['endTime']:
+                    end_date = datetime.fromisoformat(event['endTime'].replace('Z', ''))
+                    event['endTime'] = end_date.replace(year=current_date.year).isoformat()
         
         # Save updated timeline
         with open(timeline_file, 'w') as f:

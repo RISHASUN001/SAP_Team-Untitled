@@ -16,7 +16,7 @@ import {
   FileCheck,
   AlertCircle,
   CheckCircle,
-  Upload
+  Upload,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { useForm, Controller } from "react-hook-form";
@@ -49,7 +49,6 @@ interface EventFormData {
 }
 
 const Calendar = () => {
-  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const [showEventModal, setShowEventModal] = useState(false);
@@ -145,6 +144,13 @@ const Calendar = () => {
   useEffect(() => {
     localStorage.setItem("calendarEvents", JSON.stringify(events));
   }, [events]);
+  useEffect(() => {
+    console.log("Current calendar events:", events);
+    console.log(
+      "Events requiring proof:",
+      events.filter((e) => e.requires_proof)
+    );
+  }, [events]);
 
   const getEventColor = (type: string) => {
     switch (type) {
@@ -186,14 +192,16 @@ const Calendar = () => {
         ...(editingEvent && {
           requires_proof: editingEvent.requires_proof,
           proof_type: editingEvent.proof_type,
-          module_name: editingEvent.module_name
-        })
+          module_name: editingEvent.module_name,
+        }),
       };
 
       // Update events list
-      setEvents(events.map(event => 
-        event.id === updatedEvent.id ? updatedEvent : event
-      ));
+      setEvents(
+        events.map((event) =>
+          event.id === updatedEvent.id ? updatedEvent : event
+        )
+      );
     } else {
       // Create new event
       const newEvent: Event = {
@@ -238,17 +246,17 @@ const Calendar = () => {
     // Pre-populate form with event data
     const startTime = new Date(event.startTime);
     const endTime = new Date(event.endTime);
-    
+
     reset({
       title: event.title,
       type: event.type,
-      description: event.description || '',
-      location: event.location || '',
-      attendees: event.attendees?.join(', ') || '',
+      description: event.description || "",
+      location: event.location || "",
+      attendees: event.attendees?.join(", ") || "",
       startTime,
-      endTime
+      endTime,
     });
-    
+
     setSelectedEvent(null);
     setShowEventModal(true);
   };
@@ -269,27 +277,32 @@ const Calendar = () => {
 
   const loadProofStatus = async (eventId: string) => {
     try {
-      const response = await fetch(`http://localhost:5002/api/proof/event/${eventId}`);
+      const response = await fetch(
+        `http://localhost:5006/api/proof/event/${eventId}`
+      );
       const proofs = await response.json();
       if (Array.isArray(proofs)) {
-        setUserProofs(prev => {
-          const filtered = prev.filter(p => p.event_id !== eventId);
+        setUserProofs((prev) => {
+          const filtered = prev.filter((p) => p.event_id !== eventId);
           return [...filtered, ...proofs];
         });
       }
     } catch (error) {
-      console.error('Error loading proof status:', error);
+      console.error("Error loading proof status:", error);
     }
   };
 
   const getProofStatus = (eventId: string) => {
-    const eventProofs = userProofs.filter(proof => proof.event_id === eventId);
-    if (eventProofs.length === 0) return 'none';
-    
-    const latestProof = eventProofs.sort((a, b) => 
-      new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+    const eventProofs = userProofs.filter(
+      (proof) => proof.event_id === eventId
+    );
+    if (eventProofs.length === 0) return "none";
+
+    const latestProof = eventProofs.sort(
+      (a, b) =>
+        new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
     )[0];
-    
+
     return latestProof.status;
   };
 
@@ -302,7 +315,7 @@ const Calendar = () => {
         }
       }
     };
-    
+
     if (events.length > 0) {
       loadAllProofStatuses();
     }
@@ -771,55 +784,66 @@ const Calendar = () => {
                       </h4>
                       {(() => {
                         const status = getProofStatus(selectedEvent.id);
-                        if (status === 'approved') {
+                        if (status === "approved") {
                           return (
                             <div className="flex items-center text-green-600 dark:text-green-400">
                               <CheckCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm font-medium">Approved</span>
+                              <span className="text-sm font-medium">
+                                Approved
+                              </span>
                             </div>
                           );
-                        } else if (status === 'pending_review') {
+                        } else if (status === "pending_review") {
                           return (
                             <div className="flex items-center text-yellow-600 dark:text-yellow-400">
                               <AlertCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm font-medium">Pending Review</span>
+                              <span className="text-sm font-medium">
+                                Pending Review
+                              </span>
                             </div>
                           );
-                        } else if (status === 'rejected') {
+                        } else if (status === "rejected") {
                           return (
                             <div className="flex items-center text-red-600 dark:text-red-400">
                               <AlertCircle className="h-4 w-4 mr-1" />
-                              <span className="text-sm font-medium">Resubmission Required</span>
+                              <span className="text-sm font-medium">
+                                Resubmission Required
+                              </span>
                             </div>
                           );
                         } else {
                           return (
                             <div className="flex items-center text-gray-500 dark:text-gray-400">
                               <Upload className="h-4 w-4 mr-1" />
-                              <span className="text-sm font-medium">Not Submitted</span>
+                              <span className="text-sm font-medium">
+                                Not Submitted
+                              </span>
                             </div>
                           );
                         }
                       })()}
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      Submit proof of completion to track your learning progress.
+                      Submit proof of completion to track your learning
+                      progress.
                     </p>
-                    
+
                     <button
                       onClick={() => handleSubmitProof(selectedEvent)}
                       className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
                     >
                       <Upload className="h-4 w-4 mr-2" />
-                      {getProofStatus(selectedEvent.id) === 'none' ? 'Submit Proof' : 'Update Proof'}
+                      {getProofStatus(selectedEvent.id) === "none"
+                        ? "Submit Proof"
+                        : "Update Proof"}
                     </button>
                   </div>
                 )}
               </div>
 
               <div className="flex space-x-3 mt-6">
-                <button 
+                <button
                   onClick={() => handleEditEvent(selectedEvent)}
                   className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
                 >
@@ -850,7 +874,7 @@ const Calendar = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {isEditMode ? 'Edit Event' : 'Create New Event'}
+                  {isEditMode ? "Edit Event" : "Create New Event"}
                 </h2>
                 <button
                   onClick={() => {
@@ -1017,15 +1041,15 @@ const Calendar = () => {
           </div>
         )}
       </div>
-      
+
       {/* Proof Submission Modal */}
       {showProofSubmission && proofEvent && (
         <ProofSubmissionNew
           event={{
             id: proofEvent.id,
             title: proofEvent.title,
-            proof_type: proofEvent.proof_type || 'any',
-            description: proofEvent.description
+            proof_type: proofEvent.proof_type || "any",
+            description: proofEvent.description,
           }}
           isOpen={showProofSubmission}
           onClose={() => {

@@ -387,7 +387,10 @@ Respond with ONLY this JSON format:
                 custom_start_date = datetime.strptime(preferences['start_date'], "%Y-%m-%d")
             except Exception as e:
                 print(f"⚠️ Invalid start_date format: {preferences['start_date']} - {e}")
-        start_date = custom_start_date if custom_start_date else (datetime.now() + timedelta(days=1))
+            
+        # Use CURRENT date, not a fixed past date
+        start_date = custom_start_date if custom_start_date else datetime.now()
+        
         
         # Calculate weekly schedule
         study_hours_per_week = preferences["study_hours_per_week"]
