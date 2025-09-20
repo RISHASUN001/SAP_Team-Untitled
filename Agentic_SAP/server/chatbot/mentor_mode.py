@@ -306,6 +306,68 @@ def mentor_reset():
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "OK"})
+
+@app.route('/api/feedback-tone-suggest', methods=['POST'])
+def feedback_tone_suggest():
+    """
+    NEW ENDPOINT: Suggest improvements for feedback tone and wording
+    """
+    print("[mentor_mode.py] --- Feedback Tone Suggest API called ---")
+    start_time = time.time()
+    
+    try:
+        data = request.json
+        feedback_text = data.get('feedback', '')
+        
+        if not feedback_text:
+            return jsonify({"error": "No feedback provided"}), 400
+        
+        print(f"[mentor_mode.py] Feedback text length: {len(feedback_text)} characters")
+        
+        # Construct the prompt for tone improvement
+        prompt = (
+    "You are a professional HR and communication expert. Your task is to analyze feedback "
+    "and suggest improvements to make it more constructive, professional, and effective.\n\n"
+    "INSTRUCTIONS:\n"
+    "1. Analyze the tone of the provided feedback\n"
+    "2. Identify any harsh, negative, or unprofessional language\n"
+    "3. Suggest specific rewording to make it more constructive\n"
+    "4. Focus on maintaining the core message while improving delivery\n"
+    "5. Provide 3 ready-to-use alternative phrasings\n"
+    "6. Format the response EXACTLY as specified below\n\n"
+    "RESPONSE FORMAT (follow exactly):\n"
+    "TONE ANALYSIS: [brief analysis]\n"
+    "SUGGESTED IMPROVEMENTS: [specific advice]\n"
+    "ALTERNATIVE PHRASINGS (ready to use):\n"
+    "1. \"[complete constructive phrase 1]\"\n"
+    "2. \"[complete constructive phrase 2]\"\n"
+    "3. \"[complete constructive phrase 3]\"\n\n"
+    "Example of good alternative phrasing: \"I've noticed some challenges with meeting deadlines. Let's work together to identify obstacles and create a plan to improve timeliness.\"\n\n"
+    f"Feedback to analyze:\n\n{feedback_text}"
+)
+        
+        print(f"[mentor_mode.py] Sending tone analysis request to OpenRouter...")
+        llm_start = time.time()
+        
+        response = client.chat.completions.create(
+            model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        llm_end = time.time()
+        suggestions = response.choices[0].message.content
+        
+        print(f"[mentor_mode.py] Tone suggestions generated successfully")
+        print(f"[mentor_mode.py] LLM response time: {llm_end - llm_start:.2f}s")
+        print(f"[mentor_mode.py] --- Feedback Tone Suggest API finished in {time.time() - start_time:.2f}s ---\n")
+        
+        return jsonify({"suggestions": suggestions})
+        
+    except Exception as e:
+        print(f"[mentor_mode.py] Error in feedback_tone_suggest: {str(e)}")
+        return jsonify({"error": "Unable to generate tone suggestions at this time"}), 500
 @app.route('/api/summarize-feedback', methods=['POST'])
 def summarize_feedback():
     """
