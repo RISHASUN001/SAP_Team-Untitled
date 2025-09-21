@@ -459,7 +459,44 @@ app.put('/api/goals/:goalId/progress', (req, res) => {
   res.json(goals[goalIndex]);
 });
 
-// Feedback and Analytics
+// Feedback and Analytics - UPDATED to handle real localStorage feedback data
+let serverFeedbacks = []; // Store feedback data server-side
+
+// Sync feedback data from frontend localStorage
+app.post('/api/feedback/sync', (req, res) => {
+  const { feedbacks } = req.body;
+  
+  if (Array.isArray(feedbacks)) {
+    serverFeedbacks = feedbacks;
+    console.log(`✅ Synced ${feedbacks.length} feedback records from frontend`);
+    res.json({ 
+      success: true, 
+      message: `Synced ${feedbacks.length} feedback records`,
+      count: feedbacks.length
+    });
+  } else {
+    res.status(400).json({ error: 'Invalid feedback data format' });
+  }
+});
+
+// Get real feedback data for a specific user
+app.get('/api/feedback/user/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  // Find feedback for this user (where teamMemberId matches userId)
+  const userFeedbacks = serverFeedbacks.filter(fb => fb.teamMemberId === userId);
+  
+  console.log(`📋 Found ${userFeedbacks.length} feedback records for user ${userId}`);
+  res.json(userFeedbacks);
+});
+
+// Get all feedback data (for debugging)
+app.get('/api/feedback/all', (req, res) => {
+  console.log(`📊 Returning all ${serverFeedbacks.length} feedback records`);
+  res.json(serverFeedbacks);
+});
+
+// Legacy endpoints for backward compatibility
 app.post('/api/feedback/submit', (req, res) => {
   const { userId, feedback, rating, source } = req.body;
   
@@ -478,20 +515,42 @@ app.post('/api/feedback/submit', (req, res) => {
 app.get('/api/feedback/summary/:userId', (req, res) => {
   const { userId } = req.params;
   
-  // Mock feedback summary
-  const summary = {
-    averageRating: 4.3,
-    totalFeedback: 15,
-    strengths: ["Technical problem solving", "Learning agility", "Code quality"],
-    improvements: ["Presentation skills", "Documentation", "Team collaboration"],
-    trends: {
-      technical: [4.2, 4.4, 4.6, 4.7],
-      communication: [3.8, 4.0, 4.2, 4.4],
-      leadership: [3.5, 3.7, 4.0, 4.2]
-    }
-  };
+  // Try to use real feedback data if available
+  const userFeedbacks = serverFeedbacks.filter(fb => fb.teamMemberId === userId);
   
-  res.json(summary);
+  if (userFeedbacks.length > 0) {
+    // Calculate real summary from actual feedback
+    const latestFeedback = userFeedbacks[userFeedbacks.length - 1];
+    const avgScore = (latestFeedback.technicalSkills + latestFeedback.communication + 
+                     latestFeedback.teamwork + latestFeedback.problemSolving + 
+                     latestFeedback.initiative) / 5;
+    
+    const summary = {
+      averageRating: Math.round(avgScore * 10) / 10,
+      totalFeedback: userFeedbacks.length,
+      strengths: ["Based on real feedback data"],
+      improvements: [latestFeedback.areasForImprovement || "No specific areas identified"],
+      latestFeedback: latestFeedback.qualitativeFeedback,
+      goals: latestFeedback.goals
+    };
+    
+    res.json(summary);
+  } else {
+    // Fallback to mock data if no real feedback
+    const summary = {
+      averageRating: 4.3,
+      totalFeedback: 0,
+      strengths: ["No feedback data available"],
+      improvements: ["No feedback data available"],
+      trends: {
+        technical: [4.2, 4.4, 4.6, 4.7],
+        communication: [3.8, 4.0, 4.2, 4.4],
+        leadership: [3.5, 3.7, 4.0, 4.2]
+      }
+    };
+    
+    res.json(summary);
+  }
 });
 
 app.get('/api/analytics/team/:managerId', (req, res) => {

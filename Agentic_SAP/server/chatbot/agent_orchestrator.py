@@ -31,23 +31,25 @@ class AgentOrchestrator:
         except:
             return []
     
-    def orchestrate_agents(self, user_profile, skill_gaps, available_courses):
+    def orchestrate_agents(self, user_profile, skill_gaps, available_courses, user_id=None):
         """
         Coordinate all AI agents to provide comprehensive analysis
         """
         try:
             print("🚀 Starting agentic AI analysis...")
+            print(f"👤 User ID: {user_id}")
             
             # Get user feedback data
-            user_feedback = self.get_user_feedback_data(user_profile.get('userId', ''))
+            user_feedback = self.get_user_feedback_data(user_profile.get('userId', user_id or ''))
             
             # Run all agents in parallel for efficiency
             with ThreadPoolExecutor(max_workers=3) as executor:
-                # Submit all agent tasks
+                # Submit all agent tasks - UPDATED to pass user_id to skills agent
                 skills_future = executor.submit(
                     self.skills_agent.analyze_skills, 
                     user_profile, 
-                    available_courses
+                    available_courses,
+                    user_id  # Pass user_id to get real feedback data
                 )
                 
                 goals_future = executor.submit(
@@ -84,7 +86,9 @@ class AgentOrchestrator:
                         1 for analysis in [skills_analysis, goals_analysis, feedback_analysis]
                         if analysis.get("confidence") != "low"
                     ]),
-                    "analysis_timestamp": self._get_timestamp()
+                    "analysis_timestamp": self._get_timestamp(),
+                    "user_id": user_id,
+                    "feedback_data_source": skills_analysis.get("data_source", "unknown")
                 }
             }
             

@@ -75,8 +75,33 @@ export const FeedbackProvider: React.FC<FeedbackProviderProps> = ({
     if (isLoaded) {
       console.log("Saving to localStorage:", feedbacks);
       localStorage.setItem("teamFeedback", JSON.stringify(feedbacks));
+      
+      // Sync with server for Python backend access
+      syncFeedbackToServer(feedbacks);
     }
   }, [feedbacks, isLoaded]);
+
+  // Sync feedback data to server so Python backend can access it
+  const syncFeedbackToServer = async (feedbackData: Feedback[]) => {
+    try {
+      const response = await fetch('/api/feedback/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ feedbacks: feedbackData }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Feedback synced to server:", result.message);
+      } else {
+        console.error("❌ Failed to sync feedback to server");
+      }
+    } catch (error) {
+      console.error("❌ Error syncing feedback to server:", error);
+    }
+  };
 
   const addFeedback = (feedback: Feedback) => {
     console.log("Adding feedback:", feedback);

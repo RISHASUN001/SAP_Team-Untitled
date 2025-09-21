@@ -35,13 +35,17 @@ def get_ai_skill_recommendations(user_profile, skill_gaps, available_courses):
     """
     try:
         print("🤖 Starting agentic AI analysis...")
+        print(f"👤 User: {user_profile.get('name', 'Unknown')} (ID: {user_profile.get('userId', 'Unknown')})")
         
         # If we have limited courses, use a simpler approach
         if len(available_courses) <= 3:
             return generate_simple_recommendations(user_profile, skill_gaps, available_courses)
         
-        # Step 1: Orchestrate all AI agents
-        agent_analysis = orchestrator.orchestrate_agents(user_profile, skill_gaps, available_courses)
+        # Extract user_id from user_profile
+        user_id = user_profile.get('userId') or user_profile.get('id')
+        
+        # Step 1: Orchestrate all AI agents - UPDATED to pass user_id for real feedback data
+        agent_analysis = orchestrator.orchestrate_agents(user_profile, skill_gaps, available_courses, user_id)
         
         # Step 2: Extract prioritized course recommendations
         course_priorities = orchestrator.extract_course_priorities(agent_analysis)
@@ -64,7 +68,7 @@ def get_ai_skill_recommendations(user_profile, skill_gaps, available_courses):
 
 def force_feedback_goal_prioritization(ai_recommendations, feedback_data, user_profile, available_courses):
     """
-    Force prioritization of courses mentioned in feedback goals ONLY if feedback exists
+    Let AI make natural recommendations without forced prioritization - removed hardcoded R logic
     """
     try:
         # Only proceed if there is actual feedback data
@@ -72,47 +76,9 @@ def force_feedback_goal_prioritization(ai_recommendations, feedback_data, user_p
             print(f"📋 No feedback data for {user_profile.get('name', 'user')} - using standard recommendations")
             return ai_recommendations
             
-        # Check if feedback mentions Statistical Analysis with R
-        feedback_mentions_r = any(fb.get('goals', '').lower().find('statistical analysis with r') >= 0 for fb in feedback_data)
-        user_goals_mention_r = any('statistical analysis with r' in goal.lower() for goal in user_profile.get('currentGoals', []))
-        
-        if feedback_mentions_r or user_goals_mention_r:
-            recommendations = ai_recommendations.get("recommended_sequence", [])
-            
-            # Check if course8 (Statistical Analysis with R) is already in recommendations
-            has_r_course = any(rec.get('course_id') == 'course8' for rec in recommendations)
-            
-            if not has_r_course:
-                # Find the R course in available courses
-                r_course_data = next((c for c in available_courses if c['id'] == 'course8'), None)
-                if r_course_data:
-                    # Force add Statistical Analysis with R as first priority
-                    r_course = {
-                        "course_id": "course8",
-                        "course_title": r_course_data['title'],
-                        "sequence_order": 1,
-                        "reasoning": "Top priority: Directly addresses 'Statistical Analysis with R' goal mentioned in feedback",
-                        "agent_consensus": "high"
-                    }
-                    # Insert at beginning and renumber other courses with enhanced reasoning
-                    recommendations.insert(0, r_course)
-                    for i, rec in enumerate(recommendations[1:], 2):
-                        rec["sequence_order"] = i
-                        # Enhance reasoning for subsequent courses
-                        if i == 2 and rec.get('course_id') == 'course4':
-                            rec["reasoning"] = f"As a {user_profile.get('role', 'Junior Data Scientist')}, SQL skills are essential for data analysis. This course will help {user_profile.get('name', 'the user')} improve their data manipulation and querying skills, building on the statistical foundation from R."
-                        elif i == 3 and rec.get('course_id') == 'course1':
-                            rec["reasoning"] = f"Building on the SQL and R skills, this course will help {user_profile.get('name', 'the user')} advance their Python proficiency. Given their {user_profile.get('experience', '1.5 years')} of experience, mastering Python is crucial for comprehensive data science capabilities."
-                    
-                    # Update the recommendations
-                    ai_recommendations["recommended_sequence"] = recommendations[:3]  # Limit to top 3
-                    ai_recommendations["strategic_advice"] = "Starting with Statistical Analysis with R as specifically requested in feedback, then building complementary skills."
-                    
-                    print("🎯 FORCED PRIORITIZATION: Added Statistical Analysis with R course as #1 priority")
-        else:
-            print(f"📋 No R-related goals found in feedback for {user_profile.get('name', 'user')} - using standard recommendations")
-        
+        print(f"🎯 Using natural AI recommendations based on feedback analysis for {user_profile.get('name', 'user')}")
         return ai_recommendations
+        
     except Exception as e:
         print(f"❌ Error in feedback goal prioritization: {e}")
         return ai_recommendations
@@ -221,60 +187,50 @@ PRIORITIZED COURSES:
 
         # Create dynamic prompt based on whether feedback exists
         if feedback_data and len(feedback_data) > 0:
-            # Check if feedback mentions R
-            feedback_mentions_r = any(fb.get('goals', '').lower().find('statistical analysis with r') >= 0 for fb in feedback_data)
+            # Extract feedback goals for prioritization
+            feedback_goals = []
+            if feedback_data:
+                for fb in feedback_data:
+                    goals = fb.get('goals', '').strip()
+                    if goals:
+                        feedback_goals.append(goals.lower())
             
-            if feedback_mentions_r:
-                # Coordinator prompt for users WITH R feedback
-                prompt = f"""You MUST prioritize courses mentioned in user feedback above all else.
+            # Create feedback-aware prompt
+            feedback_priority_text = ""
+            if feedback_goals:
+                feedback_priority_text = f"""
+CRITICAL: Manager feedback mentions these learning goals: {', '.join(feedback_goals)}
+YOU MUST prioritize courses that match these feedback goals as top priority.
+"""
+            
+            # Coordinator prompt with dynamic feedback prioritization
+            prompt = f"""You are an AI learning coordinator. Create a personalized learning path.
 
 User: {user_profile['name']} ({user_profile['role']})
-
-MANDATORY: User feedback mentions "Statistical Analysis with R" - YOU MUST include course8 as #1 priority
-
+{feedback_priority_text}
 AVAILABLE COURSES:
 {valid_courses_list}
 
-YOU MUST RETURN THIS STRUCTURE:
+INSTRUCTIONS:
+1. If feedback goals are mentioned above, find matching courses and prioritize them FIRST
+2. Consider user's current skill level and experience
+3. Create a logical progression of 3 courses maximum
+4. Provide specific reasoning for each recommendation
+
+Return JSON format:
 {{
   "recommended_sequence": [
     {{
-      "course_id": "course8",
-      "course_title": "Statistical Analysis with R", 
+      "course_id": "courseX",
+      "course_title": "Course Title",
       "sequence_order": 1,
-      "reasoning": "Top priority: Directly addresses 'Statistical Analysis with R' goal mentioned in feedback",
-      "agent_consensus": "high"
-    }},
-    {{
-      "course_id": "course4",
-      "course_title": "SQL for Data Analysis",
-      "sequence_order": 2, 
-      "reasoning": "As a {user_profile.get('role')}, SQL skills are essential for data analysis. This course will help {user_profile.get('name')} improve their data manipulation and querying skills.",
-      "agent_consensus": "high"
-    }},
-    {{
-      "course_id": "course1",
-      "course_title": "Advanced Python for Data Science",
-      "sequence_order": 3,
-      "reasoning": "Building on the foundation, this will help {user_profile.get('name')} advance their Python skills for comprehensive data science capabilities.",
-      "agent_consensus": "medium"
+      "reasoning": "Specific reasoning for why this course is recommended",
+      "agent_consensus": "high|medium|low"
     }}
   ],
-  "strategic_advice": "Start with Statistical Analysis with R as requested in feedback, then build foundational data skills",
-  "estimated_timeline": "15 weeks total (5 + 4 + 6 weeks)"
+  "strategic_advice": "Overall learning strategy",
+  "estimated_timeline": "Total time estimate"
 }}"""
-            else:
-                # Standard prompt for users with feedback but no R mention
-                prompt = f"""Recommend optimal learning path for this user based on their profile and goals.
-
-User: {user_profile['name']} ({user_profile['role']})
-Experience: {user_profile.get('experience')}
-Goals: {user_profile.get('currentGoals', [])}
-
-AVAILABLE COURSES:
-{valid_courses_list}
-
-Focus on their skill gaps and career goals. Provide detailed reasoning for each course."""
         else:
             # Standard prompt for users WITHOUT feedback
             prompt = f"""Recommend optimal learning path for this user based on their profile and goals.
@@ -352,29 +308,8 @@ Return JSON format:
             if isinstance(parsed_response, dict):
                 recommendations = parsed_response.get("recommended_sequence", [])
                 
-                # FORCE FEEDBACK GOALS: If Statistical Analysis with R is mentioned in feedback but not in top 3, add it
-                feedback_mentions_r = False
-                if feedback_data:
-                    feedback_mentions_r = any(fb.get('goals', '').lower().find('statistical analysis with r') >= 0 for fb in feedback_data)
-                
-                user_goals_mention_r = any('statistical analysis with r' in goal.lower() for goal in user_profile.get('currentGoals', []))
-                
-                if (feedback_mentions_r or user_goals_mention_r):
-                    # Check if course8 (Statistical Analysis with R) is already in recommendations
-                    has_r_course = any(rec.get('course_id') == 'course8' for rec in recommendations)
-                    if not has_r_course:
-                        # Force add Statistical Analysis with R as first priority
-                        r_course = {
-                            "course_id": "course8",
-                            "course_title": "Statistical Analysis with R",
-                            "sequence_order": 1,
-                            "reasoning": "PRIORITY: Addresses 'Statistical Analysis with R' goal from feedback",
-                            "agent_consensus": "high"
-                        }
-                        # Insert at beginning and renumber other courses
-                        recommendations.insert(0, r_course)
-                        for i, rec in enumerate(recommendations[1:], 2):
-                            rec["sequence_order"] = i
+                # Let AI make natural recommendations based on feedback goals
+                print(f"🎯 Using natural AI recommendations based on feedback goals")
                 
                 return {
                     "recommended_sequence": recommendations[:3],  # Limit to top 3
@@ -387,7 +322,7 @@ Return JSON format:
                     "agentic_metadata": {
                         "agents_used": ["skills_analysis", "goals_analysis", "feedback_analysis"],
                         "coordination_success": True,
-                        "feedback_goals_forced": feedback_mentions_r or user_goals_mention_r
+                        "natural_recommendations": True
                     }
                 }
             else:
@@ -489,23 +424,34 @@ def ai_skill_analysis():
                 "error": "Missing required data: user_profile, skill_gaps, or available_courses"
             }), 400
         
-        # Load feedback data to provide context
+        # Load feedback data from API (real localStorage data)
         feedback_data = []
         try:
-            import os
-            # Get the absolute path to the feedback data file
-            feedback_file_path = os.path.join(os.path.dirname(__file__), 'live_feedback_data.json')
-            print(f"🔍 Looking for feedback data at: {feedback_file_path}")
+            import requests
+            # Get real feedback data from Node.js API
+            api_url = f"http://localhost:3001/api/feedback/user/{user_profile.get('userId', 'tm001')}"
+            print(f"🔍 Fetching real feedback data from API: {api_url}")
             
-            with open(feedback_file_path, 'r') as f:
-                all_feedback = json.load(f)
-                # Filter feedback for this user
-                feedback_data = [fb for fb in all_feedback if fb.get('userId') == user_profile.get('userId')]
-                print(f"📊 Found {len(all_feedback)} total feedback records, {len(feedback_data)} for user {user_profile.get('userId')}")
-        except FileNotFoundError:
-            print(f"⚠️ No feedback data file found at {feedback_file_path}")
+            response = requests.get(api_url)
+            if response.status_code == 200:
+                feedback_data = response.json()
+                print(f"📊 Retrieved {len(feedback_data)} feedback records from API for user {user_profile.get('userId')}")
+                if feedback_data:
+                    print(f"📋 Latest feedback: Technical={feedback_data[0].get('technicalSkills')}, Communication={feedback_data[0].get('communication')}")
+            else:
+                print(f"⚠️ API request failed with status: {response.status_code}")
         except Exception as e:
-            print(f"⚠️ Error loading feedback data: {e}")
+            print(f"⚠️ Error fetching feedback data from API: {e}")
+            # Fallback to local file if API fails
+            try:
+                feedback_file_path = os.path.join(os.path.dirname(__file__), 'live_feedback_data.json')
+                print(f"� Falling back to local file: {feedback_file_path}")
+                with open(feedback_file_path, 'r') as f:
+                    all_feedback = json.load(f)
+                    feedback_data = [fb for fb in all_feedback if fb.get('userId') == user_profile.get('userId')]
+                    print(f"📊 Fallback: Found {len(feedback_data)} feedback records")
+            except Exception as fallback_error:
+                print(f"⚠️ Fallback also failed: {fallback_error}")
         
         # Get AI-powered recommendations
         ai_recommendations = get_ai_skill_recommendations(user_profile, skill_gaps, available_courses)
@@ -531,14 +477,27 @@ def ai_skill_analysis():
                 "feedback_count": len(feedback_data),
                 "latest_feedback": feedback_data[0] if feedback_data else None,
                 "feedback_summary": {
-                    "technical_skills_avg": sum([fb.get('technicalSkills', 0) for fb in feedback_data]) / len(feedback_data) if feedback_data else 0,
-                    "communication_avg": sum([fb.get('communication', 0) for fb in feedback_data]) / len(feedback_data) if feedback_data else 0,
+                    # Use latest feedback record values instead of averaging
+                    "technical_skills_avg": feedback_data[0].get('technicalSkills', 0) if feedback_data else 0,
+                    "communication_avg": feedback_data[0].get('communication', 0) if feedback_data else 0,
+                    "teamwork_current": feedback_data[0].get('teamwork', 0) if feedback_data else 0,
+                    "problem_solving_current": feedback_data[0].get('problemSolving', 0) if feedback_data else 0,
+                    "initiative_current": feedback_data[0].get('initiative', 0) if feedback_data else 0,
                     "goals_mentioned": [fb.get('goals') for fb in feedback_data if fb.get('goals')]
                 }
             },
             "available_courses_count": len(available_courses),
             "recommendation_generation_timestamp": datetime.now().isoformat()
         }
+        
+        # DEBUG: Print feedback data for troubleshooting
+        print(f"🔍 DEBUG: Raw feedback_data = {feedback_data}")
+        if feedback_data:
+            for i, fb in enumerate(feedback_data):
+                print(f"   Feedback {i}: technicalSkills={fb.get('technicalSkills')}, communication={fb.get('communication')}")
+        print(f"🔍 DEBUG: Calculated averages:")
+        print(f"   Technical Skills: {context_info['feedback_context']['feedback_summary']['technical_skills_avg']}")
+        print(f"   Communication: {context_info['feedback_context']['feedback_summary']['communication_avg']}")
         
         # Add context_used to the AI recommendations
         ai_recommendations["context_used"] = context_info
@@ -565,9 +524,20 @@ def health_check():
     return jsonify({"status": "AI Skill Gap Analysis Service Running", "port": 5004})
 
 if __name__ == '__main__':
-    print("🤖 Starting AI Skill Gap Analysis Service...")
-    print("🔗 Available at: http://localhost:5004")
-    print("📋 Endpoints:")
-    print("   POST /api/ai-skill-analysis - Get AI-powered learning recommendations")
-    print("   GET  /health - Service health check")
-    app.run(debug=True, port=5004)
+    try:
+        print("🤖 Starting AI Skill Gap Analysis Service...")
+        print("🔗 Available at: http://localhost:5004")
+        print("📋 Endpoints:")
+        print("   POST /api/ai-skill-analysis - Get AI-powered learning recommendations")
+        print("   GET  /health - Service health check")
+        
+        # Test the orchestrator initialization
+        print("🔧 Initializing AI orchestrator...")
+        test_orchestrator = AgentOrchestrator()
+        print("✅ AI orchestrator initialized successfully")
+        
+        app.run(debug=True, port=5004, host='0.0.0.0')
+    except Exception as e:
+        print(f"❌ Failed to start AI Skill Gap service: {e}")
+        import traceback
+        traceback.print_exc()
