@@ -5,7 +5,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from openai import OpenAI
-from agent_orchestrator import AgentOrchestrator
+
+# Import the individual analysis agents
+from skills_analysis_agent import analyze_user_skills
+from goals_analysis_agent import analyze_user_goals
+from feedback_analysis_agent import analyze_user_feedback
 
 # =========================
 # Environment Setup
@@ -22,9 +26,6 @@ if api_key:
 app = Flask(__name__)
 CORS(app)
 
-# Initialize the agentic AI orchestrator
-orchestrator = AgentOrchestrator()
-
 # =========================
 # Agentic AI Skill Gap Analysis
 # =========================
@@ -34,29 +35,30 @@ def get_ai_skill_recommendations(user_profile, skill_gaps, available_courses):
     with coordinated insights from Skills, Goals, and Feedback analysis agents
     """
     try:
-        print("🤖 Starting agentic AI analysis...")
+        print("🤖 Starting NEW agentic AI analysis...")
         print(f"👤 User: {user_profile.get('name', 'Unknown')} (ID: {user_profile.get('userId', 'Unknown')})")
         
         # If we have limited courses, use a simpler approach
         if len(available_courses) <= 3:
             return generate_simple_recommendations(user_profile, skill_gaps, available_courses)
         
-        # Extract user_id from user_profile
-        user_id = user_profile.get('userId') or user_profile.get('id')
+        # Step 1: Run all three individual agents
+        print("🔍 Running Skills Analysis Agent...")
+        skills_analysis = analyze_user_skills(user_profile, skill_gaps, available_courses)
         
-        # Step 1: Orchestrate all AI agents - UPDATED to pass user_id for real feedback data
-        agent_analysis = orchestrator.orchestrate_agents(user_profile, skill_gaps, available_courses, user_id)
+        print("🎯 Running Goals Analysis Agent...")
+        goals_analysis = analyze_user_goals(user_profile, available_courses)
         
-        # Step 2: Extract prioritized course recommendations
-        course_priorities = orchestrator.extract_course_priorities(agent_analysis)
+        print("📊 Running Feedback Analysis Agent...")
+        feedback_analysis = analyze_user_feedback(user_profile, available_courses)
         
-        # Step 3: Use coordinator LLM to synthesize all agent outputs into final recommendations
-        coordinator_recommendations = generate_coordinator_response(
-            user_profile, 
-            agent_analysis, 
-            course_priorities, 
-            available_courses,
-            []  # Pass empty feedback for now, will be loaded in API endpoint
+        # Step 2: Combine agent outputs and pass to coordinator LLM for course timeline ranking
+        coordinator_recommendations = generate_course_timeline_with_reasoning(
+            user_profile,
+            skills_analysis,
+            goals_analysis, 
+            feedback_analysis,
+            available_courses
         )
         
         return coordinator_recommendations
@@ -66,21 +68,389 @@ def get_ai_skill_recommendations(user_profile, skill_gaps, available_courses):
         # Fall back to simple recommendations
         return generate_simple_recommendations(user_profile, skill_gaps, available_courses)
 
-def force_feedback_goal_prioritization(ai_recommendations, feedback_data, user_profile, available_courses):
+def generate_course_timeline_with_reasoning(user_profile, skills_analysis, goals_analysis, feedback_analysis, available_courses):
     """
-    Let AI make natural recommendations without forced prioritization - removed hardcoded R logic
+    Final coordinator LLM that takes outputs from three agents and creates course timeline with reasoning
     """
     try:
-        # Only proceed if there is actual feedback data
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        base_url = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
+        
+        client = OpenAI(
+            api_key=api_key,
+            base_url=base_url
+        )
+        
+        # Extract key skills from each agent
+        skills_key_skills = skills_analysis.get('analysis', {}).get('key_skills', [])
+        goals_key_skills = goals_analysis.get('analysis', {}).get('key_skills', [])
+        feedback_key_skills = feedback_analysis.get('analysis', {}).get('key_skills', [])
+        
+        # Create comprehensive summary for LLM
+        agent_insights = f"""
+SKILLS ANALYSIS AGENT:
+Confidence: {skills_analysis.get('confidence', 'unknown')}
+Key Skills: {json.dumps(skills_key_skills)}
+Summary: {skills_analysis.get('analysis', {}).get('analysis_summary', 'No summary')}
+
+GOALS ANALYSIS AGENT:
+Confidence: {goals_analysis.get('confidence', 'unknown')}
+Key Skills: {json.dumps(goals_key_skills)}
+Career Progression: {goals_analysis.get('analysis', {}).get('career_progression', 'Unknown')}
+Has Goals: {goals_analysis.get('raw_data', {}).get('has_goals', False)}
+
+FEEDBACK ANALYSIS AGENT:
+Confidence: {feedback_analysis.get('confidence', 'unknown')}
+Key Skills: {json.dumps(feedback_key_skills)}
+Improvement Areas: {feedback_analysis.get('analysis', {}).get('improvement_areas', 'Unknown')}
+Has Feedback: {feedback_analysis.get('raw_data', {}).get('has_feedback', False)}
+"""
+
+        # Available courses context
+        courses_context = ""
+        for i, course in enumerate(available_courses[:8]):  # Limit to 8 courses to save tokens
+            course_info = f"Course {course['id']}: {course['title']} ({course['difficulty']}, {course['duration']})\n  Skills: {', '.join([skill['name'] for skill in course['skills']])}"
+            courses_context += course_info + "\n\n"
+
+        # Create coordinator prompt
+        prompt = f"""You are a Learning Path Coordinator. Create a prioritized course timeline based on three agent analyses.
+
+User: {user_profile['name']} ({user_profile['role']})
+Experience: {user_profile.get('experience', 'Unknown')}
+
+AGENT ANALYSES:
+{agent_insights}
+
+AVAILABLE COURSES:
+{courses_context}
+
+TASK: Create a timeline of 3 courses with reasoning based on the agent analyses.
+
+PRIORITIZATION RULES:
+1. HIGH confidence agent recommendations get priority
+2. Feedback-driven skills (if available) get highest priority
+3. Goals-aligned skills get medium priority  
+4. Skills analysis fills remaining spots
+5. Consider logical learning progression (prerequisites)
+
+Return JSON format:
+{{
+  "recommended_sequence": [
+    {{
+      "course_id": "courseX",
+      "course_title": "Course Title",
+      "sequence_order": 1,
+      "reasoning": "Why this course is recommended first (mention which agent(s) influenced this)",
+      "agent_influence": "skills|goals|feedback|combined",
+      "timing_advice": "When to take this course"
+    }}
+  ],
+  "strategic_advice": "Overall learning strategy based on all agent insights",
+  "estimated_timeline": "Total time estimate for sequence",
+  "agent_synthesis": "How the three agents' insights were combined"
+}}"""
+
+        response = client.chat.completions.create(
+            model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
+            messages=[
+                {"role": "system", "content": "You are an expert Learning Path Coordinator. Synthesize multi-agent insights into actionable course recommendations in valid JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=700,  # Increased for better reasoning
+            temperature=0.1  # Lower temperature for consistent JSON
+        )
+        
+        # Parse response
+        ai_response = response.choices[0].message.content.strip()
+        
+        # Clean JSON formatting
+        if ai_response.startswith("```json"):
+            ai_response = ai_response.replace("```json", "").replace("```", "").strip()
+        
+        # Extract JSON
+        import re
+        json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
+        if json_match:
+            ai_response = json_match.group()
+        
+        try:
+            parsed_response = json.loads(ai_response)
+            
+            # Ensure we have the expected structure
+            if isinstance(parsed_response, dict) and "recommended_sequence" in parsed_response:
+                return {
+                    "recommended_sequence": parsed_response.get("recommended_sequence", [])[:3],
+                    "strategic_advice": parsed_response.get("strategic_advice", "Multi-agent analysis complete"),
+                    "estimated_timeline": parsed_response.get("estimated_timeline", "Timeline to be determined"),
+                    "agent_synthesis": parsed_response.get("agent_synthesis", "Combined insights from skills, goals, and feedback analysis"),
+                    "agentic_metadata": {
+                        "agents_used": ["skills_analysis", "goals_analysis", "feedback_analysis"],
+                        "coordination_success": True,
+                        "skills_confidence": skills_analysis.get('confidence'),
+                        "goals_confidence": goals_analysis.get('confidence'),
+                        "feedback_confidence": feedback_analysis.get('confidence')
+                    }
+                }
+            else:
+                raise json.JSONDecodeError("Invalid response format", ai_response, 0)
+                
+        except json.JSONDecodeError:
+            print("⚠️ Coordinator JSON parsing failed, generating fallback...")
+            return generate_fallback_recommendations(skills_analysis, goals_analysis, feedback_analysis, available_courses)
+            
+    except Exception as e:
+        print(f"❌ Coordinator AI error: {e}")
+        return generate_fallback_recommendations(skills_analysis, goals_analysis, feedback_analysis, available_courses)
+
+def generate_fallback_recommendations(skills_analysis, goals_analysis, feedback_analysis, available_courses):
+    """
+    Generate fallback recommendations when coordinator LLM fails
+    """
+    try:
+        # Collect all key skills from agents
+        all_key_skills = []
+        
+        # Add skills from each agent with priority weighting
+        for agent_name, analysis in [
+            ("feedback", feedback_analysis),
+            ("goals", goals_analysis), 
+            ("skills", skills_analysis)
+        ]:
+            key_skills = analysis.get('analysis', {}).get('key_skills', [])
+            confidence = analysis.get('confidence', 'low')
+            
+            for skill in key_skills[:2]:  # Top 2 from each
+                all_key_skills.append({
+                    "skill_name": skill.get('skill_name', 'Unknown'),
+                    "agent": agent_name,
+                    "confidence": confidence,
+                    "priority": skill.get('priority', 'medium')
+                })
+        
+        # Match skills to courses
+        recommended_courses = []
+        used_course_ids = set()
+        
+        for skill_info in all_key_skills:
+            skill_name = skill_info['skill_name'].lower()
+            
+            # Find matching course
+            for course in available_courses:
+                if course['id'] in used_course_ids:
+                    continue
+                    
+                course_title = course['title'].lower()
+                course_skills = [s['name'].lower() for s in course.get('skills', [])]
+                
+                # Check if skill matches course
+                if (skill_name in course_title or 
+                    any(skill_name in cs for cs in course_skills) or
+                    any(cs in skill_name for cs in course_skills)):
+                    
+                    recommended_courses.append({
+                        "course_id": course['id'],
+                        "course_title": course['title'],
+                        "sequence_order": len(recommended_courses) + 1,
+                        "reasoning": f"Matches {skill_info['skill_name']} from {skill_info['agent']} agent ({skill_info['confidence']} confidence)",
+                        "agent_influence": skill_info['agent'],
+                        "timing_advice": f"Priority: {skill_info['priority']}"
+                    })
+                    used_course_ids.add(course['id'])
+                    break
+            
+            if len(recommended_courses) >= 3:
+                break
+        
+        # Fill remaining slots if needed
+        while len(recommended_courses) < 3 and len(used_course_ids) < len(available_courses):
+            for course in available_courses:
+                if course['id'] not in used_course_ids:
+                    recommended_courses.append({
+                        "course_id": course['id'],
+                        "course_title": course['title'],
+                        "sequence_order": len(recommended_courses) + 1,
+                        "reasoning": "Additional course for comprehensive learning",
+                        "agent_influence": "system",
+                        "timing_advice": "Standard progression"
+                    })
+                    used_course_ids.add(course['id'])
+                    break
+        
+        return {
+            "recommended_sequence": recommended_courses,
+            "strategic_advice": "Fallback recommendations based on agent skill priorities",
+            "estimated_timeline": f"{len(recommended_courses) * 4}-{len(recommended_courses) * 6} weeks",
+            "agent_synthesis": "Skills matched to courses when coordinator unavailable",
+            "agentic_metadata": {
+                "agents_used": ["skills_analysis", "goals_analysis", "feedback_analysis"],
+                "coordination_success": False,
+                "fallback_reason": "coordinator_unavailable",
+                "skills_confidence": skills_analysis.get('confidence'),
+                "goals_confidence": goals_analysis.get('confidence'), 
+                "feedback_confidence": feedback_analysis.get('confidence')
+            }
+        }
+        
+    except Exception as e:
+        print(f"❌ Fallback generation error: {e}")
+        return {
+            "recommended_sequence": [],
+            "strategic_advice": "Unable to generate recommendations",
+            "estimated_timeline": "Unknown",
+            "agent_synthesis": f"Error in fallback generation: {str(e)}",
+            "agentic_metadata": {
+                "agents_used": ["skills_analysis", "goals_analysis", "feedback_analysis"],
+                "coordination_success": False,
+                "fallback_reason": "fallback_error"
+            }
+        }
+    """
+    ⚡ TRULY DYNAMIC COURSE PRIORITIZATION FOR ANY FEEDBACK GOAL
+    This function matches ANY feedback goal to ANY course dynamically
+    """
+    try:
         if not feedback_data or len(feedback_data) == 0:
-            print(f"📋 No feedback data for {user_profile.get('name', 'user')} - using standard recommendations")
+            print(f"📋 No feedback data - using standard AI recommendations")
             return ai_recommendations
             
-        print(f"🎯 Using natural AI recommendations based on feedback analysis for {user_profile.get('name', 'user')}")
+        # Extract feedback goals
+        feedback_goals = []
+        for fb in feedback_data:
+            if fb.get('goals'):
+                feedback_goals.append(fb['goals'].lower().strip())
+        
+        if not feedback_goals:
+            print(f"📋 No goals found in feedback - using standard AI recommendations")
+            return ai_recommendations
+        
+        print(f"🎯 PROCESSING FEEDBACK GOALS FOR DYNAMIC PRIORITIZATION: {feedback_goals}")
+        
+        # DYNAMIC MATCHING: Find courses that match ANY feedback goal
+        priority_courses = []
+        
+        for goal in feedback_goals:
+            print(f"🔍 Searching for courses matching goal: '{goal}'")
+            
+            for course in available_courses:
+                course_title_lower = course['title'].lower()
+                course_skills = [skill['name'].lower() for skill in course.get('skills', [])]
+                
+                # Multiple matching strategies
+                goal_words = goal.split()
+                course_matched = False
+                match_reason = ""
+                
+                # Strategy 1: Direct keyword matching
+                for word in goal_words:
+                    if len(word) > 2:  # Skip short words like "to", "and"
+                        if word in course_title_lower:
+                            course_matched = True
+                            match_reason = f"Title contains '{word}'"
+                            break
+                        elif any(word in skill for skill in course_skills):
+                            course_matched = True
+                            match_reason = f"Skills contain '{word}'"
+                            break
+                
+                # Strategy 2: Reverse matching (course skills in goal)
+                if not course_matched:
+                    for skill in course_skills:
+                        if skill in goal:
+                            course_matched = True
+                            match_reason = f"Goal mentions skill '{skill}'"
+                            break
+                
+                # Strategy 3: Fuzzy matching for common synonyms
+                if not course_matched:
+                    # SQL variations
+                    if any(sql_word in goal for sql_word in ['sql', 'database', 'query']) and \
+                       any(sql_word in course_title_lower for sql_word in ['sql', 'database', 'query']):
+                        course_matched = True
+                        match_reason = "SQL/Database related"
+                    
+                    # Python variations
+                    elif any(py_word in goal for py_word in ['python', 'programming']) and \
+                         any(py_word in course_title_lower for py_word in ['python', 'programming']):
+                        course_matched = True
+                        match_reason = "Python/Programming related"
+                    
+                    # Statistics variations
+                    elif any(stat_word in goal for stat_word in ['statistic', 'stats', 'analysis']) and \
+                         any(stat_word in course_title_lower for stat_word in ['statistic', 'stats', 'analysis']):
+                        course_matched = True
+                        match_reason = "Statistics/Analysis related"
+                    
+                    # Machine Learning variations
+                    elif any(ml_word in goal for ml_word in ['machine learning', 'ml', 'ai', 'artificial intelligence']) and \
+                         any(ml_word in course_title_lower for ml_word in ['machine learning', 'ml', 'artificial intelligence']):
+                        course_matched = True
+                        match_reason = "ML/AI related"
+                
+                if course_matched:
+                    priority_courses.append({
+                        'course': course,
+                        'goal': goal,
+                        'match_reason': match_reason,
+                        'priority_score': len(goal_words)  # Longer/more specific goals get higher priority
+                    })
+                    print(f"✅ MATCH FOUND: {course['title']} ← {goal} ({match_reason})")
+        
+        if not priority_courses:
+            print(f"❌ NO MATCHING COURSES FOUND FOR FEEDBACK GOALS: {feedback_goals}")
+            return ai_recommendations
+        
+        # Sort by priority score (more specific goals first)
+        priority_courses.sort(key=lambda x: x['priority_score'], reverse=True)
+        
+        print(f"🎯 FOUND {len(priority_courses)} MATCHING COURSES - REBUILDING RECOMMENDATIONS")
+        
+        # Rebuild recommendations with feedback-driven courses first
+        new_recommendations = []
+        used_course_ids = set()
+        
+        # Add priority courses first
+        for i, priority_item in enumerate(priority_courses[:2]):  # Max 2 feedback-driven courses
+            course = priority_item['course']
+            goal = priority_item['goal']
+            match_reason = priority_item['match_reason']
+            
+            new_recommendations.append({
+                "course_id": course['id'],
+                "course_title": course['title'],
+                "sequence_order": i + 1,
+                "reasoning": f"🎯 FEEDBACK-DRIVEN PRIORITY: Your manager's feedback mentions '{goal}' as a learning goal. This course matches because: {match_reason}. Directly addresses your stated learning objective.",
+                "timing_advice": f"⚡ {'START IMMEDIATELY' if i == 0 else 'HIGH PRIORITY'} - Addresses manager feedback"
+            })
+            used_course_ids.add(course['id'])
+            print(f"✅ PRIORITY #{i+1}: {course['title']} (matches '{goal}')")
+        
+        # Add remaining original recommendations (if any slots left)
+        original_recommendations = ai_recommendations.get('recommended_sequence', [])
+        remaining_slots = 3 - len(new_recommendations)
+        
+        for rec in original_recommendations:
+            if rec['course_id'] not in used_course_ids and remaining_slots > 0:
+                new_recommendations.append({
+                    **rec,
+                    "sequence_order": len(new_recommendations) + 1
+                })
+                remaining_slots -= 1
+        
+        # Update the recommendations
+        ai_recommendations['recommended_sequence'] = new_recommendations
+        
+        # Update timeline and advice
+        feedback_goals_text = "', '".join(feedback_goals)
+        ai_recommendations['estimated_timeline'] = f"⚡ 11-15 weeks for feedback-driven learning path, prioritizing manager's goals: '{feedback_goals_text}'"
+        
+        original_advice = ai_recommendations.get('strategic_advice', '')
+        ai_recommendations['strategic_advice'] = f"🎯 FEEDBACK-DRIVEN STRATEGY: Your manager has identified '{feedback_goals_text}' as priority goals. Start with these courses to directly address feedback, then build supporting capabilities. {original_advice}"
+        
+        print(f"✅ SUCCESSFULLY MADE RECOMMENDATIONS DYNAMIC - {len(priority_courses)} feedback-driven courses prioritized")
         return ai_recommendations
         
     except Exception as e:
-        print(f"❌ Error in feedback goal prioritization: {e}")
+        print(f"❌ Error in dynamic feedback prioritization: {e}")
         return ai_recommendations
 
 def generate_simple_recommendations(user_profile, skill_gaps, available_courses):
@@ -448,6 +818,7 @@ def ai_skill_analysis():
         user_profile = data.get('user_profile')
         skill_gaps = data.get('skill_gaps') 
         available_courses = data.get('available_courses')
+        feedback_data = data.get('feedback_data', [])  # ⚡ FIX: Get feedback from frontend
         
         if not all([user_profile, skill_gaps, available_courses]):
             return jsonify({
@@ -455,7 +826,12 @@ def ai_skill_analysis():
             }), 400
         
         # Load feedback data from API (real localStorage data)
-        feedback_data = []
+        print(f"🔍 FEEDBACK CHECK: Received {len(feedback_data)} feedback records from frontend")
+        if feedback_data:
+            print(f"🎯 FEEDBACK GOALS: {feedback_data[0].get('goals', 'No goals specified')}")
+        
+        # Original feedback loading code (keeping as fallback)
+        fallback_feedback_data = []
         try:
             import requests
             # Get real feedback data from Node.js API
@@ -464,10 +840,13 @@ def ai_skill_analysis():
             
             response = requests.get(api_url)
             if response.status_code == 200:
-                feedback_data = response.json()
-                print(f"📊 Retrieved {len(feedback_data)} feedback records from API for user {user_profile.get('userId')}")
-                if feedback_data:
-                    print(f"📋 Latest feedback: Technical={feedback_data[0].get('technicalSkills')}, Communication={feedback_data[0].get('communication')}")
+                fallback_feedback_data = response.json()
+                print(f"📊 Retrieved {len(fallback_feedback_data)} feedback records from API for user {user_profile.get('userId')}")
+                if fallback_feedback_data:
+                    print(f"📋 Latest feedback: Technical={fallback_feedback_data[0].get('technicalSkills')}, Communication={fallback_feedback_data[0].get('communication')}")
+                    # Only use fallback if no feedback from frontend
+                    if not feedback_data:
+                        feedback_data = fallback_feedback_data
             else:
                 print(f"⚠️ API request failed with status: {response.status_code}")
         except Exception as e:
@@ -478,17 +857,19 @@ def ai_skill_analysis():
                 print(f"� Falling back to local file: {feedback_file_path}")
                 with open(feedback_file_path, 'r') as f:
                     all_feedback = json.load(f)
-                    feedback_data = [fb for fb in all_feedback if fb.get('userId') == user_profile.get('userId')]
-                    print(f"📊 Fallback: Found {len(feedback_data)} feedback records")
+                    fallback_feedback_data = [fb for fb in all_feedback if fb.get('userId') == user_profile.get('userId')]
+                    print(f"📊 Fallback: Found {len(fallback_feedback_data)} feedback records")
+                    # Only use fallback if no feedback from frontend
+                    if not feedback_data:
+                        feedback_data = fallback_feedback_data
             except Exception as fallback_error:
                 print(f"⚠️ Fallback also failed: {fallback_error}")
         
-        # Get AI-powered recommendations
+        # Get AI-powered recommendations using new agent-based system
         ai_recommendations = get_ai_skill_recommendations(user_profile, skill_gaps, available_courses)
         
-        # Post-process to force feedback goal prioritization
-        if feedback_data:
-            ai_recommendations = force_feedback_goal_prioritization(ai_recommendations, feedback_data, user_profile, available_courses)
+        # The new agent system handles feedback integration internally
+        print(f"✅ Agent-based recommendations generated successfully")
         
         # Add detailed context information to the response
         from datetime import datetime
@@ -561,10 +942,16 @@ if __name__ == '__main__':
         print("   POST /api/ai-skill-analysis - Get AI-powered learning recommendations")
         print("   GET  /health - Service health check")
         
-        # Test the orchestrator initialization
-        print("🔧 Initializing AI orchestrator...")
-        test_orchestrator = AgentOrchestrator()
-        print("✅ AI orchestrator initialized successfully")
+        # Test the individual agents initialization
+        print("🔧 Testing individual AI agents...")
+        from skills_analysis_agent import SkillsAnalysisAgent
+        from goals_analysis_agent import GoalsAnalysisAgent
+        from feedback_analysis_agent import FeedbackAnalysisAgent
+        
+        skills_agent = SkillsAnalysisAgent()
+        goals_agent = GoalsAnalysisAgent()
+        feedback_agent = FeedbackAnalysisAgent()
+        print("✅ All AI agents initialized successfully")
         
         app.run(debug=True, port=5004, host='0.0.0.0')
     except Exception as e:

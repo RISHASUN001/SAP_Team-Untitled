@@ -62,9 +62,20 @@ export async function getAIRecommendedCourses(userId: string): Promise<AISkillAn
     const skillGaps = getSkillGaps(userId);
     if (skillGaps.length === 0) return null;
     
-    const recommendedCourses = getRecommendedCourses(userId);
+    // Get feedback data from localStorage for this user
+    let feedbackData = [];
+    try {
+      const storedFeedback = localStorage.getItem('teamFeedback');
+      if (storedFeedback) {
+        const allFeedback = JSON.parse(storedFeedback);
+        feedbackData = allFeedback.filter((fb: any) => fb.teamMemberId === userId);
+        console.log(`📋 Found ${feedbackData.length} feedback records for user ${userId}`);
+      }
+    } catch (error) {
+      console.warn('Could not load feedback data:', error);
+    }
     
-    // Call AI service for intelligent analysis
+    // Call AI service for intelligent analysis WITH feedback data
     const response = await fetch('http://localhost:5004/api/ai-skill-analysis', {
       method: 'POST',
       headers: {
@@ -73,7 +84,8 @@ export async function getAIRecommendedCourses(userId: string): Promise<AISkillAn
       body: JSON.stringify({
         user_profile: user,
         skill_gaps: skillGaps,
-        available_courses: recommendedCourses
+        available_courses: courses, // Use ALL courses, not just recommended ones
+        feedback_data: feedbackData // Include feedback data for prioritization
       }),
     });
     

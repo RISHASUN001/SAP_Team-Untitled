@@ -1,15 +1,12 @@
 """
-Skills Analysis Agent - Agentic AI Component
-Specialized LLM agent for deep skills analysis and gap identification
+Skills Analysis Agent
+Analyzes user skill data and identifies key skills to learn
 """
-
 import os
 import json
-import requests
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load environment
 load_dotenv()
 
 class SkillsAnalysisAgent:
@@ -18,236 +15,170 @@ class SkillsAnalysisAgent:
             api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url=os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
         )
-        self.model = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct")
-        self.node_server_url = "http://localhost:3001"
     
-    def get_real_feedback_data(self, user_id):
+    def analyze_skills(self, user_profile, skill_gaps, available_courses):
         """
-        Retrieve real feedback data from Node.js server (localStorage sync)
+        Analyze user skills and skill gaps to identify key skills to learn
+        
+        Args:
+            user_profile: User's profile information with current skills
+            skill_gaps: List of skills that need improvement
+            available_courses: List of available courses for context
+            
+        Returns:
+            dict: Key skills to learn with priority and reasoning
         """
         try:
-            print(f"🔍 Fetching real feedback data for user: {user_id}")
-            response = requests.get(f"{self.node_server_url}/api/feedback/user/{user_id}")
+            # Extract skill information
+            current_skills = user_profile.get('skills', [])
+            role = user_profile.get('role', 'Unknown')
+            experience = user_profile.get('experience', 'Unknown')
             
-            if response.status_code == 200:
-                feedback_data = response.json()
-                print(f"✅ Retrieved {len(feedback_data)} feedback records for {user_id}")
-                return feedback_data
-            else:
-                print(f"❌ Failed to get feedback data: {response.status_code}")
-                return []
-        except Exception as e:
-            print(f"❌ Error fetching feedback data: {e}")
-            return []
-    
-    def extract_skills_from_feedback(self, feedback_data):
-        """
-        Extract skill levels and insights from real feedback data
-        """
-        if not feedback_data:
-            return {
-                "current_skills": [],
-                "feedback_insights": "No feedback data available",
-                "areas_for_improvement": []
-            }
-        
-        # Get the latest feedback record
-        latest_feedback = feedback_data[-1] if feedback_data else None
-        
-        if not latest_feedback:
-            return {
-                "current_skills": [],
-                "feedback_insights": "No feedback data available", 
-                "areas_for_improvement": []
-            }
-        
-        # Extract skills from feedback
-        skills = [
-            {"name": "Technical Skills", "rating": latest_feedback.get("technicalSkills", 3)},
-            {"name": "Communication", "rating": latest_feedback.get("communication", 3)},
-            {"name": "Teamwork", "rating": latest_feedback.get("teamwork", 3)},
-            {"name": "Problem Solving", "rating": latest_feedback.get("problemSolving", 3)},
-            {"name": "Initiative", "rating": latest_feedback.get("initiative", 3)}
-        ]
-        
-        return {
-            "current_skills": skills,
-            "feedback_insights": latest_feedback.get("qualitativeFeedback", ""),
-            "areas_for_improvement": latest_feedback.get("areasForImprovement", ""),
-            "goals": latest_feedback.get("goals", ""),
-            "manager_name": latest_feedback.get("managerName", "Manager"),
-            "feedback_date": latest_feedback.get("date", "Recent")
-        }
-    
-    def analyze_skills(self, user_profile, available_courses, user_id=None):
-        """
-        Analyze user skills using REAL feedback data and provide deep insights on learning needs
-        """
-        try:
-            # Get real feedback data if user_id is provided
-            real_feedback = {}
-            if user_id:
-                feedback_data = self.get_real_feedback_data(user_id)
-                real_feedback = self.extract_skills_from_feedback(feedback_data)
-                
-                # Update user_profile with real feedback data
-                if real_feedback["current_skills"]:
-                    user_profile["skills"] = real_feedback["current_skills"]
-                    print(f"🔄 Updated user profile with real feedback skills")
+            # Limit skill data to prevent token overflow
+            skills_summary = self._summarize_skills(current_skills, skill_gaps)
+            courses_summary = self._summarize_courses(available_courses)
             
-            # Prepare user skills context
-            current_skills = ", ".join([f"{skill['name']} (Level {skill['rating']})" 
-                                      for skill in user_profile.get('skills', [])])
-            
-            # Prepare course skills context  
-            course_skills = {}
-            for course in available_courses:
-                course_skills[course['id']] = {
-                    'title': course['title'],
-                    'skills': [f"{skill['name']} (Level {skill['level']})" 
-                              for skill in course.get('skills', [])]
-                }
-            
-            # Include real feedback insights in the prompt
-            feedback_context = ""
-            if real_feedback.get("feedback_insights"):
-                feedback_context = f"""
-REAL FEEDBACK FROM {real_feedback.get('manager_name', 'Manager')} ({real_feedback.get('feedback_date', 'Recent')}):
-Qualitative Feedback: {real_feedback['feedback_insights']}
-Areas for Improvement: {real_feedback.get('areas_for_improvement', 'None specified')}
-Goals: {real_feedback.get('goals', 'None specified')}
-"""
-            
-            prompt = f"""Analyze skills for learning path optimization using REAL performance feedback.
+            # Create concise prompt
+            prompt = f"""Analyze skills for {role} with {experience} experience.
 
-User: {user_profile.get('name', 'User')} ({user_profile.get('role', 'Team Member')})
-Current Skills: {current_skills}
-{feedback_context}
-Available Courses: {json.dumps(course_skills, indent=1)}
+Current Skills: {skills_summary}
+Skill Gaps: {json.dumps(skill_gaps[:5])}  # Limit to 5 gaps
+Available Courses: {courses_summary}
 
-Based on the REAL feedback data above, analyze skill gaps and provide recommendations.
+Identify the TOP 3 KEY SKILLS this person should learn based on:
+1. Their current role requirements
+2. Skill gaps that need urgent attention  
+3. Career progression opportunities
 
-Return JSON:
+Return JSON format:
 {{
-  "critical_gaps": [
+  "key_skills": [
     {{
-      "skill_name": "Communication",
-      "current_level": 3,
-      "required_level": 4,
-      "impact": "high",
-      "feedback_based": true
+      "skill_name": "skill name",
+      "priority": "high|medium|low", 
+      "reasoning": "why this skill is important"
     }}
   ],
-  "learning_readiness": [
-    {{
-      "skill_name": "Technical Skills", 
-      "ready_now": true,
-      "prerequisites_needed": []
-    }}
-  ],
-  "feedback_alignment": "Based on manager feedback about areas for improvement",
-  "estimated_readiness": "4-6 weeks"
+  "analysis_summary": "brief overview of skill assessment"
 }}"""
 
             response = self.client.chat.completions.create(
-                model=self.model,
+                model=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-8b-instruct"),
                 messages=[
-                    {"role": "system", "content": "You are an expert Skills Analysis AI agent using REAL performance feedback data. Provide precise, actionable skills analysis based on actual manager feedback in valid JSON format."},
+                    {"role": "system", "content": "You are a skills analysis expert. Provide concise, actionable skill recommendations in valid JSON format."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=150,  # Increased for better analysis
-                temperature=0.1  # Lower for consistent JSON
+                max_tokens=300,  # Limit tokens
+                temperature=0.2
             )
             
-            # Parse and clean response
             ai_response = response.choices[0].message.content.strip()
             
-            # Clean JSON formatting
+            # Clean and parse JSON
             if ai_response.startswith("```json"):
                 ai_response = ai_response.replace("```json", "").replace("```", "").strip()
             
-            # Extract JSON
-            import re
-            json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
-            if json_match:
-                ai_response = json_match.group()
-            
             try:
-                parsed_response = json.loads(ai_response)
-                result = {
-                    "agent": "skills_analysis",
-                    "analysis": parsed_response,
-                    "confidence": "high",
-                    "data_source": "real_feedback" if real_feedback.get("current_skills") else "user_profile",
-                    "feedback_summary": real_feedback if real_feedback.get("current_skills") else None
-                }
-                print(f"✅ Skills analysis completed using {result['data_source']}")
-                return result
-            except json.JSONDecodeError:
+                result = json.loads(ai_response)
+                
+                # Validate structure
+                if not isinstance(result, dict) or 'key_skills' not in result:
+                    return self._fallback_skills_analysis(current_skills, skill_gaps)
+                
                 return {
                     "agent": "skills_analysis",
-                    "analysis": {
-                        "critical_gaps": [],
-                        "learning_readiness": [],
-                        "skill_priorities": [],
-                        "learning_approach": "Standard progressive learning approach",
-                        "estimated_readiness": "8-12 weeks"
-                    },
-                    "confidence": "low",
-                    "data_source": "fallback",
-                    "error": "JSON parsing failed"
+                    "confidence": "high",
+                    "analysis": result,
+                    "raw_data": {
+                        "current_skills_count": len(current_skills),
+                        "skill_gaps_count": len(skill_gaps),
+                        "role": role
+                    }
                 }
                 
+            except json.JSONDecodeError:
+                print(f"⚠️ Skills agent JSON parse error: {ai_response}")
+                return self._fallback_skills_analysis(current_skills, skill_gaps)
+                
         except Exception as e:
-            print(f"❌ Skills Analysis Agent error: {e}")
-            return {
-                "agent": "skills_analysis",
-                "analysis": {
-                    "critical_gaps": [],
-                    "learning_readiness": [],
-                    "skill_priorities": [],
-                    "learning_approach": "Unable to analyze - using default approach",
-                    "estimated_readiness": "Timeline unavailable"
-                },
-                "confidence": "low",
-                "data_source": "error",
-                "error": str(e)
-            }
-# Test function for standalone usage
-def test_skills_agent():
-    """Test the Skills Analysis Agent with real feedback data"""
-    agent = SkillsAnalysisAgent()
+            print(f"❌ Skills analysis error: {e}")
+            return self._fallback_skills_analysis(current_skills, skill_gaps)
     
-    # Test with Alex's user ID (assuming Alex has feedback from Sarah)
-    test_profile = {
-        "name": "Alex Thompson",
-        "role": "Junior Developer", 
+    def _summarize_skills(self, current_skills, skill_gaps):
+        """Summarize skills to prevent token overflow"""
+        # Extract skill names and levels
+        skill_summary = []
+        for skill in current_skills[:8]:  # Limit to 8 skills
+            name = skill.get('name', 'Unknown')
+            level = skill.get('current_level', 0)
+            skill_summary.append(f"{name}({level}/3)")
+        
+        return ", ".join(skill_summary)
+    
+    def _summarize_courses(self, available_courses):
+        """Summarize available courses to prevent token overflow"""
+        course_summary = []
+        for course in available_courses[:6]:  # Limit to 6 courses
+            title = course.get('title', 'Unknown')
+            skills = [s.get('name', '') for s in course.get('skills', [])][:3]  # Top 3 skills
+            course_summary.append(f"{title} (teaches: {', '.join(skills)})")
+        
+        return "; ".join(course_summary)
+    
+    def _fallback_skills_analysis(self, current_skills, skill_gaps):
+        """Fallback analysis when LLM fails"""
+        key_skills = []
+        
+        # Prioritize skill gaps
+        for gap in skill_gaps[:3]:
+            key_skills.append({
+                "skill_name": gap.get('skill', 'Unknown Skill'),
+                "priority": "high" if gap.get('gap', 0) >= 2 else "medium",
+                "reasoning": f"Current level {gap.get('current', 0)}, target level {gap.get('target', 3)}"
+            })
+        
+        return {
+            "agent": "skills_analysis",
+            "confidence": "fallback",
+            "analysis": {
+                "key_skills": key_skills,
+                "analysis_summary": "Fallback analysis: Focus on largest skill gaps first"
+            },
+            "raw_data": {
+                "current_skills_count": len(current_skills),
+                "skill_gaps_count": len(skill_gaps),
+                "fallback_reason": "llm_unavailable"
+            }
+        }
+
+# Standalone function for easy import
+def analyze_user_skills(user_profile, skill_gaps, available_courses):
+    """Standalone function to analyze user skills"""
+    agent = SkillsAnalysisAgent()
+    return agent.analyze_skills(user_profile, skill_gaps, available_courses)
+
+if __name__ == "__main__":
+    # Test the skills analysis agent
+    test_user_profile = {
+        "name": "Test User",
+        "role": "Data Analyst", 
+        "experience": "2 years",
         "skills": [
-            {"name": "Python", "rating": 3},
-            {"name": "Machine Learning", "rating": 2},
-            {"name": "SQL", "rating": 2}
+            {"name": "Python", "current_level": 1},
+            {"name": "SQL", "current_level": 3}
         ]
     }
     
-    # Sample courses
-    test_courses = [
-        {
-            "id": "course2",
-            "title": "Machine Learning Fundamentals",
-            "skills": [{"name": "Machine Learning", "level": 3}]
-        }
+    test_skill_gaps = [
+        {"skill": "Python", "current": 1, "target": 3, "gap": 2},
+        {"skill": "Machine Learning", "current": 0, "target": 2, "gap": 2}
     ]
     
-    # Test with real feedback data (Alex's ID)
-    alex_user_id = "tm002"  # Assuming Alex's user ID
-    result = agent.analyze_skills(test_profile, test_courses, alex_user_id)
-    print("Skills Analysis Result (with real feedback):")
-    print(json.dumps(result, indent=2))
+    test_courses = [
+        {"title": "Advanced Python for Data Science", "skills": [{"name": "Python"}]},
+        {"title": "Machine Learning Fundamentals", "skills": [{"name": "Machine Learning"}]}
+    ]
     
-    # Also test feedback data retrieval directly
-    feedback_data = agent.get_real_feedback_data(alex_user_id)
-    print(f"\nDirect feedback data for {alex_user_id}:")
-    print(json.dumps(feedback_data, indent=2))
-
-if __name__ == "__main__":
-    test_skills_agent()
+    result = analyze_user_skills(test_user_profile, test_skill_gaps, test_courses)
+    print("Skills Analysis Result:")
+    print(json.dumps(result, indent=2))

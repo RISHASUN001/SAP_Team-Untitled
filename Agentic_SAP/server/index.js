@@ -839,6 +839,132 @@ function generateDefaultTimeline(course) {
   return timeline;
 }
 
+// =========================
+// Orchestrator API Endpoints  
+// =========================
+let orchestratorSessions = {}; // Store analysis sessions
+
+// POST: Submit analysis request
+app.post('/api/orchestrator/analyze', async (req, res) => {
+  try {
+    const { userId, goals, skillGaps, feedback } = req.body;
+    
+    // Validation
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+    
+    // Generate session ID
+    const sessionId = uuidv4();
+    
+    // Store initial session
+    orchestratorSessions[sessionId] = {
+      userId,
+      status: 'processing',
+      createdAt: new Date().toISOString(),
+      input: { goals, skillGaps, feedback }
+    };
+    
+    // Start async processing
+    processOrchestratorAnalysis(sessionId, userId, goals, skillGaps, feedback)
+      .catch(error => {
+        console.error(`❌ Orchestrator analysis failed for session ${sessionId}:`, error);
+        orchestratorSessions[sessionId] = {
+          ...orchestratorSessions[sessionId],
+          status: 'error',
+          error: error.message,
+          completedAt: new Date().toISOString()
+        };
+      });
+    
+    res.json({ 
+      sessionId, 
+      status: 'processing',
+      message: 'Analysis started. Use GET /api/orchestrator/results/:sessionId to check progress'
+    });
+    
+  } catch (error) {
+    console.error('❌ Orchestrator analyze error:', error);
+    res.status(500).json({ error: 'Failed to start analysis' });
+  }
+});
+
+// GET: Retrieve analysis results
+app.get('/api/orchestrator/results/:sessionId', (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    const session = orchestratorSessions[sessionId];
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    res.json(session);
+    
+  } catch (error) {
+    console.error('❌ Orchestrator results error:', error);
+    res.status(500).json({ error: 'Failed to retrieve results' });
+  }
+});
+
+// Background processing function
+async function processOrchestratorAnalysis(sessionId, userId, goals, skillGaps, feedback) {
+  try {
+    console.log(`🤖 Processing orchestrator analysis for session ${sessionId}`);
+    
+    // Build user profile
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      throw new Error(`User ${userId} not found`);
+    }
+    
+    const userProfile = {
+      userId: user.id,
+      name: user.name,
+      role: user.role,
+      department: user.department,
+      experience: user.experience,
+      currentGoals: goals || user.currentGoals || [],
+      skills: skillGaps || user.skills || []
+    };
+    
+    // Prepare feedback data
+    const feedbackData = feedback ? [feedback] : serverFeedbacks.filter(fb => fb.teamMemberId === userId);
+    
+    // Call Python AI analysis
+    const pythonResponse = await fetch('http://localhost:5004/api/ai-skill-analysis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_profile: userProfile,
+        skill_gaps: skillGaps || [],
+        available_courses: courses,
+        feedback_data: feedbackData
+      })
+    });
+    
+    if (!pythonResponse.ok) {
+      throw new Error(`Python AI analysis failed: ${pythonResponse.status}`);
+    }
+    
+    const aiResults = await pythonResponse.json();
+    
+    // Update session with results
+    orchestratorSessions[sessionId] = {
+      ...orchestratorSessions[sessionId],
+      status: 'completed',
+      results: aiResults,
+      completedAt: new Date().toISOString()
+    };
+    
+    console.log(`✅ Orchestrator analysis completed for session ${sessionId}`);
+    
+  } catch (error) {
+    console.error(`❌ Orchestrator processing error for session ${sessionId}:`, error);
+    throw error;
+  }
+}
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });

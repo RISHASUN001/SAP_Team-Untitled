@@ -36,6 +36,7 @@ interface CourseFilters {
 const Courses: React.FC = () => {
   const { currentUser } = useAuth();
   const { courseEnrollments } = useData();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<CourseFilters>({
     difficulty: '',
@@ -98,10 +99,12 @@ const Courses: React.FC = () => {
       if (skillGaps.length > 0 && !aiSkillAnalysis) {
         setLoadingAI(true);
         try {
+          console.log('🤖 Loading AI recommendations for user:', userProfile.userId);
           const aiRecs = await getAIRecommendedCourses(userProfile.userId);
+          console.log('✅ AI recommendations loaded:', aiRecs);
           setAiSkillAnalysis(aiRecs);
         } catch (error) {
-          console.error('Failed to load AI recommendations:', error);
+          console.error('❌ Failed to load AI recommendations:', error);
         } finally {
           setLoadingAI(false);
         }
