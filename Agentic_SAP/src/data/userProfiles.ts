@@ -38,7 +38,7 @@ export const userProfiles: UserProfile[] = [
     role: "Junior Data Scientist",
     department: "IT - Data Science",
     experience: "1.5 years",
-    currentGoals: ["Learn TensorFlow", "Complete ML certification", "Statistical Analysis with R"],
+    currentGoals: ["General skill development", "Career advancement", "Technical growth"],
     mentoringNeeds: ["Technical guidance", "Career planning", "Skill development"],
     skills: [
       { name: "Python", rating: 1 },

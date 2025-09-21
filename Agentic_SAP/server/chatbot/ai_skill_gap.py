@@ -195,27 +195,57 @@ PRIORITIZED COURSES:
                     if goals:
                         feedback_goals.append(goals.lower())
             
+            # Find matching courses for feedback goals
+            priority_courses = []
+            if feedback_goals:
+                for goal in feedback_goals:
+                    for course in available_courses:
+                        # Enhanced matching logic
+                        course_title_lower = course['title'].lower()
+                        course_skills = [skill['name'].lower() for skill in course.get('skills', [])]
+                        
+                        # Check if goal matches course title or skills
+                        if (goal in course_title_lower or 
+                            any(goal in skill for skill in course_skills) or
+                            any(skill in goal for skill in course_skills)):
+                            priority_courses.append(f"{course['id']}: {course['title']}")
+            
             # Create feedback-aware prompt
             feedback_priority_text = ""
             if feedback_goals:
                 feedback_priority_text = f"""
-CRITICAL: Manager feedback mentions these learning goals: {', '.join(feedback_goals)}
-YOU MUST prioritize courses that match these feedback goals as top priority.
+🚨 CRITICAL PRIORITY: Manager feedback specifically mentions these learning goals: {', '.join(feedback_goals)}
+
+MATCHING COURSES FOUND: {', '.join(priority_courses) if priority_courses else 'None - consider closest matches'}
+
+MANDATORY INSTRUCTION: These feedback goals MUST be your #1 priority. Find and recommend courses that match these goals first, before any other considerations.
 """
             
             # Coordinator prompt with dynamic feedback prioritization
+            user_goals_text = ""
+            if feedback_goals:
+                user_goals_text = f"""
+🚫 IGNORE USER PROFILE GOALS: Since manager feedback exists, completely ignore these profile goals: {user_profile.get('currentGoals', [])}
+ONLY focus on the feedback goals above.
+"""
+            else:
+                user_goals_text = f"User Profile Goals: {user_profile.get('currentGoals', [])}"
+
             prompt = f"""You are an AI learning coordinator. Create a personalized learning path.
 
 User: {user_profile['name']} ({user_profile['role']})
 {feedback_priority_text}
+{user_goals_text}
 AVAILABLE COURSES:
 {valid_courses_list}
 
 INSTRUCTIONS:
-1. If feedback goals are mentioned above, find matching courses and prioritize them FIRST
-2. Consider user's current skill level and experience
-3. Create a logical progression of 3 courses maximum
-4. Provide specific reasoning for each recommendation
+1. 🚨 FEEDBACK GOALS ARE MANDATORY PRIORITY: If any feedback goals are mentioned above, you MUST find matching courses and place them at sequence_order 1, 2, etc. BEFORE any other courses
+2. 🚫 If feedback goals exist, COMPLETELY IGNORE user profile goals - only use feedback goals
+3. Look for courses that contain the feedback goal keywords in their title or skills
+4. Only after prioritizing feedback goals, consider user's current skill level and experience  
+5. Create a logical progression of 3 courses maximum
+6. Provide specific reasoning for each recommendation that mentions if it addresses feedback goals
 
 Return JSON format:
 {{
