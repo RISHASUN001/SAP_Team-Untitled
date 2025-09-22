@@ -24,6 +24,8 @@
     "nodemon": "^3.0.3",
     "react": "^18.3.1",
     "react-datepicker": "^8.7.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.62.0",
     "react-markdown": "^10.1.0",

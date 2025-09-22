@@ -221,10 +221,17 @@ export const DataProvider = ({ children }: DataProviderProps) => {
   }, [completionProofs]);
 
   // Calendar Events Functions
-  const addCalendarEvent = (event: Omit<CalendarEvent, "id">) => {
+  const addCalendarEvent = (
+    event: Partial<CalendarEvent> & { id?: string }
+  ) => {
     const newEvent: CalendarEvent = {
       ...event,
-      id: Date.now().toString(),
+      id: event.id || Date.now().toString(), // Preserve ID if provided
+      title: event.title || "",
+      type: event.type || "course",
+      startTime: event.startTime || new Date().toISOString(),
+      endTime: event.endTime || new Date().toISOString(),
+      color: event.color || "bg-purple-500",
     };
     setCalendarEvents((prev: CalendarEvent[]) => [...prev, newEvent]);
   };

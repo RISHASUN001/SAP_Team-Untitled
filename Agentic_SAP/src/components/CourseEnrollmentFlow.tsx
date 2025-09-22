@@ -151,20 +151,47 @@ const CourseEnrollmentFlow = ({
 
       const data = await response.json();
       if (data.success) {
-        // Add events to local calendar using the DataContext
-        const newEvents = data.events.map((event: any) => ({
-          ...event,
-          id: `timeline_${event.id || Date.now()}`,
-          // Ensure all required properties are present
-          color: event.color || "bg-purple-500",
-          type: event.type || "course",
-          requires_proof:
-            event.requires_proof !== undefined ? event.requires_proof : true,
-          proof_type: event.proof_type || "study_session",
-        }));
+        // Define type for the calendar events
+        interface CalendarEventData {
+          id: string;
+          title: string;
+          startTime: string;
+          endTime: string;
+          description?: string;
+          location?: string;
+          color: string;
+          type: "meeting" | "deadline" | "course" | "goal_milestone";
+          requires_proof?: boolean;
+          proof_type?: string;
+          courseId?: string | number;
+          module_name?: string;
+        }
 
-        // Use your DataContext to add events
-        newEvents.forEach((event: any) => {
+        // Add events to local calendar using the DataContext
+        // Generate unique IDs for each event to ensure they're treated as independent
+        const newEvents = data.events.map(
+          (event: Record<string, unknown>) =>
+            ({
+              ...event,
+              // Use a unique timestamp for each event to ensure they're treated as independent
+              id: `timeline_${event.id || Date.now()}_${Math.random()
+                .toString(36)
+                .substring(2, 9)}`,
+              // Ensure all required properties are present
+              color: event.color || "bg-purple-500",
+              type: event.type || "course",
+              requires_proof:
+                event.requires_proof !== undefined
+                  ? event.requires_proof
+                  : true,
+              proof_type: event.proof_type || "study_session",
+              // Add a courseId property to track which course it belongs to without making it dependent
+              courseId: course.id,
+            } as CalendarEventData)
+        );
+
+        // Use your DataContext to add events individually
+        newEvents.forEach((event: CalendarEventData) => {
           addCalendarEvent(event);
         });
 
@@ -264,14 +291,19 @@ const CourseEnrollmentFlow = ({
                   Skills you'll gain:
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {course.skills.map((skill: any, index: number) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full"
-                    >
-                      {skill.name} (Level {skill.level})
-                    </span>
-                  ))}
+                  {course.skills.map(
+                    (
+                      skill: { name: string; level: number | string },
+                      index: number
+                    ) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full"
+                      >
+                        {skill.name} (Level {skill.level})
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -395,9 +427,18 @@ const CourseEnrollmentFlow = ({
                 Upcoming Events (First 5):
               </h4>
               <div className="space-y-3 max-h-60 overflow-y-auto">
-                {generatedTimeline.events
-                  .slice(0, 5)
-                  .map((event: any, index: number) => (
+                {generatedTimeline.events.slice(0, 5).map(
+                  (
+                    event: {
+                      title: string;
+                      startTime: string | Date;
+                      scheduledDate?: string | Date;
+                      color?: string;
+                      duration?: string;
+                      requires_proof?: boolean;
+                    },
+                    index: number
+                  ) => (
                     <div
                       key={index}
                       className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
@@ -426,7 +467,8 @@ const CourseEnrollmentFlow = ({
                         )}
                       </div>
                     </div>
-                  ))}
+                  )
+                )}
               </div>
             </div>
 
