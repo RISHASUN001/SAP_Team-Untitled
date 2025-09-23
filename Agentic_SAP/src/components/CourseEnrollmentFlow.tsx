@@ -99,7 +99,7 @@ const CourseEnrollmentFlow = ({
   };
 
   const handleReviseTimeline = async () => {
-    if (!generatedTimeline || !editPrompt.trim()) return;
+    if (!generatedTimeline || !editPrompt.trim() || !currentUser) return;
 
     setIsGeneratingTimeline(true);
     try {
@@ -113,6 +113,7 @@ const CourseEnrollmentFlow = ({
           body: JSON.stringify({
             timeline_id: generatedTimeline.timeline_id,
             revision_request: editPrompt,
+            user_id: currentUser.id, // Pass user_id for conflict checking
           }),
         }
       );
@@ -191,8 +192,10 @@ const CourseEnrollmentFlow = ({
         );
 
         // Use your DataContext to add events individually
-        newEvents.forEach((event: CalendarEventData) => {
-          addCalendarEvent(event);
+        newEvents.forEach(async (event: CalendarEventData) => {
+          if (currentUser?.id) {
+            await addCalendarEvent(event, currentUser.id);
+          }
         });
 
         setCurrentStep(4);

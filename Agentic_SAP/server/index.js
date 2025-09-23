@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';  
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
 dotenv.config(); //loads the env variable
 
 const app = express();
@@ -169,6 +171,47 @@ let goals = [
 
 let chatSessions = [];
 
+// Calendar Events Storage
+let calendarEvents = [];
+
+// File paths for persistent storage
+const DATA_DIR = path.join(process.cwd(), 'data');
+const CALENDAR_EVENTS_FILE = path.join(DATA_DIR, 'calendar_events.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// File management functions for calendar events
+const loadCalendarEventsFromFile = () => {
+  try {
+    if (fs.existsSync(CALENDAR_EVENTS_FILE)) {
+      const data = fs.readFileSync(CALENDAR_EVENTS_FILE, 'utf8');
+      calendarEvents = JSON.parse(data);
+      console.log(`Loaded ${calendarEvents.length} calendar events from file`);
+    } else {
+      calendarEvents = [];
+      console.log('No existing calendar events file found, starting with empty array');
+    }
+  } catch (error) {
+    console.error('Error loading calendar events from file:', error);
+    calendarEvents = [];
+  }
+};
+
+const saveCalendarEventsToFile = () => {
+  try {
+    fs.writeFileSync(CALENDAR_EVENTS_FILE, JSON.stringify(calendarEvents, null, 2));
+    console.log(`Saved ${calendarEvents.length} calendar events to file`);
+  } catch (error) {
+    console.error('Error saving calendar events to file:', error);
+  }
+};
+
+// Load calendar events on startup
+loadCalendarEventsFromFile();
+
 // API Routes
 
 // Authentication
@@ -181,6 +224,177 @@ app.get('/api/auth/profile/:userId', (req, res) => {
   }
   
   res.json(user);
+});
+
+// =========================
+// Calendar Events API Endpoints
+// =========================
+
+// GET: Get all calendar events for a specific user
+app.get('/api/calendar/events/:userId', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userEvents = calendarEvents.filter(event => event.userId === userId);
+    res.json(userEvents);
+  } catch (error) {
+    console.error('Error fetching calendar events:', error);
+    res.status(500).json({ error: 'Failed to fetch calendar events' });
+  }
+});
+
+// GET: Get all calendar events (for debugging/admin)
+app.get('/api/calendar/events', (req, res) => {
+  try {
+    res.json(calendarEvents);
+  } catch (error) {
+    console.error('Error fetching all calendar events:', error);
+    res.status(500).json({ error: 'Failed to fetch calendar events' });
+  }
+});
+
+// POST: Create a new calendar event
+app.post('/api/calendar/events', (req, res) => {
+  try {
+    const { userId, title, type, startTime, endTime, description, location, attendees, color, courseEnrollmentId, timelineEventId, proofRequired, requires_proof, proof_type, module_name } = req.body;
+    
+    if (!userId || !title || !type || !startTime || !endTime) {
+      return res.status(400).json({ error: 'Missing required fields: userId, title, type, startTime, endTime' });
+    }
+
+    const newEvent = {
+      id: uuidv4(),
+      userId,
+      title,
+      type,
+      startTime,
+      endTime,
+      description: description || '',
+      location: location || '',
+      attendees: attendees || [],
+      color: color || 'bg-blue-500',
+      courseEnrollmentId: courseEnrollmentId || null,
+      timelineEventId: timelineEventId || null,
+      proofRequired: proofRequired || requires_proof || false,
+      proof_type: proof_type || null,
+      module_name: module_name || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    calendarEvents.push(newEvent);
+    saveCalendarEventsToFile();
+    
+    res.status(201).json(newEvent);
+  } catch (error) {
+    console.error('Error creating calendar event:', error);
+    res.status(500).json({ error: 'Failed to create calendar event' });
+  }
+});
+
+// PUT: Update an existing calendar event
+app.put('/api/calendar/events/:eventId', (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const updates = req.body;
+    
+    const eventIndex = calendarEvents.findIndex(event => event.id === eventId);
+    
+    if (eventIndex === -1) {
+      return res.status(404).json({ error: 'Calendar event not found' });
+    }
+
+    // Verify the user owns this event or is authorized to edit it
+    const currentEvent = calendarEvents[eventIndex];
+    if (updates.userId && updates.userId !== currentEvent.userId) {
+      return res.status(403).json({ error: 'Not authorized to edit this event' });
+    }
+
+    // Update the event
+    const updatedEvent = {
+      ...currentEvent,
+      ...updates,
+      id: eventId, // Ensure ID doesn't change
+      updatedAt: new Date().toISOString()
+    };
+
+    calendarEvents[eventIndex] = updatedEvent;
+    saveCalendarEventsToFile();
+    
+    res.json(updatedEvent);
+  } catch (error) {
+    console.error('Error updating calendar event:', error);
+    res.status(500).json({ error: 'Failed to update calendar event' });
+  }
+});
+
+// DELETE: Delete a calendar event
+app.delete('/api/calendar/events/:eventId', (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { userId } = req.body;
+    
+    const eventIndex = calendarEvents.findIndex(event => event.id === eventId);
+    
+    if (eventIndex === -1) {
+      return res.status(404).json({ error: 'Calendar event not found' });
+    }
+
+    // Verify the user owns this event
+    const currentEvent = calendarEvents[eventIndex];
+    if (userId && userId !== currentEvent.userId) {
+      return res.status(403).json({ error: 'Not authorized to delete this event' });
+    }
+
+    const deletedEvent = calendarEvents.splice(eventIndex, 1)[0];
+    saveCalendarEventsToFile();
+    
+    res.json({ message: 'Calendar event deleted successfully', deletedEvent });
+  } catch (error) {
+    console.error('Error deleting calendar event:', error);
+    res.status(500).json({ error: 'Failed to delete calendar event' });
+  }
+});
+
+// POST: Bulk create calendar events (for timeline integration)
+app.post('/api/calendar/events/bulk', (req, res) => {
+  try {
+    const { events, userId } = req.body;
+    
+    if (!Array.isArray(events) || !userId) {
+      return res.status(400).json({ error: 'Invalid request: events array and userId required' });
+    }
+
+    const newEvents = events.map(event => ({
+      id: event.id || uuidv4(),
+      userId,
+      title: event.title || '',
+      type: event.type || 'course',
+      startTime: event.startTime || new Date().toISOString(),
+      endTime: event.endTime || new Date().toISOString(),
+      description: event.description || '',
+      location: event.location || '',
+      attendees: event.attendees || [],
+      color: event.color || 'bg-blue-500',
+      courseEnrollmentId: event.courseEnrollmentId || null,
+      timelineEventId: event.timelineEventId || null,
+      proofRequired: event.proofRequired || event.requires_proof || false,
+      proof_type: event.proof_type || null,
+      module_name: event.module_name || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
+
+    calendarEvents.push(...newEvents);
+    saveCalendarEventsToFile();
+    
+    res.status(201).json({ 
+      message: `Successfully created ${newEvents.length} calendar events`,
+      events: newEvents 
+    });
+  } catch (error) {
+    console.error('Error bulk creating calendar events:', error);
+    res.status(500).json({ error: 'Failed to bulk create calendar events' });
+  }
 });
 
 // =========================

@@ -1,0 +1,190 @@
+{
+  "timeline_id": "timeline_20250923_141438",
+  "course_name": "Advanced Machine Learning",
+  "user_id": "mgr001",
+  "generated_at": "2025-09-23T14:14:38.723626",
+  "total_duration_weeks": 6,
+  "total_hours": 40,
+  "events": [
+    {
+      "id": "timeline_20250923_141438_0_1758608107",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2022-09-26T09:00:00",
+      "endTime": "2022-09-26T11:00:00",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_141438_1_1758608107",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2022-09-27T09:00:00",
+      "endTime": "2022-09-27T11:00:00",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_141438_2_1758608107",
+      "title": "Study: Ensemble Methods",
+      "type": "course",
+      "startTime": "2022-09-28T09:00:00",
+      "endTime": "2022-09-28T11:00:00",
+      "description": "Study session for Ensemble Methods (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_141438_3_1758608107",
+      "title": "Assignment Due: Ensemble Methods",
+      "type": "deadline",
+      "startTime": "2022-10-01T23:59:00",
+      "endTime": "2022-10-01T23:59:00",
+      "description": "Submit assignment for Ensemble Methods",
+      "color": "bg-red-500",
+      "module_name": "Ensemble Methods",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "timeline_20250923_141438_4_1758608107",
+      "title": "Study: Feature Engineering",
+      "type": "course",
+      "startTime": "2022-09-29T09:00:00",
+      "endTime": "2022-09-29T11:00:00",
+      "description": "Study session for Feature Engineering (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Feature Engineering",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_141438_5_1758608107",
+      "title": "Study: Feature Engineering",
+      "type": "course",
+      "startTime": "2022-09-30T09:00:00",
+      "endTime": "2022-09-30T11:00:00",
+      "description": "Study session for Feature Engineering (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "Feature Engineering",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_141438_6_1758608107",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2022-10-05T16:00:00",
+      "endTime": "2022-10-05T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_141438_7_1758608107",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2022-10-12T16:00:00",
+      "endTime": "2022-10-12T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_141438_8_1758608107",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2022-10-19T16:00:00",
+      "endTime": "2022-10-19T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_141438_9_1758608107",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2022-10-26T16:00:00",
+      "endTime": "2022-10-26T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_141438_10_1758608107",
+      "title": "Week 5 Review",
+      "type": "goal_milestone",
+      "startTime": "2022-11-02T16:00:00",
+      "endTime": "2022-11-02T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_141438_11_1758608107",
+      "title": "Week 6 Review",
+      "type": "goal_milestone",
+      "startTime": "2022-11-09T16:00:00",
+      "endTime": "2022-11-09T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 12,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 2,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ],
+    "max_daily_study_hours": 3,
+    "calendar_api_base": "http://localhost:3001",
+    "start_date": "2022-09-25"
+  },
+  "custom_requirements": "I want to start from 25th Sep",
+  "revision_request": "I want to start from 25th Sep",
+  "llm_revisions_applied": {
+    "study_hours_per_week": 12,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "max_session_length": 2,
+    "total_weeks": 6,
+    "start_date": "2022-09-25",
+    "reasoning": "Since the user wants to start from a specific date, the timeline is adjusted to accommodate the new start date. The study hours per week are moderately increased to 12, and the total weeks are reduced by 30% to 6 weeks."
+  },
+  "conflict_checked": true,
+  "status": "approved",
+  "previous_version": "timeline_20250923_141410",
+  "approved_at": "2025-09-23T14:15:07.847444"
+}

@@ -1,0 +1,156 @@
+{
+  "timeline_id": "timeline_20250923_150744",
+  "course_name": "SQL for Data Analysis",
+  "user_id": "tm002",
+  "generated_at": "2025-09-23T15:07:44.244695",
+  "total_duration_weeks": 4.8,
+  "total_hours": 30,
+  "events": [
+    {
+      "id": "timeline_20250923_150744_0_1758611279",
+      "title": "Study: SQL for Data Analysis - Module 1",
+      "type": "course",
+      "startTime": "2025-09-25T09:00:00",
+      "endTime": "2025-09-25T11:00:00",
+      "description": "Study session for SQL for Data Analysis - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_150744_1_1758611279",
+      "title": "Study: SQL for Data Analysis - Module 1",
+      "type": "course",
+      "startTime": "2025-09-26T09:00:00",
+      "endTime": "2025-09-26T11:00:00",
+      "description": "Study session for SQL for Data Analysis - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_150744_2_1758611279",
+      "title": "Study: SQL for Data Analysis - Module 1",
+      "type": "course",
+      "startTime": "2025-09-27T09:00:00",
+      "endTime": "2025-09-27T11:00:00",
+      "description": "Study session for SQL for Data Analysis - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_150744_3_1758611279",
+      "title": "Assignment Due: SQL for Data Analysis - Module 1",
+      "type": "deadline",
+      "startTime": "2025-09-30T23:59:00",
+      "endTime": "2025-09-30T23:59:00",
+      "description": "Submit assignment for SQL for Data Analysis - Module 1",
+      "color": "bg-red-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "timeline_20250923_150744_4_1758611279",
+      "title": "Study: SQL for Data Analysis - Module 2",
+      "type": "course",
+      "startTime": "2025-09-28T09:00:00",
+      "endTime": "2025-09-28T11:00:00",
+      "description": "Study session for SQL for Data Analysis - Module 2 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 2",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "timeline_20250923_150744_5_1758611279",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-04T16:00:00",
+      "endTime": "2025-10-04T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_150744_6_1758611279",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-11T16:00:00",
+      "endTime": "2025-10-11T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_150744_7_1758611279",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-18T16:00:00",
+      "endTime": "2025-10-18T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "timeline_20250923_150744_8_1758611279",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-25T16:00:00",
+      "endTime": "2025-10-25T17:00:00",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 9,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 2,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ],
+    "max_daily_study_hours": 3,
+    "calendar_api_base": "http://localhost:3001",
+    "start_date": "2023-09-25"
+  },
+  "custom_requirements": "I want to start from 25th Sep",
+  "revision_request": "I want to start from 25th Sep",
+  "llm_revisions_applied": {
+    "study_hours_per_week": 9,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "max_session_length": 2,
+    "total_weeks": 4.8,
+    "start_date": "2023-09-25",
+    "reasoning": "Adjusted study hours to moderately increase pace, and reduced total weeks by 20% to accommodate the requested start date"
+  },
+  "conflict_checked": true,
+  "status": "approved",
+  "previous_version": "timeline_20250923_150729",
+  "approved_at": "2025-09-23T15:07:59.245993"
+}

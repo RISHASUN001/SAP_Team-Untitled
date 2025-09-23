@@ -34,15 +34,15 @@ def generate_timeline():
         if not course_name:
             return jsonify({'error': 'Course name is required'}), 400
         
-        # Generate timeline
+        # Generate timeline with calendar conflict checking
         timeline = timeline_gen.generate_timeline(
             course_name=course_name,
+            user_id=user_id,  # Pass user_id for conflict checking
             user_preferences=user_preferences,
             custom_requirements=custom_requirements
         )
         
-        # Add user context
-        timeline['user_id'] = user_id
+        # Add additional context
         timeline['status'] = 'draft'
         
         # Save to file
@@ -65,23 +65,24 @@ def revise_timeline():
         data = request.json
         timeline_id = data.get('timeline_id')
         revision_request = data.get('revision_request', '')
+        user_id = data.get('user_id')  # Allow user_id to be passed or retrieved from existing timeline
         
         if not timeline_id:
             return jsonify({'error': 'Timeline ID is required'}), 400
         
-        # Load existing timeline
+        # Load existing timeline to get user_id if not provided
         timeline_file = os.path.join(TIMELINE_DIR, f"{timeline_id}.json")
-        if not os.path.exists(timeline_file):
-            return jsonify({'error': 'Timeline not found'}), 404
+        existing_timeline = None
+        if os.path.exists(timeline_file):
+            with open(timeline_file, 'r') as f:
+                existing_timeline = json.load(f)
+                if not user_id:
+                    user_id = existing_timeline.get('user_id', 'default_user')
         
-        with open(timeline_file, 'r') as f:
-            existing_timeline = json.load(f)
+        # Generate revised timeline with calendar conflict checking
+        revised_timeline = timeline_gen.revise_timeline(timeline_id, revision_request, user_id)
         
-        # Generate revised timeline
-        revised_timeline = timeline_gen.revise_timeline(timeline_id, revision_request)
-        
-        # Preserve user context and update metadata
-        revised_timeline['user_id'] = existing_timeline.get('user_id', 'default_user')
+        # Preserve and update metadata
         revised_timeline['status'] = 'draft'
         revised_timeline['previous_version'] = timeline_id
         revised_timeline['revision_request'] = revision_request

@@ -1,0 +1,160 @@
+{
+  "timeline_id": "timeline_20250923_150729",
+  "course_name": "SQL for Data Analysis",
+  "user_id": "tm002",
+  "generated_at": "2025-09-23T15:07:29.999733",
+  "total_duration_weeks": 6,
+  "total_hours": 30,
+  "events": [
+    {
+      "id": "study_1",
+      "title": "Study: SQL for Data Analysis - Module 1",
+      "type": "course",
+      "startTime": "2025-09-23T10:00:00Z",
+      "endTime": "2025-09-23T12:00:00Z",
+      "description": "Study session for SQL for Data Analysis - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_2",
+      "title": "Study: SQL for Data Analysis - Module 1",
+      "type": "course",
+      "startTime": "2025-09-24T10:00:00Z",
+      "endTime": "2025-09-24T12:00:00Z",
+      "description": "Study session for SQL for Data Analysis - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_3",
+      "title": "Study: SQL for Data Analysis - Module 1",
+      "type": "course",
+      "startTime": "2025-09-25T10:00:00Z",
+      "endTime": "2025-09-25T12:00:00Z",
+      "description": "Study session for SQL for Data Analysis - Module 1 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "study_5",
+      "title": "Study: SQL for Data Analysis - Module 2",
+      "type": "course",
+      "startTime": "2025-09-26T10:30:00Z",
+      "endTime": "2025-09-26T12:30:00Z",
+      "description": "Study session for SQL for Data Analysis - Module 2 (2.0 hours)",
+      "color": "bg-purple-500",
+      "module_name": "SQL for Data Analysis - Module 2",
+      "requires_proof": true,
+      "proof_type": "study_session"
+    },
+    {
+      "id": "assignment_4",
+      "title": "Assignment Due: SQL for Data Analysis - Module 1",
+      "type": "deadline",
+      "startTime": "2025-09-28T08:00:00Z",
+      "endTime": "2025-09-28T08:00:00Z",
+      "description": "Submit assignment for SQL for Data Analysis - Module 1",
+      "color": "bg-red-500",
+      "module_name": "SQL for Data Analysis - Module 1",
+      "requires_proof": true,
+      "proof_type": "assignment_submission"
+    },
+    {
+      "id": "review_1",
+      "title": "Week 1 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-01T09:00:00Z",
+      "endTime": "2025-10-01T10:00:00Z",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_2",
+      "title": "Week 2 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-08T09:00:00Z",
+      "endTime": "2025-10-08T10:00:00Z",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_3",
+      "title": "Week 3 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-15T09:00:00Z",
+      "endTime": "2025-10-15T10:00:00Z",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_4",
+      "title": "Week 4 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-22T09:00:00Z",
+      "endTime": "2025-10-22T10:00:00Z",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_5",
+      "title": "Week 5 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-10-29T09:00:00Z",
+      "endTime": "2025-10-29T10:00:00Z",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    },
+    {
+      "id": "review_6",
+      "title": "Week 6 Review",
+      "type": "goal_milestone",
+      "startTime": "2025-11-05T09:00:00Z",
+      "endTime": "2025-11-05T10:00:00Z",
+      "description": "Review progress and plan for next week",
+      "color": "bg-green-500",
+      "requires_proof": false,
+      "proof_type": "reflection"
+    }
+  ],
+  "user_preferences": {
+    "study_hours_per_week": 8,
+    "preferred_days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "preferred_times": [
+      "Morning",
+      "Evening"
+    ],
+    "max_session_length": 2,
+    "break_days": [
+      "Saturday",
+      "Sunday"
+    ],
+    "max_daily_study_hours": 3,
+    "calendar_api_base": "http://localhost:3001"
+  },
+  "custom_requirements": "",
+  "conflict_checked": true,
+  "status": "draft"
+}

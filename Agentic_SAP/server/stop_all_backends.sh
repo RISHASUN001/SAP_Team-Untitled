@@ -13,9 +13,8 @@ pkill -f "ai_skill_gap.py" 2>/dev/null && echo "   ✅ Stopped AI Skill Gap" || 
 pkill -f "course_search.py" 2>/dev/null && echo "   ✅ Stopped Course Search" || echo "   ⚠️ Course Search not running"
 pkill -f "timeline_api.py" 2>/dev/null && echo "   ✅ Stopped Timeline API" || echo "   ⚠️ Timeline API not running"
 
-
-echo "🧹 Stopping Node.js server..."
-pkill -f "node.*index.js" 2>/dev/null && echo "   ✅ Stopped Main Server" || echo "   ⚠️ Main Server not running"
+echo "🧹 Stopping Node.js servers..."
+pkill -f "node.*index.js" 2>/dev/null && echo "   ✅ Stopped Calendar Server" || echo "   ⚠️ Calendar Server not running"
 
 echo ""
 echo "✅ All services stopped!"

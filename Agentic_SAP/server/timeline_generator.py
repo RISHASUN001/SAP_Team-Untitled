@@ -2,10 +2,11 @@
 AI-powered timeline generation for course learning plans
 """
 import json
+import os
 import requests
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-import os
+from typing import Dict, List, Optional, Tuple
+import traceback
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -19,7 +20,9 @@ class TimelineGenerator:
             "preferred_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
             "preferred_times": ["Morning", "Evening"],
             "max_session_length": 2,  # hours
-            "break_days": ["Saturday", "Sunday"]
+            "break_days": ["Saturday", "Sunday"],
+            "max_daily_study_hours": 3,  # Maximum study hours per day
+            "calendar_api_base": "http://localhost:3001"  # Calendar API base URL
         }
         
         # Course metadata for timeline calculation
@@ -63,8 +66,296 @@ class TimelineGenerator:
             }
         }
 
-    def generate_timeline(self, course_name: str, user_preferences: Optional[Dict] = None, custom_requirements: str = "") -> Dict:
-        """Generate a personalized learning timeline for a course"""
+    def _fetch_user_calendar_events(self, user_id: str, start_date: datetime, end_date: datetime) -> List[Dict]:
+        """Fetch user's existing calendar events from the calendar API"""
+        try:
+            api_base = self.default_preferences["calendar_api_base"]
+            response = requests.get(
+                f"{api_base}/api/calendar/events/{user_id}",
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                all_events = response.json()
+                
+                # Filter events within the timeline period
+                filtered_events = []
+                for event in all_events:
+                    # Parse datetime and make timezone-naive for comparison
+                    event_start_str = event['startTime'].replace('Z', '+00:00')
+                    event_end_str = event['endTime'].replace('Z', '+00:00')
+                    
+                    event_start = datetime.fromisoformat(event_start_str)
+                    event_end = datetime.fromisoformat(event_end_str)
+                    
+                    # Convert to naive datetime for easier comparison
+                    if event_start.tzinfo is not None:
+                        event_start = event_start.replace(tzinfo=None)
+                    if event_end.tzinfo is not None:
+                        event_end = event_end.replace(tzinfo=None)
+                    
+                    # Check if event overlaps with our timeline period
+                    if event_start.date() <= end_date.date() and event_end.date() >= start_date.date():
+                        filtered_events.append({
+                            'id': event['id'],
+                            'title': event['title'],
+                            'start': event_start,
+                            'end': event_end,
+                            'type': event.get('type', 'other')
+                        })
+                
+                print(f"📅 Fetched {len(filtered_events)} calendar events for user {user_id}")
+                return filtered_events
+                
+            else:
+                print(f"⚠️ Failed to fetch calendar events: {response.status_code}")
+                return []
+                
+        except Exception as e:
+            print(f"❌ Error fetching calendar events: {e}")
+            return []
+
+    def _find_available_time_slots(self, target_date: datetime, existing_events: List[Dict], 
+                                 session_duration: float, max_daily_hours: float, 
+                                 preferred_times: List[str]) -> List[Tuple[datetime, datetime]]:
+        """Find available time slots on a given day that don't conflict with existing events"""
+        
+        # Get events for this specific day and sort by start time
+        day_events = []
+        for event in existing_events:
+            if event['start'].date() == target_date.date():
+                day_events.append(event)
+        day_events.sort(key=lambda x: x['start'])
+        
+        # Define full working day range (8 AM to 10 PM)
+        day_start = target_date.replace(hour=8, minute=0, second=0, microsecond=0)
+        day_end = target_date.replace(hour=22, minute=0, second=0, microsecond=0)
+        
+        # Create time preference weights (earlier preferred times get higher priority)
+        time_preference_order = []
+        if "Morning" in preferred_times:
+            time_preference_order.extend([(h, 0) for h in range(8, 12)])  # 8 AM - 12 PM
+        if "Afternoon" in preferred_times:
+            time_preference_order.extend([(h, 0) for h in range(13, 17)])  # 1 PM - 5 PM
+        if "Evening" in preferred_times:
+            time_preference_order.extend([(h, 0) for h in range(18, 22)])  # 6 PM - 10 PM
+        
+        # If no preferences, use full day
+        if not time_preference_order:
+            time_preference_order = [(h, 0) for h in range(8, 22)]
+        
+        available_slots = []
+        
+        # Try to find slots in preference order, but also check gaps between events
+        all_potential_slots = []
+        
+        # 1. Check all preferred time slots in 30-minute increments
+        for hour, minute in time_preference_order:
+            current_time = target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            
+            # Try every 30 minutes within this hour
+            for offset in [0, 30]:
+                slot_start = current_time + timedelta(minutes=offset)
+                slot_end = slot_start + timedelta(hours=session_duration)
+                
+                # Make sure slot is within working hours
+                if slot_end <= day_end:
+                    all_potential_slots.append((slot_start, slot_end))
+        
+        # 2. Also check gaps between existing events
+        if day_events:
+            # Check before first event
+            if day_events[0]['start'] > day_start:
+                gap_start = day_start
+                gap_end = day_events[0]['start']
+                self._add_slots_in_gap(gap_start, gap_end, session_duration, all_potential_slots)
+            
+            # Check gaps between events
+            for i in range(len(day_events) - 1):
+                gap_start = day_events[i]['end']
+                gap_end = day_events[i + 1]['start']
+                self._add_slots_in_gap(gap_start, gap_end, session_duration, all_potential_slots)
+            
+            # Check after last event
+            if day_events[-1]['end'] < day_end:
+                gap_start = day_events[-1]['end']
+                gap_end = day_end
+                self._add_slots_in_gap(gap_start, gap_end, session_duration, all_potential_slots)
+        else:
+            # No events, can use any time in the day
+            current_time = day_start
+            while current_time + timedelta(hours=session_duration) <= day_end:
+                all_potential_slots.append((current_time, current_time + timedelta(hours=session_duration)))
+                current_time += timedelta(minutes=30)
+        
+        # Remove duplicates and sort by start time
+        unique_slots = list(set(all_potential_slots))
+        unique_slots.sort(key=lambda x: x[0])
+        
+        # Filter out conflicting slots
+        for slot_start, slot_end in unique_slots:
+            conflict = False
+            for event in day_events:
+                # Check for overlap (any overlap is a conflict)
+                if (slot_start < event['end'] and slot_end > event['start']):
+                    conflict = True
+                    break
+            
+            if not conflict:
+                available_slots.append((slot_start, slot_end))
+        
+        # Limit total study hours per day and prioritize earlier slots
+        total_hours_scheduled = 0
+        final_slots = []
+        
+        for slot_start, slot_end in available_slots:
+            slot_duration = (slot_end - slot_start).total_seconds() / 3600
+            
+            if total_hours_scheduled + slot_duration <= max_daily_hours:
+                final_slots.append((slot_start, slot_end))
+                total_hours_scheduled += slot_duration
+            
+            if total_hours_scheduled >= max_daily_hours:
+                break
+        
+        return final_slots
+
+    def _add_slots_in_gap(self, gap_start: datetime, gap_end: datetime, session_duration: float, slots_list: List[Tuple[datetime, datetime]]):
+        """Add potential time slots within a gap between events"""
+        current_time = gap_start
+        
+        # Round up to next 30-minute mark for cleaner scheduling
+        if current_time.minute not in [0, 30]:
+            if current_time.minute <= 30:
+                current_time = current_time.replace(minute=30, second=0, microsecond=0)
+            else:
+                current_time = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+        
+        while current_time + timedelta(hours=session_duration) <= gap_end:
+            slot_end = current_time + timedelta(hours=session_duration)
+            slots_list.append((current_time, slot_end))
+            current_time += timedelta(minutes=30)
+
+    def _check_and_resolve_conflicts(self, events: List[Dict], user_id: str) -> List[Dict]:
+        """Check for conflicts with existing calendar and reschedule if necessary"""
+        if not events or not user_id:
+            return events
+        
+        # Get date range for timeline
+        timeline_start = min(datetime.fromisoformat(event['startTime'].replace('Z', '+00:00')) for event in events)
+        timeline_end = max(datetime.fromisoformat(event['endTime'].replace('Z', '+00:00')) for event in events)
+        
+        # Extend timeline range to allow for spillover days
+        timeline_end = timeline_end + timedelta(days=14)  # Allow 2 weeks spillover
+        
+        # Fetch existing calendar events
+        existing_events = self._fetch_user_calendar_events(user_id, timeline_start, timeline_end)
+        
+        if not existing_events:
+            print("📅 No existing calendar events found, proceeding with original timeline")
+            return events
+        
+        print(f"🔍 Checking for conflicts with {len(existing_events)} existing events...")
+        
+        resolved_events = []
+        conflicts_found = 0
+        spillover_days = 0
+        
+        max_daily_hours = self.default_preferences["max_daily_study_hours"]
+        preferred_times = self.default_preferences["preferred_times"]
+        max_session_length = self.default_preferences["max_session_length"]
+        
+        # Process events in chronological order
+        events_sorted = sorted(events, key=lambda x: datetime.fromisoformat(x['startTime'].replace('Z', '+00:00')))
+        
+        for event in events_sorted:
+            original_start = datetime.fromisoformat(event['startTime'].replace('Z', '+00:00'))
+            original_date = original_start.date()
+            
+            event_duration = (
+                datetime.fromisoformat(event['endTime'].replace('Z', '+00:00')) - 
+                original_start
+            ).total_seconds() / 3600
+            
+            scheduled = False
+            days_checked = 0
+            current_date = original_date
+            
+            # Try to schedule on the original day first, then subsequent days
+            while not scheduled and days_checked < 14:  # Max 2 weeks ahead
+                target_date = datetime.combine(current_date, datetime.min.time())
+                
+                # Check if we've already scheduled too many hours for this day
+                daily_hours_used = sum(
+                    (datetime.fromisoformat(e['endTime'].replace('Z', '+00:00')) - 
+                     datetime.fromisoformat(e['startTime'].replace('Z', '+00:00'))).total_seconds() / 3600
+                    for e in resolved_events
+                    if datetime.fromisoformat(e['startTime'].replace('Z', '+00:00')).date() == current_date
+                )
+                
+                if daily_hours_used + event_duration <= max_daily_hours:
+                    # Convert resolved events to the same format as existing events for conflict checking
+                    resolved_events_formatted = []
+                    for re in resolved_events:
+                        resolved_events_formatted.append({
+                            'id': re['id'],
+                            'title': re['title'],
+                            'start': datetime.fromisoformat(re['startTime'].replace('Z', '+00:00')).replace(tzinfo=None),
+                            'end': datetime.fromisoformat(re['endTime'].replace('Z', '+00:00')).replace(tzinfo=None),
+                            'type': re.get('type', 'other')
+                        })
+                    
+                    # Find available slots for this day
+                    available_slots = self._find_available_time_slots(
+                        target_date, existing_events + resolved_events_formatted,
+                        event_duration, max_daily_hours - daily_hours_used, preferred_times
+                    )
+                    
+                    if available_slots:
+                        # Use the earliest available slot
+                        slot_start, slot_end = available_slots[0]
+                        
+                        # Create the rescheduled event
+                        new_event = event.copy()
+                        new_event['startTime'] = slot_start.isoformat() + 'Z'
+                        new_event['endTime'] = slot_end.isoformat() + 'Z'
+                        
+                        resolved_events.append(new_event)
+                        scheduled = True
+                        
+                        # Log the rescheduling
+                        if current_date != original_date:
+                            spillover_days += 1
+                            print(f"📅 Moved '{event['title']}' from {original_date} to {current_date} at {slot_start.strftime('%H:%M')}")
+                        elif slot_start.time() != original_start.time():
+                            conflicts_found += 1
+                            print(f"🔄 Rescheduled '{event['title']}' on {current_date} from {original_start.strftime('%H:%M')} to {slot_start.strftime('%H:%M')}")
+                        else:
+                            # No conflict, kept original time
+                            resolved_events.append(event)
+                        
+                        break
+                
+                # Move to next day
+                current_date += timedelta(days=1)
+                days_checked += 1
+            
+            if not scheduled:
+                print(f"❌ Could not reschedule '{event['title']}' within 2 weeks, dropping event")
+                conflicts_found += 1
+        
+        if conflicts_found > 0 or spillover_days > 0:
+            print(f"✅ Resolved {conflicts_found} conflicts, moved {spillover_days} events to later days")
+        else:
+            print("✅ No calendar conflicts found")
+        
+        # Sort final events by start time
+        resolved_events.sort(key=lambda x: datetime.fromisoformat(x['startTime'].replace('Z', '+00:00')))
+        
+        return resolved_events
+
+    def generate_timeline(self, course_name: str, user_id: str = None, user_preferences: Optional[Dict] = None, custom_requirements: str = "") -> Dict:
+        """Generate a personalized learning timeline for a course with calendar conflict checking"""
         
         # Merge user preferences with defaults
         preferences = {**self.default_preferences}
@@ -84,18 +375,27 @@ class TimelineGenerator:
         # Generate timeline events
         events = self._generate_events(course_data, preferences)
         
+        # Check for calendar conflicts and reschedule if user_id is provided
+        if user_id:
+            print(f"🔍 Checking calendar conflicts for user: {user_id}")
+            events = self._check_and_resolve_conflicts(events, user_id)
+        else:
+            print("⚠️ No user_id provided, skipping conflict checking")
+        
         # Use course data as-is (LLM will modify via custom requirements)
         actual_weeks = course_data["total_weeks"]
         
         return {
             "timeline_id": f"timeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "course_name": course_name,
+            "user_id": user_id,
             "generated_at": datetime.now().isoformat(),
             "total_duration_weeks": actual_weeks,
             "total_hours": course_data["total_hours"],
             "events": events,
             "user_preferences": preferences,
-            "custom_requirements": custom_requirements
+            "custom_requirements": custom_requirements,
+            "conflict_checked": user_id is not None
         }
 
     def _create_default_course(self, course_name: str) -> Dict:
@@ -535,7 +835,7 @@ Respond with ONLY this JSON format:
         
         return events
 
-    def revise_timeline(self, timeline_id: str, revision_request: str) -> Dict:
+    def revise_timeline(self, timeline_id: str, revision_request: str, user_id: str = None) -> Dict:
         """Revise an existing timeline based on user feedback using LLM intelligence"""
         # Load the existing timeline
         timeline_file = os.path.join(os.path.dirname(__file__), "data", "timelines", f"{timeline_id}.json")
@@ -552,6 +852,7 @@ Respond with ONLY this JSON format:
             modified_preferences = existing_timeline.get("user_preferences", self.default_preferences).copy()
             course_name = existing_timeline.get("course_name", "Advanced Python for Data Science")
             existing_custom_requirements = existing_timeline.get("custom_requirements", "")
+            user_id = user_id or existing_timeline.get("user_id")  # Use existing user_id if not provided
         else:
             modified_preferences = self.default_preferences.copy()
             course_name = "Advanced Python for Data Science"
@@ -563,6 +864,7 @@ Respond with ONLY this JSON format:
         
         timeline_context = existing_timeline or {
             "course_name": course_name,
+            "user_id": user_id,
             "total_duration_weeks": 8,
             "total_hours": 40,
             "user_preferences": modified_preferences,
@@ -608,10 +910,18 @@ Respond with ONLY this JSON format:
         # Skip LLM processing in generate_timeline since we already processed the revision
         events = self._generate_events(course_data, modified_preferences)
         
+        # Check for calendar conflicts and reschedule if user_id is provided
+        if user_id:
+            print(f"🔍 Checking calendar conflicts for user: {user_id}")
+            events = self._check_and_resolve_conflicts(events, user_id)
+        else:
+            print("⚠️ No user_id provided, skipping conflict checking")
+        
         # Build timeline manually to avoid double LLM calls
         new_timeline = {
             "timeline_id": f"timeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "course_name": course_name,
+            "user_id": user_id,
             "generated_at": datetime.now().isoformat(),
             "total_duration_weeks": course_data["total_weeks"],
             "total_hours": course_data["total_hours"],
@@ -619,7 +929,8 @@ Respond with ONLY this JSON format:
             "user_preferences": modified_preferences,
             "custom_requirements": f"{existing_custom_requirements} {revision_request}".strip(),
             "revision_request": revision_request,
-            "llm_revisions_applied": llm_revisions
+            "llm_revisions_applied": llm_revisions,
+            "conflict_checked": user_id is not None
         }
         print(f"✨ Generated new timeline: {new_timeline['total_duration_weeks']} weeks, {new_timeline['total_hours']} hours, {len(new_timeline['events'])} events")
         return new_timeline
@@ -652,12 +963,14 @@ if __name__ == "__main__":
     # Test the timeline generator
     generator = TimelineGenerator()
     
-    # Generate a sample timeline
+    # Generate a sample timeline with user ID for conflict checking
     timeline = generator.generate_timeline(
         "Advanced Python for Data Science",
+        user_id="mgr001",  # Test with a user who has existing calendar events
         user_preferences={
             "study_hours_per_week": 10,
-            "preferred_days": ["Monday", "Wednesday", "Friday"]
+            "preferred_days": ["Monday", "Wednesday", "Friday"],
+            "preferred_times": ["Morning", "Evening"]
         },
         custom_requirements="I need more practice time and prefer morning sessions"
     )

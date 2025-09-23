@@ -26,6 +26,7 @@ import ProofSubmissionNew from "./ProofSubmissionNew";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useData } from "../contexts/DataContext";
+import { useAuth } from "../contexts/AuthContext";
 
 // Type definitions for drag and drop
 type ItemTypes = {
@@ -39,7 +40,7 @@ const ItemTypes: ItemTypes = {
 interface Event {
   id: string;
   title: string;
-  type: "meeting" | "deadline" | "course" | "goal_milestone";
+  type: "meeting" | "deadline" | "course" | "goal_milestone" | "study_session";
   startTime: string;
   endTime: string;
   description?: string;
@@ -49,11 +50,15 @@ interface Event {
   requires_proof?: boolean;
   proof_type?: string;
   module_name?: string;
+  courseEnrollmentId?: string;
+  timelineEventId?: string;
+  proofRequired?: boolean;
+  proofSubmitted?: boolean;
 }
 
 interface EventFormData {
   title: string;
-  type: "meeting" | "deadline" | "course" | "goal_milestone";
+  type: "meeting" | "deadline" | "course" | "goal_milestone" | "study_session";
   startTime: Date;
   endTime: Date;
   description: string;
@@ -170,8 +175,11 @@ const Calendar = () => {
   // Reference to track drag operations
   const dragOperationRef = useRef<boolean>(false);
 
+  // Access AuthContext for current user
+  const { currentUser } = useAuth();
+
   // Access DataContext for centralized state management
-  const { calendarEvents, updateCalendarEvent, deleteCalendarEvent } =
+  const { calendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, loadCalendarEvents } =
     useData();
 
   const {
@@ -194,69 +202,21 @@ const Calendar = () => {
   });
 
   // Load events from localStorage on initial render
-  const [events, setEvents] = useState<Event[]>(() => {
-    const savedEvents = localStorage.getItem("calendarEvents");
-    // If we have events in localStorage, use those as the initial state
-    if (savedEvents) {
-      return JSON.parse(savedEvents);
-    } else {
-      // Default events if none exist in localStorage
-      return [
-        {
-          id: "1",
-          title: "Weekly Mentoring Session with Sarah Chen",
-          type: "meeting",
-          startTime: "2025-01-25T10:00:00",
-          endTime: "2025-01-25T11:00:00",
-          description:
-            "Discuss progress on TensorFlow certification and upcoming projects",
-          location: "Microsoft Teams",
-          attendees: ["Sarah Chen"],
-          color: "bg-blue-500",
-        },
-        {
-          id: "2",
-          title: "ML Fundamentals Course - Module 3 Due",
-          type: "deadline",
-          startTime: "2025-01-27T23:59:00",
-          endTime: "2025-01-27T23:59:00",
-          description: "Complete Decision Trees and Random Forest assignments",
-          color: "bg-red-500",
-        },
-        {
-          id: "3",
-          title: "Team Data Science Standup",
-          type: "meeting",
-          startTime: "2025-01-28T09:00:00",
-          endTime: "2025-01-28T09:30:00",
-          location: "Conference Room A",
-          attendees: ["Sarah Chen", "Alex Rodriguez", "Jordan Kim"],
-          color: "bg-purple-500",
-        },
-        {
-          id: "4",
-          title: "Python Proficiency Goal - Check-in",
-          type: "goal_milestone",
-          startTime: "2025-01-30T15:00:00",
-          endTime: "2025-01-30T16:00:00",
-          description: "Review progress on Python learning path",
-          color: "bg-green-500",
-        },
-        {
-          id: "5",
-          title: "Machine Learning Project Presentation",
-          type: "meeting",
-          startTime: "2025-02-03T14:00:00",
-          endTime: "2025-02-03T15:30:00",
-          location: "Boardroom",
-          attendees: ["Sarah Chen", "Management Team"],
-          color: "bg-orange-500",
-        },
-      ];
-    }
-  });
+  const [events, setEvents] = useState<Event[]>([]);
 
-  // Save events to localStorage whenever events change
+  // Load calendar events from API when user is available
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadCalendarEvents(currentUser.id);
+    }
+  }, [currentUser?.id, loadCalendarEvents]);
+
+  // Sync calendarEvents from DataContext to local state
+  useEffect(() => {
+    setEvents(calendarEvents);
+  }, [calendarEvents]);
+
+  // Save events to localStorage whenever events change (keep as backup)
   // Use a debounced save to prevent localStorage thrashing during multiple drags
   useEffect(() => {
     const saveTimeout = setTimeout(() => {
@@ -337,6 +297,8 @@ const Calendar = () => {
         return "bg-purple-500";
       case "goal_milestone":
         return "bg-green-500";
+      case "study_session":
+        return "bg-orange-500";
       default:
         return "bg-gray-500";
     }
@@ -397,7 +359,12 @@ const Calendar = () => {
   const [clashDetected, setClashDetected] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState<Date[]>([]);
 
-  const onSubmitEvent = (data: EventFormData) => {
+  const onSubmitEvent = async (data: EventFormData) => {
+    if (!currentUser?.id) {
+      console.error("No current user to create/edit event");
+      return;
+    }
+
     // Convert attendees string to array
     const attendeesArray = data.attendees
       ? data.attendees
@@ -426,46 +393,34 @@ const Calendar = () => {
 
     if (isEditMode) {
       // Update existing event
-      const updatedEvent: Event = {
-        id: editingEvent?.id || Date.now().toString(),
+      const updates = {
         title: data.title,
         type: data.type,
         startTime: data.startTime.toISOString(),
         endTime: data.endTime.toISOString(),
-        description: data.description || undefined,
-        location: data.location || undefined,
-        attendees: attendeesArray,
+        description: data.description || "",
+        location: data.location || "",
+        attendees: attendeesArray || [],
         color: getEventColor(data.type),
-        // Preserve existing properties that might be related to course enrollment
-        ...(editingEvent && {
-          requires_proof: editingEvent.requires_proof,
-          proof_type: editingEvent.proof_type,
-          module_name: editingEvent.module_name,
-        }),
       };
 
-      // Update events list
-      setEvents(
-        events.map((event) =>
-          event.id === updatedEvent.id ? updatedEvent : event
-        )
-      );
+      // Update via API
+      await updateCalendarEvent(editingEvent?.id || "", updates, currentUser.id);
     } else {
       // Create new event
-      const newEvent: Event = {
-        id: Date.now().toString(), // Simple ID generation
+      const newEvent = {
         title: data.title,
         type: data.type,
         startTime: data.startTime.toISOString(),
         endTime: data.endTime.toISOString(),
-        description: data.description || undefined,
-        location: data.location || undefined,
-        attendees: attendeesArray,
+        description: data.description || "",
+        location: data.location || "",
+        attendees: attendeesArray || [],
         color: getEventColor(data.type),
       };
 
-      // Add to events list
-      setEvents([...events, newEvent]);
+      // Create via API
+      await addCalendarEvent(newEvent, currentUser.id);
     }
 
     // Close modal and reset form
@@ -485,12 +440,45 @@ const Calendar = () => {
     return true;
   };
 
-  const deleteEvent = (id: string) => {
-    // Update local state
-    setEvents(events.filter((event) => event.id !== id));
-    // Also delete from DataContext to keep everything in sync
-    deleteCalendarEvent(id);
-    setSelectedEvent(null); // Close the modal after deletion
+  const deleteEvent = async (id: string) => {
+    if (!currentUser?.id) {
+      console.error("No current user to delete event");
+      return;
+    }
+    
+    try {
+      // Delete from backend and DataContext first
+      await deleteCalendarEvent(id, currentUser.id);
+      
+      // Only update local state if the backend deletion was successful
+      setEvents(events.filter((event) => event.id !== id));
+      setSelectedEvent(null); // Close the modal after deletion
+      
+      // Show success notification
+      setNotification({
+        message: "Event deleted successfully",
+        type: "success",
+      });
+      
+      // Clear notification after 3 seconds
+      setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+      
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+      
+      // Show error notification
+      setNotification({
+        message: "Failed to delete event. Please try again.",
+        type: "error",
+      });
+      
+      // Clear notification after 3 seconds
+      setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+    }
   };
 
   const handleEditEvent = (event: Event) => {
@@ -594,10 +582,12 @@ const Calendar = () => {
       );
 
       // Also update the event in DataContext to ensure sync across components
-      updateCalendarEvent(eventId, {
-        startTime: newStartTime.toISOString(),
-        endTime: newEndTime.toISOString(),
-      });
+      if (currentUser?.id) {
+        updateCalendarEvent(eventId, {
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+        }, currentUser.id);
+      }
 
       // Show feedback notification
       setNotification({

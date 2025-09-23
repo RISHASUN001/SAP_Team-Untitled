@@ -13,6 +13,7 @@ pkill -f "practice_mode.py" 2>/dev/null || true
 pkill -f "onboarding_mode.py" 2>/dev/null || true
 pkill -f "ai_skill_gap.py" 2>/dev/null || true
 pkill -f "course_search.py" 2>/dev/null || true
+pkill -f "timeline_api.py" 2>/dev/null || true
 pkill -f "node.*index.js" 2>/dev/null || true
 
 sleep 2
@@ -90,11 +91,20 @@ echo "6️⃣ Starting Timeline API (Port 5006)..."
 CALENDAR_PID=$!
 echo "📅 Timeline API started with PID: $CALENDAR_PID"
 
+# Step 7: Start Node.js Calendar Server (Port 3001)
+echo ""
+echo "7️⃣ Starting Node.js Calendar Server (Port 3001)..."
+cd ..
+node index.js &
+NODE_CALENDAR_PID=$!
+echo "📅 Node.js Calendar Server started with PID: $NODE_CALENDAR_PID"
+cd chatbot
+
 # Wait a bit for Python backends to fully start
 sleep 3
 
 echo ""
-echo "✅ Python backends started successfully!"
+echo "✅ All backend services started successfully!"
 echo ""
 echo "🔗 Backend APIs:"
 echo "   • Mentor Mode API: http://localhost:5001"
@@ -103,6 +113,7 @@ echo "   • Onboarding Mode API: http://localhost:5003"
 echo "   • AI Skill Gap API: http://localhost:5004 (🤖 AGENTIC AI)"
 echo "   • Course Search API: http://localhost:5005"
 echo "   • Timeline API: http://localhost:5006"
+echo "   • Calendar Server API: http://localhost:3001 (📅 PERSISTENT STORAGE)"
 echo ""
 echo "📊 Process IDs:"
 echo "   • Mentor Mode: $MENTOR_PID"
@@ -111,12 +122,13 @@ echo "   • Onboarding Mode: $ONBOARDING_PID"
 echo "   • AI Skill Gap: $SKILL_PID"
 echo "   • Course Search: $COURSE_PID"
 echo "   • Timeline API: $CALENDAR_PID"
+echo "   • Calendar Server: $NODE_CALENDAR_PID"
 echo ""
-echo "💡 To start the full application:"
-echo "   1. Run 'npm run dev' in the main Agentic_SAP directory"
-echo "   2. This will start frontend (port 5173) and main backend (port 3001)"
+echo "💡 To start the frontend:"
+echo "   Run 'npm run dev' in the main Agentic_SAP directory"
+echo "   This will start frontend on port 5173"
 echo ""
-echo "🛑 To stop Python backends, run: ./stop_all_backends.sh"
+echo "🛑 To stop all backends, run: ./stop_all_backends.sh"
 echo ""
 
 # Keep the script running and show logs
