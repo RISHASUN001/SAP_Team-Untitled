@@ -3,11 +3,11 @@ import Layout from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
 import { useFeedback } from "../contexts/FeedbackContext";
 import { mockUsers } from "../data/mockData";
+import { requiredSkillsByRole } from "../data/courseData";
 import FeedbackForm from "../components/FeedbackForm";
 import { summarizeFeedback } from "../utils/feedbackSummarizer";
 import ReactMarkdown from "react-markdown";
 import {
-  Star,
   Calendar,
   User,
   TrendingUp,
@@ -23,6 +23,8 @@ import {
   ChevronRight,
   Filter,
   Search,
+  Settings,
+  Save,
 } from "lucide-react";
 
 const Feedback: React.FC = () => {
@@ -31,6 +33,11 @@ const Feedback: React.FC = () => {
     useFeedback();
   const [showForm, setShowForm] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [showSkillsModal, setShowSkillsModal] = useState(false);
+  const [skillsEditingMember, setSkillsEditingMember] = useState<string | null>(null);
+  const [customRequiredSkills, setCustomRequiredSkills] = useState<{[userId: string]: {name: string, level: number}[]}>({});
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillLevel, setNewSkillLevel] = useState(1);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState("all");
@@ -46,6 +53,128 @@ const Feedback: React.FC = () => {
     goals: "",
     areasForImprovement: "",
   });
+
+  // Load custom required skills from localStorage on component mount
+  useEffect(() => {
+    const stored = localStorage.getItem('customRequiredSkills');
+    if (stored) {
+      setCustomRequiredSkills(JSON.parse(stored));
+    }
+  }, []);
+
+  // Save custom required skills to localStorage
+  const saveCustomRequiredSkills = (skills: {[userId: string]: {name: string, level: number}[]}) => {
+    localStorage.setItem('customRequiredSkills', JSON.stringify(skills));
+    setCustomRequiredSkills(skills);
+  };
+
+  // Get required skills for a user (custom or default)
+  const getRequiredSkillsForUser = (userId: string) => {
+    const user = mockUsers.find(u => u.id === userId);
+    if (!user) return [];
+    
+    // Return custom skills if available, otherwise default from role
+    return customRequiredSkills[userId] || requiredSkillsByRole[user.role] || [];
+  };
+
+  // Handle editing required skills
+  const handleEditRequiredSkills = (userId: string, newSkills: {name: string, level: number}[]) => {
+    const updatedSkills = {
+      ...customRequiredSkills,
+      [userId]: newSkills
+    };
+    saveCustomRequiredSkills(updatedSkills);
+  };
+
+  // Modal handler functions
+  const handleSaveCustomSkills = () => {
+    if (selectedMember) {
+      // Save to localStorage
+      const currentCustomSkills = JSON.parse(localStorage.getItem('customRequiredSkills') || '{}');
+      currentCustomSkills[selectedMember] = customRequiredSkills[selectedMember] || [];
+      localStorage.setItem('customRequiredSkills', JSON.stringify(currentCustomSkills));
+      
+      // Update state
+      setCustomRequiredSkills(currentCustomSkills);
+      setShowSkillsModal(false);
+      setNewSkillName('');
+      setNewSkillLevel(1);
+    }
+  };
+
+  const handleSkillLevelChange = (skillName: string, newLevel: number) => {
+    if (selectedMember) {
+      setCustomRequiredSkills(prev => {
+        // Get current skills for the member - either custom or default
+        const currentSkills = prev[selectedMember] && prev[selectedMember].length > 0 
+          ? prev[selectedMember] 
+          : Object.entries(getRequiredSkillsForMember(mockUsers.find(u => u.id === selectedMember)?.name || ""))
+              .map(([name, level]) => ({ name, level: level as number }));
+        
+        // Update the specific skill level
+        const updatedSkills = currentSkills.map((skill: any) => 
+          skill.name === skillName ? { ...skill, level: newLevel } : skill
+        );
+        
+        // If skill doesn't exist in current skills, add it
+        if (!currentSkills.find((skill: any) => skill.name === skillName)) {
+          updatedSkills.push({ name: skillName, level: newLevel });
+        }
+        
+        return {
+          ...prev,
+          [selectedMember]: updatedSkills
+        };
+      });
+    }
+  };
+
+  const handleRemoveSkill = (skillName: string) => {
+    if (selectedMember) {
+      setCustomRequiredSkills(prev => {
+        // Get current skills for the member - either custom or default
+        const currentSkills = prev[selectedMember] && prev[selectedMember].length > 0 
+          ? prev[selectedMember] 
+          : Object.entries(getRequiredSkillsForMember(mockUsers.find(u => u.id === selectedMember)?.name || ""))
+              .map(([name, level]) => ({ name, level: level as number }));
+        
+        // Remove the specific skill
+        const updatedSkills = currentSkills.filter((skill: any) => skill.name !== skillName);
+        
+        return {
+          ...prev,
+          [selectedMember]: updatedSkills
+        };
+      });
+    }
+  };
+
+  const handleAddSkill = () => {
+    if (selectedMember && newSkillName.trim()) {
+      setCustomRequiredSkills(prev => ({
+        ...prev,
+        [selectedMember]: [
+          ...(prev[selectedMember] || []),
+          { name: newSkillName.trim(), level: newSkillLevel }
+        ]
+      }));
+      setNewSkillName('');
+      setNewSkillLevel(1);
+    }
+  };
+
+  const getRequiredSkillsForMember = (memberName: string) => {
+    // Convert the data structure to match what the modal expects
+    const userProfile = mockUsers.find((user: any) => user.name === memberName);
+    if (!userProfile) return {};
+    
+    const requiredSkills = requiredSkillsByRole[userProfile.role] || [];
+    const skillsObj: Record<string, number> = {};
+    requiredSkills.forEach((skill: any) => {
+      skillsObj[skill.name] = skill.level;
+    });
+    return skillsObj;
+  };
 
   const teamMembers = mockUsers.filter(
     (user) =>
@@ -174,14 +303,6 @@ const Feedback: React.FC = () => {
     if (score >= 4) return "text-green-600 dark:text-green-400";
     if (score >= 3) return "text-yellow-600 dark:text-yellow-400";
     return "text-red-600 dark:text-red-400";
-  };
-
-  const getScoreBgColor = (score: number) => {
-    if (score >= 4)
-      return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800";
-    if (score >= 3)
-      return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800";
-    return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800";
   };
 
   const getScoreIcon = (score: number) => {
@@ -322,9 +443,6 @@ const Feedback: React.FC = () => {
                   ).filter((fb) => fb.teamMemberId === member.id);
                   const latestFeedback =
                     memberFeedbacks[memberFeedbacks.length - 1];
-                  const avgScore = latestFeedback
-                    ? getAverageScore(latestFeedback)
-                    : 0;
 
                   return (
                     <div
@@ -343,15 +461,6 @@ const Feedback: React.FC = () => {
                             {member.role}
                           </p>
                         </div>
-                        {latestFeedback && (
-                          <div
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${getScoreBgColor(
-                              avgScore
-                            )}`}
-                          >
-                            {avgScore.toFixed(1)}/5
-                          </div>
-                        )}
                       </div>
 
                       <div className="space-y-3">
@@ -370,6 +479,18 @@ const Feedback: React.FC = () => {
                                 : "Provide Feedback"}
                             </>
                           )}
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setSelectedMember(member.id);
+                            setSkillsEditingMember(member.id);
+                            setShowSkillsModal(true);
+                          }}
+                          className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Edit Required Skills
                         </button>
 
                         {memberFeedbacks.length > 0 && (
@@ -445,7 +566,6 @@ const Feedback: React.FC = () => {
                       const member = mockUsers.find(
                         (u) => u.id === feedback.teamMemberId
                       );
-                      const avgScore = getAverageScore(feedback);
 
                       return (
                         <div
@@ -460,16 +580,6 @@ const Feedback: React.FC = () => {
                               <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {new Date(feedback.date).toLocaleDateString()}
                               </p>
-                            </div>
-                            <div className="flex items-center">
-                              <span
-                                className={`text-lg font-bold ${getScoreColor(
-                                  avgScore
-                                )}`}
-                              >
-                                {avgScore.toFixed(1)}
-                              </span>
-                              <Star className="h-5 w-5 text-yellow-400 fill-current ml-1" />
                             </div>
                           </div>
 
@@ -581,13 +691,131 @@ const Feedback: React.FC = () => {
                       setShowForm(false);
                       setSelectedMember(null);
                     }}
-                    submitting={submitting}
                   />
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* Required Skills Modal */}
+        {showSkillsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Edit Required Skills - {mockUsers.find(u => u.id === selectedMember)?.name || selectedMember}
+                </h2>
+                <button
+                  onClick={() => setShowSkillsModal(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Current Required Skills */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Required Skills
+                  </h3>
+                  
+                  {selectedMember && (
+                    <div className="space-y-4">
+                      {Object.entries(
+                        customRequiredSkills[selectedMember] && customRequiredSkills[selectedMember].length > 0
+                          ? customRequiredSkills[selectedMember].reduce((acc: Record<string, number>, skill: any) => {
+                              acc[skill.name] = skill.level;
+                              return acc;
+                            }, {})
+                          : getRequiredSkillsForMember(mockUsers.find(u => u.id === selectedMember)?.name || "")
+                      ).map(([skill, level]) => (
+                        <div key={skill} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900 dark:text-white">{skill}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-600 dark:text-gray-300 w-12">
+                              Level {level}
+                            </span>
+                            <input
+                              type="range"
+                              min="1"
+                              max="3"
+                              value={level}
+                              onChange={(e) => handleSkillLevelChange(skill, parseInt(e.target.value))}
+                              className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600"
+                            />
+                            <button
+                              onClick={() => handleRemoveSkill(skill)}
+                              className="text-red-500 hover:text-red-700 ml-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Add New Skill */}
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Add New Skill
+                  </h3>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="text"
+                      placeholder="Enter skill name"
+                      value={newSkillName}
+                      onChange={(e) => setNewSkillName(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <select
+                      value={newSkillLevel}
+                      onChange={(e) => setNewSkillLevel(parseInt(e.target.value))}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                      <option value={1}>Level 1</option>
+                      <option value={2}>Level 2</option>
+                      <option value={3}>Level 3</option>
+                    </select>
+                    <button
+                      onClick={handleAddSkill}
+                      disabled={!newSkillName.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t">
+                  <button
+                    onClick={() => setShowSkillsModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveCustomSkills}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </Layout>
     );
   }
@@ -634,14 +862,10 @@ const Feedback: React.FC = () => {
                   <TrendingUp className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   <div>
                     <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                      {userFeedbacks.length > 0
-                        ? getAverageScore(
-                            userFeedbacks[userFeedbacks.length - 1]
-                          ).toFixed(1)
-                        : "0.0"}
+                      {userFeedbacks.length}
                     </h3>
                     <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">
-                      Current Average Rating
+                      Total Feedback Sessions
                     </p>
                   </div>
                 </div>
@@ -689,7 +913,6 @@ const Feedback: React.FC = () => {
                 const manager = mockUsers.find(
                   (u) => u.id === feedback.managerId
                 );
-                const avgScore = getAverageScore(feedback);
 
                 return (
                   <div
@@ -704,16 +927,6 @@ const Feedback: React.FC = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {new Date(feedback.date).toLocaleDateString()}
                         </p>
-                      </div>
-                      <div className="flex items-center">
-                        <span
-                          className={`text-lg font-bold ${getScoreColor(
-                            avgScore
-                          )}`}
-                        >
-                          {avgScore.toFixed(1)}
-                        </span>
-                        <Star className="h-5 w-5 text-yellow-400 fill-current ml-1" />
                       </div>
                     </div>
 
@@ -766,7 +979,7 @@ const Feedback: React.FC = () => {
                       {feedback.goals && (
                         <div>
                           <h4 className="font-medium text-gray-900 dark:text-white mb-1">
-                            Goals for Next Quarter
+                            Course Recommendations
                           </h4>
                           <p className="text-gray-700 dark:text-gray-300 text-sm">
                             {feedback.goals}

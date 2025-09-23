@@ -33,11 +33,37 @@ export interface AISkillAnalysis {
   };
 }
 
+// Get required skills for a user (custom or role-based)
+export function getRequiredSkillsForUser(userId: string): SkillRequirement[] {
+  const user: UserProfile | undefined = userProfiles.find(u => u.userId === userId);
+  if (!user) return [];
+  
+  // Check for custom required skills first, fallback to role-based requirements
+  try {
+    const customSkills = JSON.parse(localStorage.getItem('customRequiredSkills') || '{}');
+    if (customSkills[userId] && customSkills[userId].length > 0) {
+      // Convert custom skills format to SkillRequirement format
+      return customSkills[userId].map((skill: {name: string, level: number}) => ({
+        name: skill.name,
+        level: skill.level
+      }));
+    } else {
+      // Fallback to role-based requirements
+      return requiredSkillsByRole[user.role] || [];
+    }
+  } catch (error) {
+    // If localStorage fails, use role-based requirements
+    return requiredSkillsByRole[user.role] || [];
+  }
+}
+
 // Skill Gap Analysis: returns missing skills for a user
 export function getSkillGaps(userId: string): SkillRequirement[] {
   const user: UserProfile | undefined = userProfiles.find(u => u.userId === userId);
   if (!user) return [];
-  const required: SkillRequirement[] = requiredSkillsByRole[user.role] || [];
+  
+  // Use the new function to get required skills
+  const required: SkillRequirement[] = getRequiredSkillsForUser(userId);
   const userSkills: { [name: string]: number } = Object.fromEntries(user.skills.map((s: UserSkill) => [s.name, s.rating]));
   return required.filter((req: SkillRequirement) => (userSkills[req.name] || 0) < req.level);
 }

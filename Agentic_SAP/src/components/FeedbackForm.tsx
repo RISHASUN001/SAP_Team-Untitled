@@ -318,7 +318,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
             htmlFor="goals"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            Goals for Next Quarter
+            Course Recommendation
           </label>
           <textarea
             id="goals"
@@ -350,7 +350,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
           />
         </div>
 
-        {/* Form Actions */}
+        {/* Form Actions updated*/}
         <div className="flex justify-end space-x-3">
           <button
             type="button"

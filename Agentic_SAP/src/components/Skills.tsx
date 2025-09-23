@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Layout from "./Layout";
 import { useAuth } from "../contexts/AuthContext";
-import { getSkillGaps, getRecommendedCourses } from "../data/skillGapUtils";
+import { getSkillGaps, getRecommendedCourses, getRequiredSkillsForUser } from "../data/skillGapUtils";
 import { userProfiles } from "../data/userProfiles";
 import { 
   Target, 
@@ -65,6 +65,7 @@ const Skills: React.FC = () => {
 
   const skillGaps = getSkillGaps(userProfile.userId);
   const recommendedCourses = getRecommendedCourses(userProfile.userId);
+  const requiredSkills = getRequiredSkillsForUser(userProfile.userId);
 
   const getSkillRatingColor = (rating: number) => {
     if (rating >= 3) return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800";
@@ -205,6 +206,79 @@ const Skills: React.FC = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Required Skills Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center space-x-3 mb-6">
+                <Target className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Required Skills
+                </h2>
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full font-medium">
+                  {localStorage.getItem('customRequiredSkills') && JSON.parse(localStorage.getItem('customRequiredSkills') || '{}')[userProfile.userId] ? 'Custom' : 'Role-based'}
+                </span>
+              </div>
+              
+              <div className="space-y-4">
+                {requiredSkills.map((reqSkill) => {
+                  const userSkill = userProfile.skills.find(s => s.name === reqSkill.name);
+                  const currentLevel = userSkill ? userSkill.rating : 0;
+                  const isGap = currentLevel < reqSkill.level;
+                  
+                  return (
+                    <div
+                      key={reqSkill.name}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        isGap 
+                          ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                          : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="font-semibold text-lg">
+                            {reqSkill.name}
+                          </h3>
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/50 dark:bg-gray-800/50">
+                            Required: Level {reqSkill.level}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="text-sm">
+                            Current: {currentLevel}/3
+                          </div>
+                          <div className="flex space-x-1">
+                            {Array.from({ length: 3 }, (_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`h-4 w-4 ${
+                                  i < currentLevel 
+                                    ? 'text-yellow-500 fill-current' 
+                                    : i < reqSkill.level
+                                    ? 'text-red-400 dark:text-red-300'
+                                    : 'text-gray-300 dark:text-gray-600'
+                                }`} 
+                              />
+                            ))}
+                          </div>
+                          {isGap ? (
+                            <AlertCircle className="h-5 w-5 text-red-500" />
+                          ) : (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          )}
+                        </div>
+                      </div>
+                      
+                      {isGap && (
+                        <div className="mt-2 text-sm opacity-80">
+                          Gap: Need {reqSkill.level - currentLevel} more level{reqSkill.level - currentLevel > 1 ? 's' : ''} to meet requirement
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
