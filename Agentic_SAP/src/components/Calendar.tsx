@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Upload,
   Move,
+  Check,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { useForm, Controller } from "react-hook-form";
@@ -438,6 +439,7 @@ const Calendar = () => {
         location: data.location || "",
         attendees: attendeesArray || [],
         color: getEventColor(data.type),
+        requires_proof: editingEvent?.requires_proof || false,
       };
 
       // Update via API
@@ -446,6 +448,12 @@ const Calendar = () => {
         updates,
         currentUser.id
       );
+
+      // Show proof submission modal if event requires proof after edit
+      if (updates.requires_proof) {
+        setProofEvent({ ...updates, id: editingEvent?.id || Date.now().toString() });
+        setShowProofSubmission(true);
+      }
     } else {
       // Create new event
       const newEvent = {
@@ -457,10 +465,17 @@ const Calendar = () => {
         location: data.location || "",
         attendees: attendeesArray || [],
         color: getEventColor(data.type),
+        requires_proof: true, // Always require proof for timeline events
       };
 
       // Create via API
       await addCalendarEvent(newEvent, currentUser.id);
+
+      // Show proof submission modal if event requires proof
+      if (newEvent.requires_proof) {
+        setProofEvent({ ...newEvent, id: Date.now().toString() });
+        setShowProofSubmission(true);
+      }
     }
 
     // Close modal and reset form
@@ -1177,10 +1192,7 @@ const Calendar = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
                     <Clock className="h-4 w-4 mr-2" />
-                    {new Date(
-                      selectedEvent.startTime
-                    ).toLocaleDateString()} at{" "}
-                    {formatTime(selectedEvent.startTime)}
+                    {new Date(selectedEvent.startTime).toLocaleDateString()} at {formatTime(selectedEvent.startTime)}
                   </div>
 
                   {selectedEvent.location && (
@@ -1190,13 +1202,12 @@ const Calendar = () => {
                     </div>
                   )}
 
-                  {selectedEvent.attendees &&
-                    selectedEvent.attendees.length > 0 && (
-                      <div className="flex items-center text-gray-600 dark:text-gray-400">
-                        <Users className="h-4 w-4 mr-2" />
-                        {selectedEvent.attendees.join(", ")}
-                      </div>
-                    )}
+                  {selectedEvent.attendees && selectedEvent.attendees.length > 0 && (
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Users className="h-4 w-4 mr-2" />
+                      {selectedEvent.attendees.join(", ")}
+                    </div>
+                  )}
 
                   {selectedEvent.description && (
                     <div className="pt-2 border-t dark:border-gray-700">
@@ -1206,72 +1217,62 @@ const Calendar = () => {
                     </div>
                   )}
 
-                  {/* Proof Submission Section */}
-                  {selectedEvent.requires_proof && (
-                    <div className="pt-4 border-t dark:border-gray-700 mt-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900 dark:text-white flex items-center">
-                          <FileCheck className="h-4 w-4 mr-2" />
-                          Proof of Completion
-                        </h4>
-                        {(() => {
-                          const status = getProofStatus(selectedEvent.id);
-                          if (status === "approved") {
-                            return (
-                              <div className="flex items-center text-green-600 dark:text-green-400">
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                <span className="text-sm font-medium">
-                                  Approved
-                                </span>
-                              </div>
-                            );
-                          } else if (status === "pending_review") {
-                            return (
-                              <div className="flex items-center text-yellow-600 dark:text-yellow-400">
-                                <AlertCircle className="h-4 w-4 mr-1" />
-                                <span className="text-sm font-medium">
-                                  Pending Review
-                                </span>
-                              </div>
-                            );
-                          } else if (status === "rejected") {
-                            return (
-                              <div className="flex items-center text-red-600 dark:text-red-400">
-                                <AlertCircle className="h-4 w-4 mr-1" />
-                                <span className="text-sm font-medium">
-                                  Resubmission Required
-                                </span>
-                              </div>
-                            );
-                          } else {
-                            return (
-                              <div className="flex items-center text-gray-500 dark:text-gray-400">
-                                <Upload className="h-4 w-4 mr-1" />
-                                <span className="text-sm font-medium">
-                                  Not Submitted
-                                </span>
-                              </div>
-                            );
-                          }
-                        })()}
-                      </div>
-
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        Submit proof of completion to track your learning
-                        progress.
-                      </p>
-
-                      <button
-                        onClick={() => handleSubmitProof(selectedEvent)}
-                        className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {getProofStatus(selectedEvent.id) === "none"
-                          ? "Submit Proof"
-                          : "Update Proof"}
-                      </button>
+                  {/* Completion & Proof Section - always show for all events */}
+                  <div className="pt-4 border-t dark:border-gray-700 mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                        <FileCheck className="h-4 w-4 mr-2" />
+                        Proof of Completion
+                      </h4>
+                      {(() => {
+                        const status = getProofStatus(selectedEvent.id);
+                        if (status === "approved") {
+                          return (
+                            <div className="flex items-center text-green-600 dark:text-green-400">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Approved</span>
+                            </div>
+                          );
+                        } else if (status === "pending_review") {
+                          return (
+                            <div className="flex items-center text-yellow-600 dark:text-yellow-400">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Pending Review</span>
+                            </div>
+                          );
+                        } else if (status === "rejected") {
+                          return (
+                            <div className="flex items-center text-red-600 dark:text-red-400">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Resubmission Required</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="flex items-center text-gray-500 dark:text-gray-400">
+                              <Upload className="h-4 w-4 mr-1" />
+                              <span className="text-sm font-medium">Not Submitted</span>
+                            </div>
+                          );
+                        }
+                      })()}
                     </div>
-                  )}
+
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      Mark this activity as complete to submit your proof of completion.
+                    </p>
+
+                    <button
+                      onClick={() => {
+                        setProofEvent(selectedEvent);
+                        setShowProofSubmission(true);
+                      }}
+                      className="w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center mb-2"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Complete & Submit Proof
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 mt-6">
