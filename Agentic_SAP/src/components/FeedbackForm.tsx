@@ -350,7 +350,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
           />
         </div>
 
-        {/* Form Actions */}
+        {/* Form Actions updated*/}
         <div className="flex justify-end space-x-3">
           <button
             type="button"
