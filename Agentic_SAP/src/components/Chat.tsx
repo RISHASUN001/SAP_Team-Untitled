@@ -38,13 +38,9 @@ const Chat: React.FC = () => {
       let welcomeMessage = "";
 
       if (isEmployee) {
-        welcomeMessage = `Hello **${currentUser?.name}**! I'm your AI onboarding assistant. I can help you with:
+        welcomeMessage = `Hello **${currentUser?.name}**! I'm your AI onboarding assistant.
 
 ---
-**Onboarding Assistant**  
-Get comprehensive information about SAP products (BTP, S/4HANA, Customer Experience), data science applications, team structure, and career development in the SAP ecosystem.  
-👉 If you ever want to revisit this, just click the **Refresh** button.
-
 ---
 
 **How can I help you with your SAP onboarding today?**`;
