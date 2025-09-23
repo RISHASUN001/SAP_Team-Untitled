@@ -26,7 +26,7 @@ const CourseSearchAI: React.FC<CourseSearchAIProps> = ({ onCoursesFound }) => {
     setShowAIPanel(true);
 
     try {
-      const response = await fetch("http://localhost:5006/api/course-search", {
+      const response = await fetch("http://localhost:5005/api/course-search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
