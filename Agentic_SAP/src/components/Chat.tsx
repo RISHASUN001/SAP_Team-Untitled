@@ -22,7 +22,23 @@ interface Message {
 
 const Chat: React.FC = () => {
   const { currentUser } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Only try to load messages if we have a current user
+    if (currentUser?.id) {
+      // Use user-specific key for localStorage
+      const storageKey = `chatMessages_${currentUser.id}`;
+      const savedMessages = localStorage.getItem(storageKey);
+      if (savedMessages) {
+        // Parse the saved messages and convert timestamps back to Date objects
+        const parsedMessages = JSON.parse(savedMessages);
+        return parsedMessages.map((message: any) => ({
+          ...message,
+          timestamp: new Date(message.timestamp),
+        }));
+      }
+    }
+    return [];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mentorMode, setMentorMode] = useState(false);
@@ -31,6 +47,28 @@ const Chat: React.FC = () => {
 
   // Check if current user is an employee (Alex or Jordan)
   const isEmployee = currentUser?.id === "tm001" || currentUser?.id === "tm002";
+
+  // Effect to load user-specific chat history when user changes
+  useEffect(() => {
+    if (currentUser?.id) {
+      const storageKey = `chatMessages_${currentUser.id}`;
+      const savedMessages = localStorage.getItem(storageKey);
+
+      if (savedMessages) {
+        // Parse the saved messages and convert timestamps back to Date objects
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(
+          parsedMessages.map((message: any) => ({
+            ...message,
+            timestamp: new Date(message.timestamp),
+          }))
+        );
+      } else {
+        // Clear messages if no saved messages for this user
+        setMessages([]);
+      }
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     // Initialize with welcome message
@@ -78,7 +116,14 @@ Get comprehensive information about SAP products (BTP, S/4HANA, CX), data scienc
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+
+    // Save messages to localStorage whenever they change (only if we have a current user)
+    if (currentUser?.id) {
+      // Use user-specific key for localStorage
+      const storageKey = `chatMessages_${currentUser.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    }
+  }, [messages, currentUser]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -176,8 +221,7 @@ Get comprehensive information about SAP products (BTP, S/4HANA, CX), data scienc
         return {
           id: Date.now().toString(),
           type: "ai",
-          content:
-            `**To enroll in benefits:**
+          content: `**To enroll in benefits:**
 
 1. Visit the [SAP Benefits website](https://benefits.sap.com).
 2. Log in using your SAP credentials.
@@ -376,8 +420,13 @@ What aspect would you like to know more about?`,
   // UPDATED FUNCTION: Now clears both frontend AND backend conversation history
   // This ensures a complete reset when user clicks the refresh button
   const resetConversation = async () => {
-    let resetMessage = "";
+    // Clear user-specific localStorage chat history
+    if (currentUser?.id) {
+      const storageKey = `chatMessages_${currentUser.id}`;
+      localStorage.removeItem(storageKey);
+    }
 
+    let resetMessage = "";
     if (isEmployee) {
       resetMessage = `**Conversation Reset!** 🔄
 
@@ -655,7 +704,9 @@ Get comprehensive information about the SAP Data Science department, team struct
                       </div>
                     )}
                     <div className="text-xs mt-2 opacity-70">
-                      {message.timestamp.toLocaleTimeString()}
+                      {message.timestamp instanceof Date
+                        ? message.timestamp.toLocaleTimeString()
+                        : new Date(message.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
                 </div>
@@ -760,8 +811,8 @@ Get comprehensive information about the SAP Data Science department, team struct
               </h3>
               <p className="text-sm text-purple-700 dark:text-purple-400">
                 Get help with onboarding questions about SAP products including
-                BTP, S/4HANA, Customer Experience, Analytics Cloud, and how
-                data science applies to SAP solutions. Powered by AI with
+                BTP, S/4HANA, Customer Experience, Analytics Cloud, and how data
+                science applies to SAP solutions. Powered by AI with
                 comprehensive SAP knowledge base.
               </p>
             </div>
