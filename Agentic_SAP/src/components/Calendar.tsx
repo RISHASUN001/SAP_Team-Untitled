@@ -81,13 +81,16 @@ interface DroppableDayProps {
 
 // DraggableEvent component for the day cells
 const DraggableEvent: React.FC<DraggableEventProps> = ({ event, onClick }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: ItemTypes.EVENT,
-    item: { eventId: event.id },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: ItemTypes.EVENT,
+      item: { eventId: event.id },
+      collect: (monitor) => ({
+        isDragging: !!monitor.isDragging(),
+      }),
     }),
-  }));
+    [event.id]
+  );
 
   const formatTime = (timeStr: string) => {
     return new Date(timeStr).toLocaleTimeString("en-US", {
@@ -97,10 +100,22 @@ const DraggableEvent: React.FC<DraggableEventProps> = ({ event, onClick }) => {
     });
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isDragging) {
+      onClick();
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       ref={drag}
-      onClick={onClick}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
       className={`${
         event.color
       } text-white text-xs p-1 rounded cursor-move hover:opacity-80 transition-opacity ${
@@ -125,19 +140,35 @@ const DroppableDay: React.FC<DroppableDayProps> = ({
   isToday,
   onDrop,
 }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: ItemTypes.EVENT,
-    drop: (item: { eventId: string }) => onDrop(item, date),
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
+  const [{ isOver, canDrop }, drop] = useDrop(
+    () => ({
+      accept: ItemTypes.EVENT,
+      drop: (item: { eventId: string }, monitor) => {
+        console.log(
+          "Drop detected in DroppableDay for date:",
+          date,
+          "with item:",
+          item
+        );
+        if (monitor.didDrop()) {
+          console.log("Drop already handled");
+          return;
+        }
+        onDrop(item, date);
+      },
+      collect: (monitor) => ({
+        isOver: !!monitor.isOver(),
+        canDrop: !!monitor.canDrop(),
+      }),
     }),
-  }));
+    [date, onDrop]
+  );
 
   return (
     <div
       ref={drop}
       className={`min-h-[120px] p-2 border ${
-        isOver
+        isOver && canDrop
           ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
           : "border-gray-200 dark:border-gray-700"
       } ${
@@ -179,8 +210,13 @@ const Calendar = () => {
   const { currentUser } = useAuth();
 
   // Access DataContext for centralized state management
-  const { calendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, loadCalendarEvents } =
-    useData();
+  const {
+    calendarEvents,
+    addCalendarEvent,
+    updateCalendarEvent,
+    deleteCalendarEvent,
+    loadCalendarEvents,
+  } = useData();
 
   const {
     register,
@@ -405,7 +441,11 @@ const Calendar = () => {
       };
 
       // Update via API
-      await updateCalendarEvent(editingEvent?.id || "", updates, currentUser.id);
+      await updateCalendarEvent(
+        editingEvent?.id || "",
+        updates,
+        currentUser.id
+      );
     } else {
       // Create new event
       const newEvent = {
@@ -445,35 +485,34 @@ const Calendar = () => {
       console.error("No current user to delete event");
       return;
     }
-    
+
     try {
       // Delete from backend and DataContext first
       await deleteCalendarEvent(id, currentUser.id);
-      
+
       // Only update local state if the backend deletion was successful
       setEvents(events.filter((event) => event.id !== id));
       setSelectedEvent(null); // Close the modal after deletion
-      
+
       // Show success notification
       setNotification({
         message: "Event deleted successfully",
         type: "success",
       });
-      
+
       // Clear notification after 3 seconds
       setTimeout(() => {
         setNotification(null);
       }, 3000);
-      
     } catch (error) {
       console.error("Failed to delete event:", error);
-      
+
       // Show error notification
       setNotification({
         message: "Failed to delete event. Please try again.",
         type: "error",
       });
-      
+
       // Clear notification after 3 seconds
       setTimeout(() => {
         setNotification(null);
@@ -522,11 +561,22 @@ const Calendar = () => {
 
   // Handle dropping an event on a new date
   const handleEventDrop = (item: { eventId: string }, dropDate: Date) => {
+    console.log(
+      "Drop triggered with eventId:",
+      item.eventId,
+      "to date:",
+      dropDate
+    );
     const eventId = item.eventId;
     // Find the event using the current state to ensure we have the most recent version
     const eventToUpdate = events.find((e) => e.id === eventId);
 
-    if (!eventToUpdate) return;
+    if (!eventToUpdate) {
+      console.log("Event not found for ID:", eventId);
+      return;
+    }
+
+    console.log("Found event to update:", eventToUpdate.title);
 
     // Check if we're already in the middle of a drag operation
     if (dragOperationRef.current) {
@@ -553,7 +603,10 @@ const Calendar = () => {
         dropDate.getDate()
       );
 
+      console.log("Original day:", originalDay, "Drop day:", dropDay);
+
       if (originalDay.getTime() === dropDay.getTime()) {
+        console.log("Dropped on same day, no change needed");
         dragOperationRef.current = false;
         return; // No change if dropped on same day
       }
@@ -567,12 +620,16 @@ const Calendar = () => {
         new Date(eventToUpdate.endTime).getTime() + timeDiff
       );
 
+      console.log("New start time:", newStartTime, "New end time:", newEndTime);
+
       // Create a copy of the updated event to avoid reference issues
       const updatedEvent = {
         ...eventToUpdate,
         startTime: newStartTime.toISOString(),
         endTime: newEndTime.toISOString(),
       };
+
+      console.log("Updating event:", updatedEvent);
 
       // Update events array with a fresh copy to ensure React detects the change
       setEvents((prevEvents) =>
@@ -583,10 +640,14 @@ const Calendar = () => {
 
       // Also update the event in DataContext to ensure sync across components
       if (currentUser?.id) {
-        updateCalendarEvent(eventId, {
-          startTime: newStartTime.toISOString(),
-          endTime: newEndTime.toISOString(),
-        }, currentUser.id);
+        updateCalendarEvent(
+          eventId,
+          {
+            startTime: newStartTime.toISOString(),
+            endTime: newEndTime.toISOString(),
+          },
+          currentUser.id
+        );
       }
 
       // Show feedback notification
