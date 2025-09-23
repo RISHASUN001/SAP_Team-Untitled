@@ -12,7 +12,8 @@ import {
   Clock,
   ChevronRight,
   Brain,
-  Zap
+  Zap,
+  UserCircle
 } from 'lucide-react';
 import { mockGoals, mockCourses } from '../data/mockData';
 import { Link } from 'react-router-dom';
@@ -133,51 +134,98 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* AI Mentor Quick Actions */}
+          {/* AI Mentor Quick Actions for Managers / Work Buddy for Team Members */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                AI Mentor Assistant
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Link
-                  to="/chat"
-                  className="group p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-purple-500 p-2 rounded-lg">
-                      <Brain className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        Get Mentoring Tips
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        AI-powered suggestions
-                      </p>
-                    </div>
-                  </div>
-                </Link>
+              {currentUser?.role.toLowerCase().includes("lead") || 
+               currentUser?.role.toLowerCase().includes("manager") ? (
+                <>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    AI Mentor Assistant
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Link
+                      to="/chat"
+                      className="group p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-purple-500 p-2 rounded-lg">
+                          <Brain className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">
+                            Get Mentoring Tips
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            AI-powered suggestions
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
 
-                <Link
-                  to="/chat?mode=practice"
-                  className="group p-4 bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-lg border border-green-200 dark:border-green-700 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-green-500 p-2 rounded-lg">
-                      <Zap className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        Practice Mode
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Simulate mentee interactions
-                      </p>
+                    <Link
+                      to="/chat?mode=practice"
+                      className="group p-4 bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-lg border border-green-200 dark:border-green-700 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-green-500 p-2 rounded-lg">
+                          <Zap className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">
+                            Practice Mode
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Simulate mentee interactions
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Work Buddy
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Link
+                      to="/chat"
+                      className="group p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-blue-500 p-2 rounded-lg">
+                          <UserCircle className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">
+                            Onboarding Assistant
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Active
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-lg border border-gray-200 dark:border-gray-700 opacity-60">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-gray-400 p-2 rounded-lg">
+                          <MessageCircle className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">
+                            More Features
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Coming soon
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </Link>
-              </div>
+                </>
+              )}
             </div>
 
             {/* Progress Overview */}
