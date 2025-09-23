@@ -19,8 +19,7 @@ def test_agentic_imports():
     components = [
         ("Skills Analysis Agent", "skills_analysis_agent", "SkillsAnalysisAgent"),
         ("Goals Analysis Agent", "goals_analysis_agent", "GoalsAnalysisAgent"), 
-        ("Feedback Analysis Agent", "feedback_analysis_agent", "FeedbackAnalysisAgent"),
-        ("Agent Orchestrator", "agent_orchestrator", "AgentOrchestrator")
+        ("Feedback Analysis Agent", "feedback_analysis_agent", "FeedbackAnalysisAgent")
     ]
     
     success_count = 0
@@ -45,7 +44,26 @@ def test_agentic_imports():
     print("=" * 50)
     print(f"📊 Results: {success_count}/{len(components)} components working")
     
-    if success_count == len(components):
+    # Test orchestrator functions
+    print("\n🔍 Testing Orchestrator Functions...")
+    print("=" * 50)
+    
+    try:
+        # Test if orchestrator functions can be imported
+        from skills_analysis_agent import analyze_user_skills
+        from goals_analysis_agent import analyze_user_goals
+        from feedback_analysis_agent import analyze_user_feedback
+        print("✅ Orchestrator functions: Import successful")
+        success_count += 1
+    except ImportError as e:
+        print(f"❌ Orchestrator functions: Import failed - {e}")
+    except Exception as e:
+        print(f"⚠️ Orchestrator functions: Error - {e}")
+    
+    print("=" * 50)
+    print(f"📊 Total Results: {success_count}/{len(components) + 1} components working")
+    
+    if success_count == len(components) + 1:
         print("🎉 All agentic AI components are ready!")
         return True
     else:

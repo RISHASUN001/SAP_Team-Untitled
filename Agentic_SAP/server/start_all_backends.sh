@@ -11,7 +11,7 @@ echo "🧹 Cleaning up existing processes..."
 pkill -f "mentor_mode.py" 2>/dev/null || true
 pkill -f "practice_mode.py" 2>/dev/null || true  
 pkill -f "onboarding_mode.py" 2>/dev/null || true
-pkill -f "ai_skill_gap.py" 2>/dev/null || true
+pkill -f "agent_orchestrator.py" 2>/dev/null || true
 pkill -f "course_search.py" 2>/dev/null || true
 pkill -f "timeline_api.py" 2>/dev/null || true
 pkill -f "node.*index.js" 2>/dev/null || true
@@ -70,10 +70,10 @@ python3 onboarding_mode.py &
 ONBOARDING_PID=$!
 echo "📚 Onboarding Mode started with PID: $ONBOARDING_PID"
 
-# Step 4: Start ai_skill_gap.py (AGENTIC AI enabled)
+# Step 4: Start agent_orchestrator.py (AGENTIC AI enabled)
 echo ""
 echo "4️⃣ Starting AI Skill Gap (Port 5004) - 🤖 AGENTIC AI ENABLED..."
-python3 ai_skill_gap.py &
+python3 agent_orchestrator.py &
 SKILL_PID=$!
 echo "🤖 AI Skill Gap started with PID: $SKILL_PID"
 

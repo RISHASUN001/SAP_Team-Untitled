@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from './Layout';
+import OnboardingRoadmap from './OnboardingRoadmap';
 import { useAuth } from '../contexts/AuthContext';
 import {
   BookOpen,
@@ -8,7 +9,6 @@ import {
   Calendar,
   TrendingUp,
   Users,
-  Award,
   Clock,
   ChevronRight,
   Brain,
@@ -23,7 +23,6 @@ const Dashboard: React.FC = () => {
 
   // Get user-specific goals
   const userGoals = mockGoals.filter(goal => goal.userId === currentUser?.id);
-  const completedGoals = userGoals.filter(goal => goal.status === 'completed').length;
   const inProgressGoals = userGoals.filter(goal => goal.status === 'in_progress').length;
 
   // Recent activity data
@@ -227,6 +226,23 @@ const Dashboard: React.FC = () => {
                 </>
               )}
             </div>
+
+            {/* Onboarding Roadmap - Only show for new employees */}
+            {currentUser && (
+              <OnboardingRoadmap 
+                userId={currentUser.id} 
+                userProfile={{
+                  id: currentUser.id,
+                  name: currentUser.name,
+                  role: currentUser.role,
+                  department: currentUser.department,
+                  skills: currentUser.skills,
+                  experience: currentUser.experience,
+                  skillGaps: currentUser.skillGaps,
+                  mentoringNeeds: currentUser.mentoringNeeds
+                }}
+              />
+            )}
 
             {/* Progress Overview */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">

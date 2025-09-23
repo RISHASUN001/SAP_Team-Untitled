@@ -165,20 +165,24 @@ class TimelineGenerator:
         # 2. Also check gaps between existing events
         if day_events:
             # Check before first event
-            if day_events[0]['start'] > day_start:
+            first_event_start = day_events[0]['start'].replace(tzinfo=None) if day_events[0]['start'].tzinfo else day_events[0]['start']
+            if first_event_start > day_start:
                 gap_start = day_start
-                gap_end = day_events[0]['start']
+                gap_end = first_event_start
                 self._add_slots_in_gap(gap_start, gap_end, session_duration, all_potential_slots)
             
             # Check gaps between events
             for i in range(len(day_events) - 1):
-                gap_start = day_events[i]['end']
-                gap_end = day_events[i + 1]['start']
+                event_end = day_events[i]['end'].replace(tzinfo=None) if day_events[i]['end'].tzinfo else day_events[i]['end']
+                next_event_start = day_events[i + 1]['start'].replace(tzinfo=None) if day_events[i + 1]['start'].tzinfo else day_events[i + 1]['start']
+                gap_start = event_end
+                gap_end = next_event_start
                 self._add_slots_in_gap(gap_start, gap_end, session_duration, all_potential_slots)
             
             # Check after last event
-            if day_events[-1]['end'] < day_end:
-                gap_start = day_events[-1]['end']
+            last_event_end = day_events[-1]['end'].replace(tzinfo=None) if day_events[-1]['end'].tzinfo else day_events[-1]['end']
+            if last_event_end < day_end:
+                gap_start = last_event_end
                 gap_end = day_end
                 self._add_slots_in_gap(gap_start, gap_end, session_duration, all_potential_slots)
         else:
@@ -196,8 +200,12 @@ class TimelineGenerator:
         for slot_start, slot_end in unique_slots:
             conflict = False
             for event in day_events:
+                # Ensure timezone-naive datetime comparison
+                event_start = event['start'].replace(tzinfo=None) if event['start'].tzinfo else event['start']
+                event_end = event['end'].replace(tzinfo=None) if event['end'].tzinfo else event['end']
+                
                 # Check for overlap (any overlap is a conflict)
-                if (slot_start < event['end'] and slot_end > event['start']):
+                if (slot_start < event_end and slot_end > event_start):
                     conflict = True
                     break
             
@@ -242,8 +250,8 @@ class TimelineGenerator:
             return events
         
         # Get date range for timeline
-        timeline_start = min(datetime.fromisoformat(event['startTime'].replace('Z', '+00:00')) for event in events)
-        timeline_end = max(datetime.fromisoformat(event['endTime'].replace('Z', '+00:00')) for event in events)
+        timeline_start = min(datetime.fromisoformat(event['startTime'].replace('Z', '+00:00')).replace(tzinfo=None) for event in events)
+        timeline_end = max(datetime.fromisoformat(event['endTime'].replace('Z', '+00:00')).replace(tzinfo=None) for event in events)
         
         # Extend timeline range to allow for spillover days
         timeline_end = timeline_end + timedelta(days=14)  # Allow 2 weeks spillover
@@ -266,14 +274,14 @@ class TimelineGenerator:
         max_session_length = self.default_preferences["max_session_length"]
         
         # Process events in chronological order
-        events_sorted = sorted(events, key=lambda x: datetime.fromisoformat(x['startTime'].replace('Z', '+00:00')))
+        events_sorted = sorted(events, key=lambda x: datetime.fromisoformat(x['startTime'].replace('Z', '+00:00')).replace(tzinfo=None))
         
         for event in events_sorted:
-            original_start = datetime.fromisoformat(event['startTime'].replace('Z', '+00:00'))
+            original_start = datetime.fromisoformat(event['startTime'].replace('Z', '+00:00')).replace(tzinfo=None)
             original_date = original_start.date()
             
             event_duration = (
-                datetime.fromisoformat(event['endTime'].replace('Z', '+00:00')) - 
+                datetime.fromisoformat(event['endTime'].replace('Z', '+00:00')).replace(tzinfo=None) - 
                 original_start
             ).total_seconds() / 3600
             
@@ -287,10 +295,10 @@ class TimelineGenerator:
                 
                 # Check if we've already scheduled too many hours for this day
                 daily_hours_used = sum(
-                    (datetime.fromisoformat(e['endTime'].replace('Z', '+00:00')) - 
-                     datetime.fromisoformat(e['startTime'].replace('Z', '+00:00'))).total_seconds() / 3600
+                    (datetime.fromisoformat(e['endTime'].replace('Z', '+00:00')).replace(tzinfo=None) - 
+                     datetime.fromisoformat(e['startTime'].replace('Z', '+00:00')).replace(tzinfo=None)).total_seconds() / 3600
                     for e in resolved_events
-                    if datetime.fromisoformat(e['startTime'].replace('Z', '+00:00')).date() == current_date
+                    if datetime.fromisoformat(e['startTime'].replace('Z', '+00:00')).replace(tzinfo=None).date() == current_date
                 )
                 
                 if daily_hours_used + event_duration <= max_daily_hours:

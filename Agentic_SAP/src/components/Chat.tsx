@@ -169,6 +169,35 @@ Get comprehensive information about SAP products (BTP, S/4HANA, CX), data scienc
         }),
       });
       const data = await res.json();
+
+      // Special formatting for benefits enrollment response
+      if (
+        data.response &&
+        /enroll.*benefit|benefit.*enroll|how.*enroll.*benefit|visit the SAP Benefits website/i.test(
+          data.response
+        )
+      ) {
+        return {
+          id: Date.now().toString(),
+          type: "ai",
+          content:
+            `**To enroll in benefits:**
+
+1. Visit the [SAP Benefits website](https://benefits.sap.com).
+2. Log in using your SAP credentials.
+3. Browse the comprehensive overview of available benefits.
+4. For help, contact the SAP Benefits team directly.
+
+**Need assistance?**
+- Email: [benefits@sap.com](mailto:benefits@sap.com)
+- Phone: +1-800-SAP-BENEFITS
+`,
+          timestamp: new Date(),
+          suggestions: data.suggestions || undefined,
+          mode: "general",
+        };
+      }
+
       return {
         id: Date.now().toString(),
         type: "ai",
@@ -195,16 +224,16 @@ What specific topic would you like to explore?`,
 
 • **Our Mission**: Democratizing data science across SAP through intelligent solutions
 • **Technology Stack**: Python, SAP AI Core, HANA Cloud, and modern ML frameworks
-• **Team Structure**: Specialized teams for AI Platform, Customer Intelligence, and more
-• **Learning**: Comprehensive onboarding and continuous development opportunities
+• Team Structure: Specialized teams for AI Platform, Customer Intelligence, and more
+• Learning: Comprehensive onboarding and continuous development opportunities
 
 How can I help you get started?`,
         `As part of your onboarding journey, you'll have access to:
 
 • **Technical Training**: Hands-on workshops with SAP platforms
 • **Mentorship Program**: Pairing with experienced data scientists
-• **Project Assignments**: Real-world challenges from day one
-• **Career Development**: Clear progression paths and learning opportunities
+• Project Assignments: Real-world challenges from day one
+• Career Development: Clear progression paths and learning opportunities
 
 What aspect would you like to know more about?`,
       ];
@@ -766,13 +795,14 @@ Get comprehensive information about the SAP Data Science department, team struct
                     "Exit practice mode",
                   ];
                 } else {
-                  // SAP product-focused onboarding topics
+                  // SAP SuccessFactors Onboarding and practical employee topics
                   topics = [
-                    "What is SAP Business Technology Platform (BTP)?",
-                    "Tell me about SAP Customer Experience suite",
-                    "What are the main SAP products I should learn?",
-                    "How does SAP S/4HANA work with data science?",
-                    "What is SAP Analytics Cloud used for?",
+                    "How do I request IT equipment or support?",
+                    "How do I enroll in benefits?",
+                    "How do I request time off?",
+                    "How do I find and complete required training?",
+                    "How do managers track onboarding progress?",
+                    "Where can I get help with onboarding issues?",
                   ];
                 }
                 return topics;

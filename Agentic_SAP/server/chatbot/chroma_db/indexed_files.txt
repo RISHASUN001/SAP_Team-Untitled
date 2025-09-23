@@ -1,8 +1,10 @@
-sap_erp_s4hana_guide.txt
+sap_products_comprehensive.txt
+sap_cx_solutions_guide.txt
+sap_employee_faq.txt
+sap_btp_deep_dive.txt
 mentor_guidelines.txt
 mentoring_evaluation_framework.txt
-sap_cx_solutions_guide.txt
-sap_btp_deep_dive.txt
-sap_data_science_onboarding.txt
-sap_products_comprehensive.txt
+sap_erp_s4hana_guide.txt
 practice_scenarios.txt
+sap_successfactors_onboarding_faq.txt
+sap_data_science_onboarding.txt

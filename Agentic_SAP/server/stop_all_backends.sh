@@ -9,7 +9,7 @@ echo "🧹 Stopping all Python backend processes..."
 pkill -f "mentor_mode.py" 2>/dev/null && echo "   ✅ Stopped Mentor Mode" || echo "   ⚠️ Mentor Mode not running"
 pkill -f "practice_mode.py" 2>/dev/null && echo "   ✅ Stopped Practice Mode" || echo "   ⚠️ Practice Mode not running"  
 pkill -f "onboarding_mode.py" 2>/dev/null && echo "   ✅ Stopped Onboarding Mode" || echo "   ⚠️ Onboarding Mode not running"
-pkill -f "ai_skill_gap.py" 2>/dev/null && echo "   ✅ Stopped AI Skill Gap" || echo "   ⚠️ AI Skill Gap not running"
+pkill -f "agent_orchestrator.py" 2>/dev/null && echo "   ✅ Stopped Agent Orchestrator" || echo "   ⚠️ Agent Orchestrator not running"
 pkill -f "course_search.py" 2>/dev/null && echo "   ✅ Stopped Course Search" || echo "   ⚠️ Course Search not running"
 pkill -f "timeline_api.py" 2>/dev/null && echo "   ✅ Stopped Timeline API" || echo "   ⚠️ Timeline API not running"
 

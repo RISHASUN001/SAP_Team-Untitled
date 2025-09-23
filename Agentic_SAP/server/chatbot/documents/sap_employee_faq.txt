@@ -1,0 +1,249 @@
+# SAP Employee FAQ - Frequently Asked Questions
+
+## IT Support & Technical Issues
+
+### Q: How do I submit an IT support ticket?
+**A:** You can submit IT support tickets through the SAP IT Service Portal:
+- **Portal URL:** https://helpdesk.sap.com/service-portal
+- **Emergency Support:** Call +1-800-SAP-HELP (727-4357)
+- **Login:** Use your SAP employee credentials
+- **Categories:** Hardware issues, software installation, network problems, account access
+
+### Q: How do I request new hardware or software?
+**A:** Submit equipment requests through the IT Service Catalog:
+- **Equipment Request Form:** https://helpdesk.sap.com/equipment-request
+- **Software License Request:** https://helpdesk.sap.com/software-licenses
+- **Approval:** Requests require manager approval for items over $500
+- **Delivery Time:** 3-5 business days for standard equipment
+
+### Q: I forgot my SAP password. How do I reset it?
+**A:** Use the Self-Service Password Reset portal:
+- **Reset Portal:** https://identity.sap.com/password-reset
+- **Alternative:** Contact IT Help Desk at +1-800-SAP-HELP
+- **Requirements:** You'll need your employee ID and registered phone/email
+- **Multi-Factor Authentication:** Required after password reset
+
+### Q: How do I connect to the SAP VPN?
+**A:** Follow these steps to access SAP VPN:
+- **VPN Client:** Download from https://vpn.sap.com/client-download
+- **Setup Guide:** https://internal.sap.com/vpn-setup-guide
+- **Credentials:** Use your SAP domain credentials
+- **Support:** Contact IT if you encounter connection issues
+
+## Onboarding & New Employee
+
+### Q: How do I access my onboarding tasks?
+**A:** Your onboarding dashboard is available through SAP SuccessFactors:
+- **Login URL:** https://successfactors.sap.com
+- **Dashboard:** Navigate to "Onboarding" from the main menu
+- **Tasks:** Complete items under "For You Today" section
+- **Help:** Contact your HR representative or manager for assistance
+
+### Q: Where can I find my employee handbook?
+**A:** The employee handbook is available in multiple locations:
+- **SharePoint:** https://internal.sap.com/employee-handbook
+- **SuccessFactors:** Learning → Company Resources
+- **HR Portal:** https://hr.sap.com/handbook
+- **Mobile App:** SAP Employee app under "Resources"
+
+### Q: How do I enroll in benefits?
+**A:** Benefits enrollment is done through the HR portal:
+- **Benefits Portal:** https://benefits.sap.com
+- **Enrollment Period:** Within 30 days of start date
+- **Help:** HR Benefits team at benefits@sap.com
+- **Phone Support:** +1-800-SAP-BENEFITS
+
+### Q: What is my employee ID and where can I find it?
+**A:** Your employee ID is available in several places:
+- **SuccessFactors Profile:** Personal Information section
+- **Payslip:** Top right corner of pay statements
+- **Badge:** Printed on your employee access badge
+- **HR Contact:** Ask your HR representative if you can't locate it
+
+## Learning & Development
+
+### Q: How do I access SAP learning resources?
+**A:** SAP offers multiple learning platforms:
+- **SAP Learning Hub:** https://learning.sap.com
+- **Internal Training:** https://training.sap.com
+- **LinkedIn Learning:** Available through HR portal
+- **Manager Approval:** Required for external training courses
+
+### Q: How do I get SAP certifications?
+**A:** SAP certification process:
+- **Certification Portal:** https://training.sap.com/certification
+- **Study Materials:** Available in SAP Learning Hub
+- **Exam Registration:** Through SAP Training Shop
+- **Company Support:** Check with manager for certification funding
+
+### Q: Where can I find my learning transcript?
+**A:** Access your learning history through:
+- **SuccessFactors:** Learning → My Learning → Transcript
+- **SAP Learning Hub:** Profile → Learning History
+- **HR Portal:** Development → Training Records
+- **Download Option:** Available as PDF for external use
+
+## Time & Attendance
+
+### Q: How do I submit my timesheet?
+**A:** Time entry is done through SAP SuccessFactors:
+- **Time Tracking:** Employee Central → Time → Time Sheet
+- **Deadline:** Submit by Friday of each week
+- **Approval:** Manager approval required
+- **Support:** Contact HR for time entry issues
+
+### Q: How do I request time off?
+**A:** Submit leave requests through SuccessFactors:
+- **Request Portal:** Employee Central → Time Off
+- **Advance Notice:** Submit requests at least 2 weeks in advance
+- **Approval:** Requires manager approval
+- **Policy:** Review time-off policy in employee handbook
+
+### Q: What are SAP's holidays?
+**A:** SAP holiday schedule includes:
+- **Holiday Calendar:** https://hr.sap.com/holidays
+- **Regional Variations:** Varies by country/location
+- **Floating Holidays:** 2 personal days per year
+- **Updates:** Calendar updated annually in December
+
+## System Access & Applications
+
+### Q: How do I access SAP systems?
+**A:** System access depends on your role:
+- **SAP SuccessFactors:** https://successfactors.sap.com
+- **SAP Analytics Cloud:** https://analytics.sap.com
+- **SAP HANA:** Contact IT for database access
+- **Custom Systems:** Access varies by department
+
+### Q: What is SAP Concur and how do I use it?
+**A:** SAP Concur is for expense reporting:
+- **Concur Portal:** https://concur.sap.com
+- **Mobile App:** Download SAP Concur mobile app
+- **Expense Reports:** Submit within 30 days of expense
+- **Support:** concur-support@sap.com
+
+### Q: How do I access my pay information?
+**A:** Payroll information is available through:
+- **SuccessFactors:** Employee Central → Pay → Pay Statements
+- **Direct Deposit:** Set up through HR portal
+- **Tax Documents:** Available in January for previous year
+- **Questions:** Contact payroll@sap.com
+
+## Workplace Services
+
+### Q: How do I book a meeting room?
+**A:** Meeting room booking through Outlook:
+- **Outlook Calendar:** Add room as attendee
+- **Room Finder:** Use "Room Finder" in Outlook
+- **Capacity:** Rooms available from 2-50 people
+- **AV Equipment:** Contact facilities for special equipment
+
+### Q: Where is the cafeteria and what are the hours?
+**A:** Cafeteria information varies by location:
+- **Main Campus:** Building A, Level 1
+- **Hours:** 7:00 AM - 6:00 PM (Monday-Friday)
+- **Menu:** https://dining.sap.com
+- **Payment:** Badge swipe or mobile app
+
+### Q: How do I report a facilities issue?
+**A:** Facilities issues can be reported through:
+- **Facilities Portal:** https://facilities.sap.com/service-request
+- **Phone:** +1-800-SAP-FACILITIES
+- **Emergency:** Call building security immediately
+- **Types:** HVAC, lighting, cleaning, maintenance
+
+## Security & Compliance
+
+### Q: How do I report a security incident?
+**A:** Security incidents should be reported immediately:
+- **Security Portal:** https://security.sap.com/incident-report
+- **Phone:** +1-800-SAP-SECURITY
+- **Email:** security@sap.com
+- **Types:** Data breach, suspicious activity, lost badge
+
+### Q: What is SAP's clean desk policy?
+**A:** SAP's clean desk policy requires:
+- **Documents:** Lock away confidential documents
+- **Screens:** Lock computer when away from desk
+- **Visitors:** Don't leave visitors unattended
+- **Compliance:** Regular security audits conducted
+
+### Q: How do I get a visitor badge for guests?
+**A:** Visitor registration process:
+- **Visitor Portal:** https://visitors.sap.com/register
+- **Advance Notice:** Register visitors 24 hours in advance
+- **Requirements:** Government-issued ID required
+- **Escort:** Visitors must be escorted at all times
+
+## Career Development
+
+### Q: How do I find internal job postings?
+**A:** Internal positions are posted on:
+- **Career Portal:** https://careers.sap.com/internal
+- **SuccessFactors:** Career Development → Job Search
+- **Manager Discussion:** Talk to your manager about opportunities
+- **Networking:** Attend internal career fairs
+
+### Q: How do I request a performance review?
+**A:** Performance reviews are conducted through:
+- **SuccessFactors:** Performance → Performance Reviews
+- **Schedule:** Annual reviews in Q4, mid-year check-ins in Q2
+- **Manager Meeting:** Schedule 1:1 with your manager
+- **Documentation:** Prepare self-assessment beforehand
+
+### Q: What is SAP's mentoring program?
+**A:** SAP offers formal mentoring programs:
+- **Mentoring Portal:** https://mentoring.sap.com
+- **Application:** Open twice yearly (January and July)
+- **Duration:** 6-12 month programs
+- **Types:** Career mentoring, technical mentoring, leadership development
+
+## Travel & Expenses
+
+### Q: How do I book business travel?
+**A:** Business travel booking process:
+- **Travel Portal:** https://travel.sap.com
+- **Corporate Rates:** Use SAP preferred vendors
+- **Approval:** Manager approval required for international travel
+- **Policy:** Review travel policy before booking
+
+### Q: What expenses can I claim?
+**A:** Reimbursable expenses include:
+- **Meals:** Business meals with clients/colleagues
+- **Transportation:** Business-related travel costs
+- **Accommodation:** Hotel stays for business travel
+- **Policy:** Full policy at https://expenses.sap.com/policy
+
+## Emergency Contacts
+
+### Q: Who do I contact in an emergency?
+**A:** Emergency contact information:
+- **Medical Emergency:** Call 911 (or local emergency number)
+- **Building Security:** Contact front desk or security office
+- **IT Emergency:** +1-800-SAP-HELP
+- **HR Emergency:** +1-800-SAP-HR
+- **Manager:** Contact your direct manager or backup
+
+## Getting Help
+
+### Q: I can't find the answer to my question. Where else can I get help?
+**A:** Additional support resources:
+- **SAP Community:** https://community.sap.com/internal
+- **HR Service Center:** hr-help@sap.com or +1-800-SAP-HR
+- **IT Help Desk:** +1-800-SAP-HELP
+- **Manager/Buddy:** Ask your manager or assigned workplace buddy
+- **Employee Resource Groups:** Connect with relevant ERGs for support
+
+### Q: How do I provide feedback about SAP policies or processes?
+**A:** Share feedback through:
+- **Feedback Portal:** https://feedback.sap.com
+- **Employee Surveys:** Participate in quarterly engagement surveys
+- **Manager 1:1s:** Discuss during regular check-ins
+- **Anonymous Tip Line:** +1-800-SAP-ETHICS
+
+---
+
+**Last Updated:** September 2025  
+**For additional help:** Contact the HR Service Center at hr-help@sap.com
+
+*This FAQ is regularly updated. If you notice outdated information, please report it to the HR Service Center.*

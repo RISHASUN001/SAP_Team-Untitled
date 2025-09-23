@@ -1,0 +1,110 @@
+SAP SuccessFactors Onboarding FAQ & Quick Reference
+==================================================
+
+This document provides concise, practical answers and links for common questions about SAP SuccessFactors Onboarding, IT support, and essential employee processes. Use this as a quick reference for new hires, managers, and HR partners.
+
+---
+
+**About SAP SuccessFactors Onboarding**
+--------------------------------------
+SAP SuccessFactors Onboarding helps internal and external new hires quickly become productive members of the organization. It provides tools for:
+- Completing onboarding tasks and forms
+- Accessing and signing documents (tax forms, contracts, NDAs, etc.)
+- Tracking onboarding progress via the Onboarding Dashboard
+- Engaging with managers and HR throughout the process
+
+**Accessing the Onboarding Dashboard**
+--------------------------------------
+- Go to: https://successfactors.sap.com
+- Log in with your SAP credentials
+- Select "Onboarding" from the main navigation menu
+- View your assigned tasks and progress under "For You Today"
+
+**Initiating Onboarding**
+------------------------
+- Manual: Use Action Search → "Add New Hire to Onboarding"
+- Recruiting: From candidate profile, select "Initiate Onboarding"
+- Internal Hires: Triggered by job change in Employee Central or Recruiting
+
+**Typical Onboarding Steps**
+---------------------------
+1. Complete personal and employment information
+2. Review and sign documents (tax forms, contracts, NDAs)
+3. Enroll in benefits (https://benefits.sap.com)
+4. Complete compliance and background checks
+5. Attend orientation and training sessions
+6. Meet your manager and team
+7. Access required systems and tools
+
+**Document Management**
+----------------------
+- All onboarding documents are available in the Onboarding Dashboard
+- Sign documents using SAP SuccessFactors e-Signature or DocuSign
+- Download completed documents for your records
+
+**Manager & HR Tasks**
+---------------------
+- Review new hire data and documents
+- Assign onboarding tasks to new hires
+- Track onboarding status for all team members
+- Add new hires to Employee Central after onboarding is complete
+
+**IT & System Access**
+---------------------
+- Request IT equipment: https://helpdesk.sap.com/equipment-request
+- Submit IT support tickets: https://helpdesk.sap.com/service-portal
+- Reset password: https://identity.sap.com/password-reset
+- VPN setup: https://internal.sap.com/vpn-setup-guide
+- Access SAP systems: Use links in your onboarding checklist or ask your manager
+
+**Learning & Training**
+----------------------
+- Access SAP Learning Hub: https://learning.sap.com
+- Complete required onboarding courses
+- Track learning progress in SuccessFactors → Learning → My Learning
+
+**Benefits & Payroll**
+---------------------
+- Enroll in benefits: https://benefits.sap.com
+- View pay statements: SuccessFactors → Employee Central → Pay
+- Update direct deposit: HR portal or Employee Central
+
+**Time & Attendance**
+---------------------
+- Submit timesheets: SuccessFactors → Time → Time Sheet
+- Request time off: SuccessFactors → Time Off
+- View holiday calendar: https://hr.sap.com/holidays
+
+**Facilities & Workplace**
+-------------------------
+- Book meeting rooms: Outlook Calendar → Add Room
+- Report facilities issues: https://facilities.sap.com/service-request
+- Cafeteria info: https://dining.sap.com
+
+**Security & Compliance**
+------------------------
+- Report security incidents: https://security.sap.com/incident-report
+- Clean desk policy: Lock documents/screens when away
+- Register visitors: https://visitors.sap.com/register
+
+**Getting Help**
+---------------
+- IT Help Desk: +1-800-SAP-HELP
+- HR Service Center: hr-help@sap.com
+- SuccessFactors Support: https://support.sap.com/successfactors
+- Manager or assigned onboarding buddy
+
+**Useful Links**
+---------------
+- SAP SuccessFactors Onboarding: https://successfactors.sap.com
+- SAP Learning Hub: https://learning.sap.com
+- IT Service Portal: https://helpdesk.sap.com/service-portal
+- Benefits Portal: https://benefits.sap.com
+- Facilities Requests: https://facilities.sap.com/service-request
+- Security Incidents: https://security.sap.com/incident-report
+
+---
+
+*For more detailed guides, see the Onboarding Dashboard or contact your HR representative.*
+
+Last updated: September 2025

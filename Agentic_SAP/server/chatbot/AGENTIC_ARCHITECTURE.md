@@ -26,7 +26,7 @@ This document outlines the multi-agent LLM system for intelligent course recomme
 - Determines optimal learning approaches
 - Suggests course delivery preferences
 
-### 4. Course Recommendation Coordinator (`ai_skill_gap.py` - Enhanced)
+### 4. Course Recommendation Coordinator (`agent_orchestrator.py` - Enhanced)
 **Purpose**: Orchestrates all agent inputs for final recommendations
 - Receives structured input from all three agents
 - Combines multi-agent insights
@@ -45,5 +45,5 @@ All Agent Outputs → Coordinator Agent → Final Recommendations
 ## Implementation Strategy
 1. Create individual agent files with specialized LLM prompts
 2. Implement agent orchestration layer
-3. Modify existing `ai_skill_gap.py` to coordinate agents
+3. Modify existing `agent_orchestrator.py` to coordinate agents
 4. Integrate with existing course enrollment flow
