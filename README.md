@@ -6,7 +6,7 @@ To run chatbot backend refer to : (Running_Chatbots)[Agentic_SAP/Running_Chatbot
 
 A comprehensive web application that facilitates mentoring relationships in IT departments with AI-powered assistance, course recommendations, and team management features.
 
-## 🌟 Features
+## Features
 
 ### Core Functionality
 
@@ -33,7 +33,7 @@ A comprehensive web application that facilitates mentoring relationships in IT d
 - **Real-time Updates**: Live notifications and progress tracking
 - **Interactive Dashboards**: Comprehensive analytics and visualizations
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Installation
 
@@ -134,7 +134,7 @@ The platform includes three pre-configured demo users:
 - **Experience**: New joinee
 - **Skill Gaps**: Python, Advanced Analytics, Automation
 
-## 🎯 Key Features Overview
+## Key Features Overview
 
 ### 1. AI Mentor Assistant
 
@@ -161,7 +161,7 @@ The platform includes three pre-configured demo users:
 - **Learning Progress**: Track skill development over time
 - **Mentoring Effectiveness**: Session analytics and feedback trends
 
-## 🏗️ Project Structure
+## Project Structure
 
 ### Frontend (`/src`)
 
@@ -204,7 +204,7 @@ Each service is responsible for a specific aspect of the application's functiona
 - **Deadline Tracking**: Visual timeline with priority management
 - **Teams Integration**: Seamless Microsoft Teams connectivity
 
-## 🛠 Technical Architecture
+## Technical Architecture
 
 ### Frontend
 
@@ -230,7 +230,7 @@ Each service is responsible for a specific aspect of the application's functiona
 - **Components**: Reusable UI components with consistent styling
 - **Animations**: Smooth transitions and micro-interactions
 
-## 🎨 User Interface Features
+## User Interface Features
 
 ### Dashboard
 
@@ -330,7 +330,7 @@ Each service is responsible for a specific aspect of the application's functiona
 - **CORS Configuration**: Secure cross-origin requests
 - **Environment Variables**: Secure configuration management
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Design inspiration from modern SaaS platforms
 - Component patterns from React community best practices
