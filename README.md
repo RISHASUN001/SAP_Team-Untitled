@@ -35,11 +35,6 @@ A comprehensive web application that facilitates mentoring relationships in IT d
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-
 ### Installation
 
 1. **Clone the repository**
