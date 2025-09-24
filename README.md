@@ -293,12 +293,6 @@ Each service is responsible for a specific aspect of the application's functiona
 ### Analytics
 
 - `GET /api/feedback/summary/:userId` - Get feedback summary
-- `GET /api/analytics/team/:managerId` - Get team analytics
-
-### Integration
-
-- `POST /api/teams/schedule-meeting` - Schedule Teams meeting
-- `GET /api/teams/availability` - Check availability
 
 ## 🎯 Future Enhancements
 
