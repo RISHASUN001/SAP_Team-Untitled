@@ -230,14 +230,6 @@ Each service is responsible for a specific aspect of the application's functiona
 - **Components**: Reusable UI components with consistent styling
 - **Animations**: Smooth transitions and micro-interactions
 
-## 📱 Responsive Design
-
-The platform adapts seamlessly across all device sizes:
-
-- **Desktop** (>1024px): Full feature set with sidebar navigation
-- **Tablet** (768-1024px): Adaptive layouts with collapsible elements
-- **Mobile** (<768px): Optimized mobile interface with bottom navigation
-
 ## 🎨 User Interface Features
 
 ### Dashboard
