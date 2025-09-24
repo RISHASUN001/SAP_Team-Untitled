@@ -1,8 +1,6 @@
 # SAP_Team-Untitled
 
-To run chatbot backend refer to : (Running_Chatbots)[Agentic_SAP/Running_Chatbots_Guide.md]
-
-# AI-Powered Mentor-Mentee Platform
+# SAPhire
 
 A comprehensive web application that facilitates mentoring relationships in IT departments with AI-powered assistance, course recommendations, and team management features.
 
