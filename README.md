@@ -86,7 +86,7 @@ This will start all required backend services including mentor mode API, practic
 In a new terminal, navigate to the project root:
 
 ```bash
-cd Agentic_SAP
+cd Agentic_SAP/src
 ```
 
 Start the development server:
